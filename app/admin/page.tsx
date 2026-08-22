@@ -1,0 +1,526 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+  LayoutDashboard, Package, ShoppingBag, Users, Zap,
+  TrendingUp, ArrowUpRight, Eye, CheckCircle2, Clock,
+  XCircle, Plus, ChevronRight, BarChart3, Settings,
+  LogOut, AlertCircle, Loader2
+} from 'lucide-react';
+import { cn, formatCurrency, formatNumber } from '@/lib/utils';
+import { createClient } from '@/utils/supabase/client';
+import { mapSupabaseProduct } from '@/lib/supabase-helpers';
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
+  pending:   { label: 'Menunggu', color: 'var(--warning)',     bg: 'rgba(245,158,11,0.12)',   icon: Clock },
+  paid:      { label: 'Dibayar',  color: 'var(--info)',        bg: 'rgba(59,130,246,0.12)',   icon: AlertCircle },
+  approved:  { label: 'Diproses', color: 'var(--primary-400)', bg: 'rgba(232,120,159,0.12)', icon: Package },
+  completed: { label: 'Selesai',  color: 'var(--success)',     bg: 'rgba(34,197,94,0.12)',   icon: CheckCircle2 },
+  rejected:  { label: 'Ditolak',  color: 'var(--error)',       bg: 'rgba(239,68,68,0.12)',   icon: XCircle },
+};
+
+type AdminTab = 'dashboard' | 'orders' | 'products' | 'users';
+
+const SIDEBAR_ITEMS: { id: AdminTab; icon: typeof LayoutDashboard; label: string }[] = [
+  { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { id: 'orders',    icon: ShoppingBag,     label: 'Pesanan' },
+  { id: 'products',  icon: Package,         label: 'Produk' },
+  { id: 'users',     icon: Users,           label: 'Pengguna' },
+];
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+        
+      if (!profile || profile.role !== 'admin') {
+        router.push('/');
+        return;
+      }
+
+      // Fetch Users
+      const { data: usersData } = await supabase
+        .from('profiles')
+        .select('*');
+      if (usersData) setUsers(usersData);
+
+      // Fetch Products
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('*');
+      if (productsData) setProducts(productsData.map(mapSupabaseProduct));
+
+      // Fetch Orders
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('*, products(title), profiles(full_name)')
+        .order('created_at', { ascending: false });
+        
+      if (ordersData) {
+        setOrders(ordersData.map((o) => ({
+          id: o.order_number,
+          buyer: o.profiles?.full_name || 'Unknown',
+          product: o.products?.title || 'Unknown Product',
+          amount: o.amount,
+          status: o.status,
+          date: new Date(o.created_at).toLocaleString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          })
+        })));
+      }
+
+      setLoading(false);
+    };
+
+    fetchAdminData();
+  }, [router]);
+
+  const updateOrderStatus = async (id: string, newStatus: string) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('order_number', id);
+
+    if (!error) {
+      setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status: newStatus } : o));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
+      </div>
+    );
+  }
+
+  const stats = {
+    totalRevenue: orders.filter((o) => o.status === 'completed').reduce((s, o) => s + o.amount, 0),
+    totalOrders: orders.length,
+    pendingOrders: orders.filter((o) => o.status === 'pending' || o.status === 'paid').length,
+    activeProducts: products.filter((p) => p.status === 'active').length,
+  };
+
+  return (
+    <div className="flex min-h-screen" style={{ background: 'var(--surface-base)' }}>
+      {/* Sidebar overlay (mobile) */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          'fixed top-0 left-0 h-full z-50 flex flex-col transition-transform duration-300',
+          'lg:static lg:translate-x-0 lg:z-auto',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+        style={{
+          width: '220px',
+          background: 'rgba(20,18,16,0.95)',
+          backdropFilter: 'blur(24px)',
+          borderRight: '1px solid rgba(232,120,159,0.08)',
+        }}
+      >
+        {/* Logo */}
+        <div className="p-5 flex items-center gap-2.5 border-b" style={{ borderColor: 'rgba(232,120,159,0.08)' }}>
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm text-white"
+            style={{ background: 'linear-gradient(135deg, var(--primary-400), var(--accent-purple))' }}
+          >
+            P
+          </div>
+          <div>
+            <p className="text-xs font-bold font-heading" style={{ color: 'var(--text-primary)' }}>PAROY STORE</p>
+            <p className="text-[10px]" style={{ color: 'var(--primary-400)' }}>Admin Panel</p>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 p-3 flex flex-col gap-1">
+          {SIDEBAR_ITEMS.map(({ id, icon: Icon, label }) => (
+            <button
+              key={id}
+              onClick={() => { setActiveTab(id); setSidebarOpen(false); }}
+              className={cn(
+                'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left transition-all',
+              )}
+              style={
+                activeTab === id
+                  ? { background: 'rgba(232,120,159,0.12)', color: 'var(--primary-400)', border: '1px solid rgba(232,120,159,0.2)' }
+                  : { color: 'var(--text-muted)', border: '1px solid transparent' }
+              }
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
+              {id === 'orders' && stats.pendingOrders > 0 && (
+                <span
+                  className="ml-auto text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center text-white"
+                  style={{ background: 'var(--warning)' }}
+                >
+                  {stats.pendingOrders}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Bottom */}
+        <div className="p-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all hover:bg-[rgba(255,255,255,0.04)]"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <LogOut className="w-4 h-4" />
+            Kembali ke Toko
+          </Link>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* Top bar */}
+        <header
+          className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 h-14 shrink-0"
+          style={{ background: 'rgba(16,14,13,0.8)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(232,120,159,0.07)' }}
+        >
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg"
+              style={{ color: 'var(--text-muted)' }}
+              aria-label="Buka sidebar"
+            >
+              <BarChart3 className="w-4 h-4" />
+            </button>
+            <h1 className="font-bold font-heading text-sm capitalize" style={{ color: 'var(--text-primary)' }}>
+              {activeTab === 'dashboard' ? '📊 Dashboard' :
+               activeTab === 'orders' ? '📦 Pesanan' :
+               activeTab === 'products' ? '🎮 Produk' : '👥 Pengguna'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--success)' }}>
+              ● Admin
+            </span>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-4 sm:p-6">
+
+          {/* ===== DASHBOARD TAB ===== */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-4 max-w-5xl">
+              {/* Stats cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { label: 'Total Revenue', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: 'var(--success)', up: '+12%' },
+                  { label: 'Total Pesanan', value: String(stats.totalOrders), icon: ShoppingBag, color: 'var(--info)', up: '+5%' },
+                  { label: 'Perlu Diproses', value: String(stats.pendingOrders), icon: Clock, color: 'var(--warning)', up: '' },
+                  { label: 'Produk Aktif', value: String(stats.activeProducts), icon: Package, color: 'var(--primary-400)', up: '' },
+                ].map(({ label, value, icon: Icon, color, up }) => (
+                  <div key={label} className="glass-card p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center"
+                        style={{ background: `${color}22` }}
+                      >
+                        <Icon className="w-4 h-4" style={{ color }} />
+                      </div>
+                      {up && (
+                        <span className="flex items-center gap-0.5 text-[10px] font-bold" style={{ color: 'var(--success)' }}>
+                          <ArrowUpRight className="w-3 h-3" />{up}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xl font-black font-heading" style={{ color }}>{value}</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Recent orders */}
+              <div className="glass-card overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+                  <span className="section-label text-sm">Pesanan Terbaru</span>
+                  <button onClick={() => setActiveTab('orders')} className="text-xs flex items-center gap-1" style={{ color: 'var(--primary-400)' }}>
+                    Lihat Semua <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr style={{ background: 'var(--surface-raised)' }}>
+                        {['Order ID', 'Pembeli', 'Produk', 'Jumlah', 'Status'].map((h) => (
+                          <th key={h} className="p-3 text-left font-semibold" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.slice(0, 5).map((order) => {
+                        const st = STATUS_CONFIG[order.status];
+                        return (
+                          <tr key={order.id} style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                            <td className="p-3 font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>{order.id}</td>
+                            <td className="p-3 font-semibold" style={{ color: 'var(--text-primary)' }}>{order.buyer}</td>
+                            <td className="p-3 max-w-[180px]">
+                              <span className="block truncate" style={{ color: 'var(--text-secondary)' }}>{order.product}</span>
+                            </td>
+                            <td className="p-3 font-bold whitespace-nowrap" style={{ color: 'var(--primary-400)' }}>{formatCurrency(order.amount)}</td>
+                            <td className="p-3">
+                              <span className="badge" style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}33` }}>
+                                {st.label}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Top products */}
+              <div className="glass-card overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+                  <span className="section-label text-sm">Produk Populer</span>
+                </div>
+                <div className="divide-y" style={{ '--tw-divide-color': 'var(--border-subtle)' } as React.CSSProperties}>
+                  {products.sort((a, b) => b.viewCount - a.viewCount).slice(0, 5).map((p, i) => (
+                    <div key={p.id} className="flex items-center gap-3 p-3">
+                      <span className="text-xs font-bold w-5 text-center" style={{ color: 'var(--text-muted)' }}>#{i + 1}</span>
+                      <div className="relative w-10 h-12 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
+                        <Image src={p.images[0]} alt={p.title} fill className="object-cover" sizes="40px" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{p.title}</p>
+                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{p.game.icon} {p.game.name}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs font-bold" style={{ color: 'var(--primary-400)' }}>{formatCurrency(p.price)}</p>
+                        <p className="text-[10px] flex items-center gap-0.5 justify-end" style={{ color: 'var(--text-muted)' }}>
+                          <Eye className="w-2.5 h-2.5" />{formatNumber(p.viewCount)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ===== ORDERS TAB ===== */}
+          {activeTab === 'orders' && (
+            <div className="max-w-5xl space-y-3">
+              {orders.map((order) => {
+                const st = STATUS_CONFIG[order.status];
+                const StatusIcon = st.icon;
+                return (
+                  <div key={order.id} className="glass-card p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="font-mono text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{order.id}</span>
+                          <span className="badge flex items-center gap-1" style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}33` }}>
+                            <StatusIcon className="w-2.5 h-2.5" />
+                            {st.label}
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{order.product}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                          👤 {order.buyer} · {order.date}
+                        </p>
+                        <p className="text-sm font-black mt-1" style={{ color: 'var(--primary-400)' }}>{formatCurrency(order.amount)}</p>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex gap-2 flex-wrap">
+                        {order.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'paid')}
+                              className="btn-secondary text-xs py-1.5 px-3"
+                            >
+                              <Eye className="w-3 h-3" /> Cek Bukti
+                            </button>
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'approved')}
+                              className="btn-primary text-xs py-1.5 px-3"
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Approve
+                            </button>
+                          </>
+                        )}
+                        {order.status === 'paid' && (
+                          <>
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'approved')}
+                              className="btn-primary text-xs py-1.5 px-3"
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Approve
+                            </button>
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'rejected')}
+                              className="text-xs py-1.5 px-3 rounded-lg font-semibold transition-all"
+                              style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--error)', border: '1px solid rgba(239,68,68,0.25)' }}
+                            >
+                              <XCircle className="w-3 h-3 inline mr-1" /> Tolak
+                            </button>
+                          </>
+                        )}
+                        {order.status === 'approved' && (
+                          <button
+                            onClick={() => updateOrderStatus(order.id, 'completed')}
+                            className="btn-primary text-xs py-1.5 px-3"
+                          >
+                            <CheckCircle2 className="w-3 h-3" /> Selesaikan
+                          </button>
+                        )}
+                        {(order.status === 'completed' || order.status === 'rejected') && (
+                          <span className="text-xs py-1.5 px-3 rounded-lg" style={{ color: 'var(--text-muted)', background: 'var(--surface-raised)' }}>
+                            {order.status === 'completed' ? '✅ Selesai' : '❌ Ditolak'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ===== PRODUCTS TAB ===== */}
+          {activeTab === 'products' && (
+            <div className="max-w-5xl">
+              <div className="flex justify-end mb-3">
+                <button className="btn-primary text-sm">
+                  <Plus className="w-4 h-4" />
+                  Tambah Produk
+                </button>
+              </div>
+              <div className="glass-card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr style={{ background: 'var(--surface-raised)' }}>
+                        {['Produk', 'Game', 'Harga', 'Views', 'Status', 'Aksi'].map((h) => (
+                          <th key={h} className="p-3 text-left font-semibold" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map((p) => (
+                        <tr key={p.id} style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <div className="relative w-8 h-10 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
+                                <Image src={p.images[0]} alt={p.title} fill className="object-cover" sizes="32px" />
+                              </div>
+                              <span className="line-clamp-2 max-w-[180px]" style={{ color: 'var(--text-primary)' }}>{p.title}</span>
+                            </div>
+                          </td>
+                          <td className="p-3" style={{ color: p.game.color, whiteSpace: 'nowrap' }}>
+                            {p.game.icon} {p.game.name}
+                          </td>
+                          <td className="p-3 font-bold whitespace-nowrap" style={{ color: 'var(--primary-400)' }}>
+                            {formatCurrency(p.price)}
+                          </td>
+                          <td className="p-3 whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+                            {formatNumber(p.viewCount)}
+                          </td>
+                          <td className="p-3">
+                            <span
+                              className="badge"
+                              style={
+                                p.status === 'active'
+                                  ? { background: 'rgba(34,197,94,0.12)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.2)' }
+                                  : { background: 'rgba(239,68,68,0.12)', color: 'var(--error)', border: '1px solid rgba(239,68,68,0.2)' }
+                              }
+                            >
+                              {p.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex gap-1">
+                              <Link href={`/products/${p.id}`} className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(255,255,255,0.06)]" style={{ color: 'var(--text-muted)' }}>
+                                <Eye className="w-3.5 h-3.5" />
+                              </Link>
+                              <button className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(255,255,255,0.06)]" style={{ color: 'var(--text-muted)' }}>
+                                <Settings className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ===== USERS TAB ===== */}
+          {activeTab === 'users' && (
+            <div className="max-w-3xl">
+              <div className="glass-card overflow-hidden">
+                <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+                  <span className="section-label text-sm">Pengguna Terdaftar</span>
+                </div>
+                {users.map(({ full_name, username, role, created_at, avatar_url }) => (
+                  <div key={username} className="flex items-center gap-3 p-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0" style={{ background: 'var(--surface-raised)' }}>
+                      {avatar_url || '👤'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{full_name || username}</p>
+                        {role === 'admin' && (
+                          <span className="badge text-[9px]" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.2)' }}>Admin</span>
+                        )}
+                      </div>
+                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{username} · Join {new Date(created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>- order</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

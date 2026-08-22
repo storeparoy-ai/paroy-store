@@ -1,69 +1,79 @@
-import Image from "next/image";
+import Header from '@/components/layout/Header';
+import BottomNav from '@/components/layout/BottomNav';
+import Footer from '@/components/layout/Footer';
+import HomeHero from '@/components/home/HomeHero';
+import HomeSearch from '@/components/home/HomeSearch';
+import HomeQuickMenu from '@/components/home/HomeQuickMenu';
+import HomeFeaturedProducts from '@/components/home/HomeFeaturedProducts';
+import HomeFlashSale from '@/components/home/HomeFlashSale';
+import { MOCK_FLASH_SALES } from '@/lib/mock-data';
+import { createClient } from '@/utils/supabase/server';
+import { mapSupabaseProduct } from '@/lib/supabase-helpers';
+import { Product } from '@/types';
 
-export default function Home() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  
+  // Fetch latest products
+  const { data: latestData } = await supabase
+    .from('products')
+    .select('*, profiles(full_name, username, role)')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(6);
+
+  // Fetch featured products (most viewed)
+  const { data: featuredData } = await supabase
+    .from('products')
+    .select('*, profiles(full_name, username, role)')
+    .eq('status', 'active')
+    .order('view_count', { ascending: false })
+    .limit(6);
+
+  const latestProducts: Product[] = (latestData || []).map(mapSupabaseProduct);
+  const featuredProducts: Product[] = (featuredData || []).map(mapSupabaseProduct);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <>
+      <Header />
+      <div className="pt-9 lg:pt-[5.75rem]">
+        <main className="bento-grid-full pb-4 lg:pb-8">
+          {/* Hero */}
+          <HomeHero />
+
+          {/* Search */}
+          <HomeSearch />
+
+          {/* Quick Menu */}
+          <HomeQuickMenu />
+
+          {/* Flash Sale */}
+          {MOCK_FLASH_SALES.length > 0 && (
+            <HomeFlashSale sales={MOCK_FLASH_SALES} />
+          )}
+
+          {/* Produk Terbaru */}
+          <HomeFeaturedProducts
+            title="Produk Terbaru"
+            icon="🆕"
+            products={latestProducts}
+            viewAllHref="/products"
+          />
+
+          {/* Produk Unggulan */}
+          <HomeFeaturedProducts
+            title="Produk Unggulan"
+            icon="⭐"
+            products={featuredProducts}
+            viewAllHref="/products?featured=true"
+          />
+        </main>
+        <Footer />
+      </div>
+
+      {/* Bottom nav mobile */}
+      <BottomNav />
+      <div className="h-[116px] lg:hidden" />
+    </>
   );
 }
