@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Plus, Trash2, Loader2, Upload } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import Image from 'next/image';
 
 const GAMES = [
   { value: 'MLBB', label: '⚡ Mobile Legends' },
@@ -20,7 +21,6 @@ interface ProductFormData {
   rental_price_daily: string;
   can_rental: boolean;
   status: 'active' | 'inactive';
-  images: string[];
   description: string;
   rank: string;
   win_rate: string;
@@ -37,7 +37,6 @@ const DEFAULT_FORM: ProductFormData = {
   rental_price_daily: '',
   can_rental: false,
   status: 'active',
-  images: [''],
   description: '',
   rank: '',
   win_rate: '',
@@ -46,6 +45,8 @@ const DEFAULT_FORM: ProductFormData = {
   platform: 'Android, iOS',
   region: 'Indonesia',
 };
+
+type ImageItem = { type: 'url'; value: string; preview: string } | { type: 'file'; value: File; preview: string };
 
 interface ProductModalProps {
   mode: 'add' | 'edit';
@@ -56,8 +57,10 @@ interface ProductModalProps {
 
 export default function ProductModal({ mode, product, onClose, onSuccess }: ProductModalProps) {
   const [form, setForm] = useState<ProductFormData>(DEFAULT_FORM);
+  const [images, setImages] = useState<ImageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (mode === 'edit' && product) {
@@ -68,7 +71,6 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
         rental_price_daily: String(product.rental_price_daily || ''),
         can_rental: product.can_rental || false,
         status: product.status || 'active',
-        images: product.images?.length > 0 ? product.images : [''],
         description: product.description || '',
         rank: product.specs?.rank || '',
         win_rate: product.specs?.win_rate || '',
@@ -79,8 +81,30 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
           : product.platform || 'Android, iOS',
         region: product.region || 'Indonesia',
       });
+      if (product.images && product.images.length > 0) {
+        setImages(product.images.map((url: string) => ({ type: 'url', value: url, preview: url })));
+      }
     }
   }, [mode, product]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const newFiles = Array.from(e.target.files).map(file => ({
+      type: 'file' as const,
+      value: file,
+      preview: URL.createObjectURL(file)
+    }));
+    setImages(prev => [...prev, ...newFiles]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => {
+      const img = prev[index];
+      if (img.type === 'file') URL.revokeObjectURL(img.preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,9 +117,43 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
       return;
     }
 
+    if (images.length === 0) {
+      setError('Minimal upload 1 foto produk!');
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    // 1. Upload files first
+    const finalImageUrls: string[] = [];
+    
+    for (const img of images) {
+      if (img.type === 'url') {
+        finalImageUrls.push(img.value);
+      } else {
+        const fileExt = img.value.name.split('.').pop();
+        const fileName = `product-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(fileName, img.value, { cacheControl: '3600', upsert: false });
+          
+        if (uploadError) {
+          setError(`Gagal upload foto: ${uploadError.message}`);
+          setLoading(false);
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('products')
+          .getPublicUrl(fileName);
+        finalImageUrls.push(publicUrlData.publicUrl);
+      }
+    }
+
+    // 2. Insert/Update DB
     const payload = {
       title: form.title,
       game: form.game,
@@ -105,7 +163,7 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
         : null,
       can_rental: form.can_rental,
       status: form.status,
-      images: form.images.filter(img => img.trim() !== ''),
+      images: finalImageUrls,
       description: form.description,
       platform: form.platform.split(',').map(p => p.trim()),
       region: form.region,
@@ -135,21 +193,6 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
     onSuccess();
     onClose();
   };
-
-  const addImageField = () =>
-    setForm(prev => ({ ...prev, images: [...prev.images, ''] }));
-
-  const updateImage = (index: number, value: string) =>
-    setForm(prev => ({
-      ...prev,
-      images: prev.images.map((img, i) => (i === index ? value : img)),
-    }));
-
-  const removeImage = (index: number) =>
-    setForm(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -367,58 +410,57 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
             </div>
           </div>
 
-          {/* Images */}
+          {/* Images Upload */}
           <div className="glass-card p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <p className="section-label text-xs">URL Gambar Produk</p>
+              <p className="section-label text-xs">Foto Produk <span style={{ color: 'var(--error)' }}>*</span></p>
               <button
                 type="button"
-                onClick={addImageField}
+                onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors"
                 style={{ color: 'var(--primary-400)', background: 'rgba(232,120,159,0.1)' }}
               >
-                <Plus className="w-3 h-3" /> Tambah URL
+                <Upload className="w-3 h-3" /> Pilih Foto
               </button>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                className="hidden" 
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+              />
             </div>
-
-            {form.images.map((img, index) => (
-              <div key={index} className="flex gap-2 items-center">
-                <input
-                  type="url"
-                  value={img}
-                  onChange={e => updateImage(index, e.target.value)}
-                  placeholder={`https://i.imgur.com/gambar${index + 1}.jpg`}
-                  className="input-base flex-1 text-xs"
-                />
-                {form.images.length > 1 && (
+            
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {images.map((img, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-[var(--border-default)] group">
+                  <Image src={img.preview} alt={`Preview ${index}`} fill className="object-cover" sizes="100px" />
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="p-2 rounded-lg flex-shrink-0 transition-colors hover:bg-[rgba(239,68,68,0.1)]"
-                    style={{ color: 'var(--error)' }}
+                    className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 text-white" />
                   </button>
-                )}
-              </div>
-            ))}
-            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-              💡 Upload gambar ke{' '}
-              <a
-                href="https://imgur.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: 'var(--primary-400)' }}
-              >
-                imgur.com
-              </a>{' '}
-              lalu copy link-nya di sini. Gambar pertama akan jadi thumbnail utama.
-            </p>
+                </div>
+              ))}
+              {images.length === 0 && (
+                <div 
+                  className="col-span-full py-6 text-center text-xs rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors hover:border-[var(--primary-400)] hover:bg-[rgba(232,120,159,0.05)]"
+                  style={{ borderColor: 'var(--border-default)', color: 'var(--text-muted)' }}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-6 h-6 mb-1 opacity-50" />
+                  Klik "Pilih Foto" untuk upload<br/>(Maksimal 5MB per file)
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pb-2">
-            <button type="button" onClick={onClose} className="btn-secondary flex-1">
+          <div className="flex gap-3 pb-2 mt-2">
+            <button type="button" onClick={onClose} disabled={loading} className="btn-secondary flex-1">
               Batal
             </button>
             <button

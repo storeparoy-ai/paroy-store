@@ -96,6 +96,49 @@ export default function ProfilePage() {
     router.refresh();
   };
 
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingAvatar(true);
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('Pilih gambar untuk diupload.');
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userProfile.id}-${Math.random()}.${fileExt}`;
+      
+      const supabase = createClient();
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userProfile.id);
+
+      if (updateError) throw updateError;
+
+      setUserProfile({ ...userProfile, avatarUrl: publicUrl });
+      alert('Avatar berhasil diperbarui!');
+    } catch (error: any) {
+      alert(error.message || 'Gagal upload avatar');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   if (loading || !userProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -128,14 +171,36 @@ export default function ProfilePage() {
               style={{ background: 'rgba(232,120,159,0.10)', filter: 'blur(40px)' }}
             />
             <div className="relative flex items-center gap-4">
-              {/* Avatar */}
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 text-2xl font-bold text-white"
-                style={{ background: 'linear-gradient(135deg, var(--primary-400), var(--accent-purple))' }}
-              >
-                {userProfile.name.charAt(0)}
+              {/* Avatar with Upload */}
+              <div className="relative group">
+                <div
+                  className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 text-2xl font-bold text-white relative"
+                  style={{ background: 'linear-gradient(135deg, var(--primary-400), var(--accent-purple))' }}
+                >
+                  {userProfile.avatarUrl ? (
+                    <Image src={userProfile.avatarUrl} alt="Avatar" fill className="object-cover" sizes="64px" />
+                  ) : (
+                    userProfile.name.charAt(0).toUpperCase()
+                  )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    </div>
+                  )}
+                </div>
+                <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--surface-card)] border border-[var(--border-default)] flex items-center justify-center cursor-pointer shadow-sm hover:scale-110 transition-transform">
+                  <span className="text-[10px]">📷</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                    className="hidden"
+                  />
+                </label>
               </div>
-              <div className="min-w-0">
+              
+              <div className="min-w-0 flex-1">
                 <h1 className="font-bold font-heading text-lg" style={{ color: 'var(--text-primary)' }}>
                   {userProfile.name}
                 </h1>
