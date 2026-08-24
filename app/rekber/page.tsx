@@ -82,14 +82,14 @@ export default function RekberPage() {
     <>
       <Header />
       
-      <main className="min-h-screen py-8 sm:py-10 pb-24 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto">
+      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto flex flex-col gap-10">
         
-        {/* Page Hero */}
-        <div className="relative p-8 sm:p-12 rounded-3xl bg-bg-card border border-emerald-500/30 shadow-md overflow-hidden mb-10">
+        {/* Page Hero Bento */}
+        <div className="relative p-8 sm:p-12 rounded-3xl bg-[#0d121f] border border-emerald-500/25 shadow-xl overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="relative z-10 max-w-3xl">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="relative z-10 max-w-3xl space-y-4">
+            <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
                 <ShieldCheck className="w-5 h-5" />
               </span>
@@ -101,11 +101,11 @@ export default function RekberPage() {
             <h1 className="font-heading font-black text-3xl sm:text-5xl text-white tracking-tight">
               Rekber Terpercaya <span className="text-gradient-cyan">100% Anti Tipu</span>
             </h1>
-            <p className="text-xs sm:text-sm md:text-base text-text-muted mt-2 mb-6 leading-relaxed">
+            <p className="text-xs sm:text-sm md:text-base text-text-muted leading-relaxed">
               Lindungi uangmu saat transaksi jual beli akun game antar player. Dana diamankan di sistem escrow Paroy Store sampai kamu mengonfirmasi bahwa data akun sudah 100% milikmu dan di-unbind penuh.
             </p>
 
-            <div className="flex flex-wrap items-center gap-5 text-xs font-semibold text-text-muted">
+            <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-bold text-text-muted">
               <span className="flex items-center gap-2 text-emerald-400"><Lock className="w-4 h-4" /> Dana Dijamin Aman 100%</span>
               <span className="flex items-center gap-2 text-brand-cyan"><Zap className="w-4 h-4" /> Proses 15 Menit Selesai</span>
               <span className="flex items-center gap-2 text-amber-400"><Headphones className="w-4 h-4" /> Admin Siaga 24 Jam</span>
@@ -114,20 +114,20 @@ export default function RekberPage() {
         </div>
 
         {/* 2-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-start">
           
           {/* Left Column: Flow & Benefits (7 cols) */}
           <div className="lg:col-span-7 flex flex-col gap-8">
             
             {/* Flow Steps */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-bg-card border border-white/8">
-              <h2 className="font-heading font-black text-xl text-white mb-6">
+            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg space-y-6">
+              <h2 className="font-heading font-black text-xl text-white">
                 Tahapan Alur Rekber Escrow Paroy Store
               </h2>
 
               <div className="space-y-4">
                 {HOW_IT_WORKS.map((item) => (
-                  <div key={item.step} className="flex items-start gap-4 p-4.5 rounded-2xl bg-bg-base border border-white/5">
+                  <div key={item.step} className="flex items-start gap-4 p-5 rounded-2xl bg-[#141a29] border border-white/6">
                     <span className="w-9 h-9 rounded-xl bg-linear-to-tr from-brand-cyan to-brand-purple text-black font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
                       {item.step}
                     </span>
@@ -141,24 +141,24 @@ export default function RekberPage() {
             </div>
 
             {/* Fee Table */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-bg-card border border-white/8">
-              <h2 className="font-heading font-bold text-base sm:text-lg text-white mb-4">
+            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg space-y-4">
+              <h2 className="font-heading font-black text-lg text-white">
                 Tarif Biaya Jasa Rekber
               </h2>
               
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs sm:text-sm">
                   <thead>
-                    <tr className="bg-bg-raised text-text-muted uppercase tracking-wider font-bold">
-                      <th className="p-3.5 rounded-l-xl">Nilai Transaksi</th>
-                      <th className="p-3.5 rounded-r-xl">Biaya Admin</th>
+                    <tr className="bg-[#141a29] text-text-muted uppercase tracking-wider font-bold">
+                      <th className="p-4 rounded-l-xl">Nilai Transaksi</th>
+                      <th className="p-4 rounded-r-xl">Biaya Admin</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 font-medium text-white">
                     {REKBER_FEE.map((f) => (
                       <tr key={f.range}>
-                        <td className="p-3.5">{f.range}</td>
-                        <td className="p-3.5 font-bold text-primary-container">{f.fee}</td>
+                        <td className="p-4">{f.range}</td>
+                        <td className="p-4 font-bold text-primary-container font-mono">{f.fee}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -169,26 +169,28 @@ export default function RekberPage() {
           </div>
 
           {/* Right Column: Submission Form (5 cols) */}
-          <div className="lg:col-span-5 flex flex-col gap-6 sticky top-24">
+          <div className="lg:col-span-5 flex flex-col gap-6 sm:gap-8 sticky top-28">
             
-            <div className="p-6 sm:p-8 rounded-3xl bg-bg-card border border-white/8 shadow-md">
-              <h2 className="font-heading font-bold text-lg text-white mb-2">
-                Ajukan Rekber Baru
-              </h2>
-              <p className="text-xs text-text-muted mb-6">
-                Masukkan detail transaksi untuk memulai pembuatan grup rekber dengan admin.
-              </p>
+            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-xl space-y-6">
+              <div>
+                <h2 className="font-heading font-black text-xl text-white">
+                  Ajukan Rekber Baru
+                </h2>
+                <p className="text-xs sm:text-sm text-text-muted mt-1">
+                  Masukkan detail transaksi untuk memulai pembuatan grup rekber dengan admin.
+                </p>
+              </div>
 
               {submitted ? (
-                <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center flex flex-col items-center gap-3">
-                  <CheckCircle2 className="w-12 h-12 text-emerald-400" />
-                  <h3 className="font-bold text-base text-white">Pengajuan Rekber Berhasil!</h3>
-                  <p className="text-xs text-text-muted">
-                    Admin kami akan segera menghubungi kamu melalui WhatsApp untuk membuat grup transaksi 3 pihak.
+                <div className="p-8 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center flex flex-col items-center gap-3">
+                  <CheckCircle2 className="w-14 h-14 text-emerald-400" />
+                  <h3 className="font-bold text-lg text-white">Pengajuan Rekber Berhasil!</h3>
+                  <p className="text-xs text-text-muted leading-relaxed">
+                    Admin kami akan segera menghubungi kamu melalui WhatsApp untuk membuat grup transaksi 3 pihak yang aman.
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="btn-cyber text-xs mt-2"
+                    className="btn-cyber text-xs mt-3 px-6 py-2.5"
                   >
                     Ajukan Transaksi Lain
                   </button>
@@ -196,8 +198,8 @@ export default function RekberPage() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-1.5">
-                      Nama Akun / Item Game
+                    <label className="block text-xs font-bold text-text-main mb-2">
+                      Nama Akun / Item Game <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
@@ -210,21 +212,21 @@ export default function RekberPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-1.5">
-                      Nominal Harga Transaksi (Rp)
+                    <label className="block text-xs font-bold text-text-main mb-2">
+                      Nominal Harga Transaksi (Rp) <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="Contoh: 500000"
-                      className="input-base"
+                      className="input-base font-mono font-bold"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-1.5">
+                    <label className="block text-xs font-bold text-text-main mb-2">
                       Nomor WhatsApp Penjual (Opsional)
                     </label>
                     <input
@@ -237,14 +239,14 @@ export default function RekberPage() {
                   </div>
 
                   {amount && Number(amount) > 0 && (
-                    <div className="p-4 rounded-xl bg-bg-base border border-white/5 space-y-1.5 text-xs">
+                    <div className="p-4 rounded-2xl bg-[#141a29] border border-white/6 space-y-2 text-xs">
                       <div className="flex justify-between text-text-muted">
                         <span>Biaya Jasa Rekber:</span>
-                        <span className="font-bold text-white">{formatCurrency(calculateFee(Number(amount)))}</span>
+                        <span className="font-bold text-white font-mono">{formatCurrency(calculateFee(Number(amount)))}</span>
                       </div>
-                      <div className="flex justify-between font-bold text-white pt-1.5 border-t border-white/5">
-                        <span>Total yang Harus Ditransfer:</span>
-                        <span className="text-primary-container text-sm font-black">{formatCurrency(Number(amount) + calculateFee(Number(amount)))}</span>
+                      <div className="flex justify-between font-bold text-white pt-2 border-t border-white/6">
+                        <span>Total Ditransfer:</span>
+                        <span className="text-primary-container text-base font-black font-mono">{formatCurrency(Number(amount) + calculateFee(Number(amount)))}</span>
                       </div>
                     </div>
                   )}
@@ -252,7 +254,7 @@ export default function RekberPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="btn-cyber w-full py-4 text-xs font-black flex items-center justify-center gap-2"
+                    className="btn-cyber w-full py-3.5 text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-lg"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                       <>
@@ -266,10 +268,10 @@ export default function RekberPage() {
             </div>
 
             {/* Direct WhatsApp Box */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-4">
+            <div className="p-6 rounded-3xl bg-[#0d121f] border border-emerald-500/25 flex items-center justify-between gap-4 shadow-md">
               <div>
-                <p className="text-xs sm:text-sm font-bold text-white">Butuh bantuan rekber cepat?</p>
-                <p className="text-[11px] text-emerald-400 mt-0.5">Chat Admin Rekber via WhatsApp resmi</p>
+                <p className="text-xs sm:text-sm font-bold text-white">Butuh bantuan rekber kilat?</p>
+                <p className="text-xs text-emerald-400 mt-0.5 font-semibold">Chat Admin via WhatsApp resmi</p>
               </div>
               <a
                 href="https://wa.me/6281234567890"

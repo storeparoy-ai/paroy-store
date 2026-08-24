@@ -14,9 +14,9 @@ import { Product } from '@/types';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 
 const RENTAL_HOW = [
-  { icon: '🔍', title: 'Pilih Akun', desc: 'Pilih akun game dengan rank & skin sultan yang kamu inginkan.' },
-  { icon: '⏱️', title: 'Pilih Durasi', desc: 'Sewa fleksibel harian, mingguan, atau per jam sesuai kebutuhan.' },
-  { icon: '💳', title: 'Bayar Instan', desc: 'Bayar via QRIS atau Transfer Bank otomatis 24 jam.' },
+  { icon: '🔍', title: 'Pilih Akun Impian', desc: 'Pilih akun game dengan rank & skin sultan yang kamu inginkan.' },
+  { icon: '⏱️', title: 'Tentukan Durasi Sewa', desc: 'Sewa fleksibel harian, mingguan, atau per jam sesuai kebutuhan.' },
+  { icon: '💳', title: 'Bayar Otomatis', desc: 'Bayar via QRIS atau Transfer Bank otomatis 24 jam nonstop.' },
   { icon: '🎮', title: 'Langsung Main!', desc: 'Data login dikirim otomatis via WhatsApp & dashboard akun.' },
 ];
 
@@ -43,14 +43,14 @@ export default function RentalPage() {
     <>
       <Header />
       
-      <main className="min-h-screen py-8 sm:py-10 pb-24 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto">
+      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto flex flex-col gap-10">
         
-        {/* Hero Banner */}
-        <div className="relative p-8 sm:p-12 rounded-3xl bg-bg-card border border-white/8 shadow-md overflow-hidden mb-10">
+        {/* Hero Banner Bento */}
+        <div className="relative p-8 sm:p-12 rounded-3xl bg-[#0d121f] border border-white/8 shadow-xl overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-brand-cyan/10 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="relative z-10 max-w-3xl">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="relative z-10 max-w-3xl space-y-4">
+            <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 text-brand-cyan">
                 <Clock3 className="w-5 h-5" />
               </span>
@@ -62,11 +62,11 @@ export default function RentalPage() {
             <h1 className="font-heading font-black text-3xl sm:text-5xl text-white tracking-tight">
               Sewa Akun Sultan <span className="text-gradient-cyan">Mulai 10 Ribu</span>
             </h1>
-            <p className="text-xs sm:text-sm md:text-base text-text-muted mt-2 mb-6 leading-relaxed">
-              Mau cobain skin Mythic, senjata langka, atau main bareng temen dengan rank tinggi? Rental akun game terpercaya dengan proses pengiriman instan 1 menit.
+            <p className="text-xs sm:text-sm md:text-base text-text-muted leading-relaxed">
+              Mau cobain skin Mythic, senjata langka, atau mabar bareng temen dengan rank tinggi? Rental akun game terpercaya dengan proses pengiriman instan 1 menit.
             </p>
 
-            <div className="flex items-center gap-5 text-xs sm:text-sm font-semibold text-emerald-400">
+            <div className="flex items-center gap-6 pt-2 text-xs sm:text-sm font-bold text-emerald-400">
               <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> 100% Anti Hackback</span>
               <span className="flex items-center gap-2"><Zap className="w-4 h-4" /> Kirim Akun Otomatis</span>
             </div>
@@ -74,18 +74,18 @@ export default function RentalPage() {
         </div>
 
         {/* How It Works Steps (4 cols) */}
-        <div className="mb-12">
-          <h2 className="font-heading font-black text-xl sm:text-2xl text-white mb-6">Cara Sewa Akun di Paroy Store</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-6">
+          <h2 className="font-heading font-black text-xl sm:text-2xl text-white">Cara Sewa Akun di Paroy Store</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {RENTAL_HOW.map((step, idx) => (
-              <div key={step.title} className="p-6 rounded-2xl bg-bg-card border border-white/8 flex flex-col gap-3">
+              <div key={step.title} className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 flex flex-col gap-4 shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="text-3xl">{step.icon}</span>
-                  <span className="w-7 h-7 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-text-muted flex items-center justify-center">
+                  <span className="w-8 h-8 rounded-xl bg-[#141a29] border border-white/10 text-xs font-black text-brand-cyan flex items-center justify-center">
                     {idx + 1}
                   </span>
                 </div>
-                <h3 className="font-heading font-bold text-sm sm:text-base text-white">{step.title}</h3>
+                <h3 className="font-heading font-bold text-base text-white">{step.title}</h3>
                 <p className="text-xs sm:text-sm text-text-muted leading-relaxed">{step.desc}</p>
               </div>
             ))}
@@ -93,20 +93,20 @@ export default function RentalPage() {
         </div>
 
         {/* Rental Products Grid */}
-        <div>
-          <div className="flex items-center justify-between mb-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="font-heading font-black text-xl sm:text-2xl text-white">Akun Siap Sewa</h2>
-              <p className="text-xs sm:text-sm text-text-muted">Pilih akun favoritmu dan mulai bermain sekarang</p>
+              <p className="text-xs sm:text-sm text-text-muted mt-1">Pilih akun favoritmu dan mulai bermain sekarang</p>
             </div>
-            <span className="text-xs sm:text-sm text-text-muted">
-              {products.length} akun tersedia
+            <span className="text-xs sm:text-sm font-bold text-text-muted bg-[#0d121f] border border-white/8 px-4 py-2 rounded-xl">
+              {products.length} Akun Tersedia
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>

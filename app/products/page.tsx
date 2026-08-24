@@ -13,11 +13,11 @@ import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 
 const SORT_OPTIONS = [
-  { value: 'newest', label: 'Terbaru' },
+  { value: 'newest', label: 'Terbaru Ditambahkan' },
   { value: 'oldest', label: 'Terlama' },
   { value: 'price-asc', label: 'Harga Terendah' },
   { value: 'price-desc', label: 'Harga Tertinggi' },
-  { value: 'popular', label: 'Terpopuler' },
+  { value: 'popular', label: 'Paling Populer' },
 ];
 
 export default function ProductsPage() {
@@ -78,51 +78,51 @@ export default function ProductsPage() {
     <>
       <Header />
       
-      <main className="min-h-screen py-8 sm:py-10 pb-24 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto">
+      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto flex flex-col gap-8">
         
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-          <div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-brand-cyan shadow-[0_0_8px_#00f0ff] animate-pulse" />
               <h1 className="font-heading font-black text-2xl sm:text-4xl text-white tracking-tight">
                 Katalog Akun <span className="text-gradient-cyan">Semua Game</span>
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-text-muted mt-1">
-              Temukan akun sultan bergaransi resmi, akun joki, dan akun rental siap pakai
+            <p className="text-xs sm:text-sm text-text-muted max-w-xl leading-relaxed">
+              Temukan akun sultan bergaransi resmi anti hackback, akun joki, dan akun rental siap pakai 24 jam.
             </p>
           </div>
 
-          <span className="text-xs sm:text-sm text-text-muted font-medium">
-            Menampilkan <strong className="text-white font-bold">{filtered.length}</strong> produk akun terverifikasi
+          <span className="text-xs sm:text-sm text-text-muted font-semibold bg-[#0d121f] border border-white/8 px-4 py-2 rounded-xl w-fit">
+            Menampilkan <strong className="text-white font-bold">{filtered.length}</strong> produk akun aktif
           </span>
         </div>
 
         {/* Search, Sort, and Filter Controls Bar */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-bg-card border border-white/8 mb-6 flex flex-col md:flex-row items-center gap-3.5">
+        <div className="p-5 sm:p-6 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg flex flex-col md:flex-row items-center gap-4">
           
           {/* Search Input */}
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-text-dim" />
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari judul akun, skin, rank, hero, atau spesifikasi..."
-              className="input-base pl-9 h-11"
+              placeholder="Cari judul akun, skin langka, rank, hero, atau spesifikasi..."
+              className="input-base pl-11 h-12 text-xs sm:text-sm"
             />
           </div>
 
           {/* Sort Dropdown */}
-          <div className="flex items-center gap-2.5 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full md:w-auto">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="input-base h-11 w-full md:w-48 text-xs cursor-pointer"
+              className="input-base h-12 w-full md:w-56 text-xs font-bold cursor-pointer"
             >
               {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-bg-card">{o.label}</option>
+                <option key={o.value} value={o.value} className="bg-[#111728] text-white font-normal">{o.label}</option>
               ))}
             </select>
 
@@ -130,10 +130,10 @@ export default function ProductsPage() {
             <button
               onClick={() => setShowRentalOnly(!showRentalOnly)}
               className={cn(
-                'h-11 px-4 sm:px-5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-2 cursor-pointer shrink-0',
+                'h-12 px-5 sm:px-6 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-2 cursor-pointer shrink-0',
                 showRentalOnly
-                  ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/40 shadow-sm'
-                  : 'bg-bg-base text-text-muted border-white/5 hover:text-white'
+                  ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan shadow-sm'
+                  : 'bg-[#141a29] text-text-muted border-white/8 hover:text-white hover:border-white/20'
               )}
             >
               <Clock className="w-4 h-4" />
@@ -143,14 +143,14 @@ export default function ProductsPage() {
         </div>
 
         {/* Game Category Horizontal Chips */}
-        <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-3 mb-6">
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
           <button
             onClick={() => setSelectedGame('all')}
             className={cn(
-              'px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border cursor-pointer',
+              'px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all border cursor-pointer',
               selectedGame === 'all'
-                ? 'bg-linear-to-r from-brand-cyan to-primary-container text-bg-deep border-transparent shadow-[0_0_16px_rgba(0,240,255,0.3)] scale-102'
-                : 'bg-bg-card text-text-muted border-white/8 hover:text-white hover:border-white/20'
+                ? 'bg-linear-to-r from-brand-cyan to-primary-container text-black font-black border-transparent shadow-[0_0_16px_rgba(0,240,255,0.3)] scale-102'
+                : 'bg-[#0d121f] text-text-muted border-white/8 hover:text-white hover:border-white/20'
             )}
           >
             🔥 Semua Game
@@ -162,10 +162,10 @@ export default function ProductsPage() {
                 key={game.slug}
                 onClick={() => setSelectedGame(game.slug)}
                 className={cn(
-                  'px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border cursor-pointer flex items-center gap-2',
+                  'px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all border cursor-pointer flex items-center gap-2',
                   isActive
-                    ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan shadow-sm'
-                    : 'bg-bg-card text-text-muted border-white/8 hover:text-white hover:border-white/20'
+                    ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/50 shadow-sm'
+                    : 'bg-[#0d121f] text-text-muted border-white/8 hover:text-white hover:border-white/20'
                 )}
               >
                 <span>{game.icon}</span>
@@ -177,21 +177,21 @@ export default function ProductsPage() {
 
         {/* Product Grid: 6 Columns on Ultrawide */}
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
             {filtered.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="py-24 rounded-3xl bg-bg-card border border-white/8 flex flex-col items-center justify-center text-center p-6 gap-3">
+          <div className="py-24 rounded-3xl bg-[#0d121f] border border-white/8 flex flex-col items-center justify-center text-center p-6 gap-3 shadow-md">
             <span className="text-5xl">🔍</span>
-            <h3 className="font-heading font-bold text-lg text-white">Produk Tidak Ditemukan</h3>
-            <p className="text-xs text-text-muted max-w-sm">
+            <h3 className="font-heading font-black text-xl text-white">Produk Tidak Ditemukan</h3>
+            <p className="text-xs sm:text-sm text-text-muted max-w-sm">
               Tidak ada akun yang sesuai dengan kata kunci pencarian atau filter yang dipilih.
             </p>
             <button
               onClick={() => { setSearch(''); setSelectedGame('all'); setShowRentalOnly(false); }}
-              className="btn-cyber text-xs mt-2"
+              className="btn-cyber text-xs mt-3 px-6 py-2.5"
             >
               Reset Semua Filter
             </button>
