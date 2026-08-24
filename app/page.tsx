@@ -72,7 +72,7 @@ export default async function HomePage() {
               >
                 <div className="aspect-[3/4] relative overflow-hidden">
                   <img 
-                    src={product.image_url || 'https://via.placeholder.com/300x400?text=No+Image'} 
+                    src={product.images[0] || 'https://via.placeholder.com/300x400?text=No+Image'} 
                     alt={product.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                   />
@@ -80,7 +80,7 @@ export default async function HomePage() {
                 </div>
                 <div className="p-3 bg-surface-container-high flex-grow flex flex-col justify-end">
                   <h3 className="text-label-md font-label-md text-on-surface truncate">{product.title}</h3>
-                  <p className="text-[12px] text-on-surface-variant truncate">{product.category}</p>
+                  <p className="text-[12px] text-on-surface-variant truncate">{product.game.name}</p>
                 </div>
               </Link>
             ))}
@@ -94,3 +94,4 @@ export default async function HomePage() {
     </>
   );
 }
+
