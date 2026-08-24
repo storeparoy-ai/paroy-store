@@ -484,7 +484,7 @@ export default function CheckoutPage() {
   return (
     <>
       <Header />
-      <div className="pt-9 lg:pt-24 min-h-screen">
+      <div className="pt-9 lg:pt-24 min-h-screen flex flex-col">
         <Suspense fallback={
           <div className="flex items-center justify-center py-20">
             <div className="skeleton w-full max-w-lg h-96 mx-4" />

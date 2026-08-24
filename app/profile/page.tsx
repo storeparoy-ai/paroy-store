@@ -161,7 +161,7 @@ export default function ProfilePage() {
   return (
     <>
       <Header />
-      <div className="pt-9 lg:pt-24 min-h-screen">
+      <div className="pt-9 lg:pt-24 min-h-screen flex flex-col">
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4">
 
           {/* Profile card */}

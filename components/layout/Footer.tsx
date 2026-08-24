@@ -15,7 +15,7 @@ const FOOTER_LINKS = [
 export default function Footer() {
   return (
     <footer
-      className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0"
+      className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0 mt-auto w-full"
       style={{
         borderTop: '1px solid rgba(245,158,11,0.08)',
         background: 'rgba(16,14,13,0.4)',

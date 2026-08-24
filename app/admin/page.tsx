@@ -214,7 +214,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--surface-base)' }}>
+    <div className="flex min-h-screen flex flex-col" style={{ background: 'var(--surface-base)' }}>
       {/* Sidebar overlay (mobile) */}
       {sidebarOpen && (
         <div
