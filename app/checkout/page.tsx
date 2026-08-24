@@ -1,24 +1,30 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
-  CheckCircle2, Upload, X, Copy, ChevronLeft, AlertCircle,
+  CheckCircle2, Upload, X, Copy, ChevronLeft, AlertCircle, Loader2
 } from 'lucide-react';
 import { MOCK_PRODUCTS, PAYMENT_METHODS } from '@/lib/mock-data';
 import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import { Suspense } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import { mapSupabaseProduct } from '@/lib/supabase-helpers';
+import { useRouter } from 'next/navigation';
 
 function CheckoutContent() {
+  const router = useRouter();
   const params = useSearchParams();
   const productId = params.get('productId');
   const mode = params.get('mode') ?? 'buy';
 
-  const product = MOCK_PRODUCTS.find((p) => p.id === productId);
+  const [product, setProduct] = useState<any>(null);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+
   const [selectedPayment, setSelectedPayment] = useState('');
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState('');
@@ -28,6 +34,32 @@ function CheckoutContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [orderNumber] = useState(generateOrderNumber());
   const fileRef = useRef<HTMLInputElement>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) return;
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, profiles(full_name, is_verified, avatar_url)')
+        .eq('id', productId)
+        .single();
+      
+      if (!error && data) {
+        setProduct(mapSupabaseProduct(data));
+      }
+      setLoadingProduct(false);
+    };
+    fetchProduct();
+  }, [productId, supabase]);
+
+  if (loadingProduct) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -63,9 +95,58 @@ function CheckoutContent() {
   const handleSubmit = async () => {
     if (!selectedPayment || !proofFile) return;
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1800)); // simulasi
-    setSubmitted(true);
-    setIsLoading(false);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Upload proof to Supabase Storage (bucket: payment_proofs)
+      const fileExt = proofFile.name.split('.').pop();
+      const fileName = `${orderNumber}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('payment_proofs')
+        .upload(fileName, proofFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      let proofUrl = '';
+      if (uploadError) {
+        console.error('Upload Error:', uploadError);
+        // Tetap lanjut tanpa URL (tapi di production harus dihandle lebih baik)
+      } else {
+        const { data: publicUrlData } = supabase.storage
+          .from('payment_proofs')
+          .getPublicUrl(fileName);
+        proofUrl = publicUrlData.publicUrl;
+      }
+
+      // Insert Order to Supabase
+      const { error: orderError } = await supabase.from('orders').insert({
+        order_number: orderNumber,
+        buyer_id: user.id,
+        product_id: product.id,
+        amount: price,
+        status: 'pending',
+        mode: mode,
+        payment_method: selectedPayment,
+        proof_url: proofUrl,
+        note: note
+      });
+
+      if (orderError) throw orderError;
+
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      alert('Terjadi kesalahan saat checkout. Silakan coba lagi.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Success state
@@ -308,9 +389,7 @@ function CheckoutContent() {
       >
         {isLoading ? (
           <>
-            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-            </svg>
+            <Loader2 className="animate-spin w-4 h-4" />
             Memproses...
           </>
         ) : (

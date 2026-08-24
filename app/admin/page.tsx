@@ -1,18 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, Package, ShoppingBag, Users, Zap,
+  LayoutDashboard, Package, ShoppingBag, Users,
   TrendingUp, ArrowUpRight, Eye, CheckCircle2, Clock,
   XCircle, Plus, ChevronRight, BarChart3, Settings,
-  LogOut, AlertCircle, Loader2
+  LogOut, AlertCircle, Loader2, Pencil, Trash2, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import { mapSupabaseProduct } from '@/lib/supabase-helpers';
+import ProductModal from '@/components/admin/ProductModal';
+import DeleteConfirmModal from '@/components/admin/DeleteConfirmModal';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
   pending:   { label: 'Menunggu', color: 'var(--warning)',     bg: 'rgba(245,158,11,0.12)',   icon: Clock },
@@ -40,6 +42,17 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editProduct, setEditProduct] = useState<any>(null);
+  const [deleteProduct, setDeleteProduct] = useState<any>(null);
+
+  const fetchProducts = useCallback(async () => {
+    const supabase = createClient();
+    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    if (data) setProducts(data.map(mapSupabaseProduct));
+  }, []);
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -72,7 +85,8 @@ export default function AdminPage() {
       // Fetch Products
       const { data: productsData } = await supabase
         .from('products')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
       if (productsData) setProducts(productsData.map(mapSupabaseProduct));
 
       // Fetch Orders
@@ -99,6 +113,38 @@ export default function AdminPage() {
     };
 
     fetchAdminData();
+
+    // Subscribe to new orders (Real-time Notification)
+    const supabase = createClient();
+    const ordersSubscription = supabase
+      .channel('admin-orders')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders' },
+        (payload) => {
+          // Put the new order at the top
+          // We can't easily join profiles/products in real-time payload, 
+          // so we re-fetch all orders to ensure we get the full_name & title
+          fetchAdminData();
+          
+          // Optionally show a browser alert or native notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Pesanan Baru Masuk! 🎉', {
+              body: `Pesanan #${payload.new.order_number} sebesar Rp ${payload.new.amount}`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    // Request Notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    return () => {
+      supabase.removeChannel(ordersSubscription);
+    };
   }, [router]);
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
@@ -111,6 +157,21 @@ export default function AdminPage() {
     if (!error) {
       setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status: newStatus } : o));
     }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deleteProduct) return;
+    const supabase = createClient();
+    await supabase.from('products').delete().eq('id', deleteProduct.id);
+    setDeleteProduct(null);
+    fetchProducts();
+  };
+
+  const handleToggleStatus = async (product: any) => {
+    const supabase = createClient();
+    const newStatus = product.status === 'active' ? 'inactive' : 'active';
+    await supabase.from('products').update({ status: newStatus }).eq('id', product.id);
+    fetchProducts();
   };
 
   if (loading) {
@@ -423,70 +484,117 @@ export default function AdminPage() {
           {/* ===== PRODUCTS TAB ===== */}
           {activeTab === 'products' && (
             <div className="max-w-5xl">
-              <div className="flex justify-end mb-3">
-                <button className="btn-primary text-sm">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-bold font-heading text-base" style={{ color: 'var(--text-primary)' }}>
+                    🎮 Manajemen Produk
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    {products.length} produk · {products.filter(p => p.status === 'active').length} aktif
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="btn-primary text-sm"
+                >
                   <Plus className="w-4 h-4" />
                   Tambah Produk
                 </button>
               </div>
-              <div className="glass-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr style={{ background: 'var(--surface-raised)' }}>
-                        {['Produk', 'Game', 'Harga', 'Views', 'Status', 'Aksi'].map((h) => (
-                          <th key={h} className="p-3 text-left font-semibold" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map((p) => (
-                        <tr key={p.id} style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <div className="relative w-8 h-10 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
-                                <Image src={p.images[0]} alt={p.title} fill className="object-cover" sizes="32px" />
-                              </div>
-                              <span className="line-clamp-2 max-w-[180px]" style={{ color: 'var(--text-primary)' }}>{p.title}</span>
-                            </div>
-                          </td>
-                          <td className="p-3" style={{ color: p.game.color, whiteSpace: 'nowrap' }}>
-                            {p.game.icon} {p.game.name}
-                          </td>
-                          <td className="p-3 font-bold whitespace-nowrap" style={{ color: 'var(--primary-400)' }}>
-                            {formatCurrency(p.price)}
-                          </td>
-                          <td className="p-3 whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-                            {formatNumber(p.viewCount)}
-                          </td>
-                          <td className="p-3">
-                            <span
-                              className="badge"
-                              style={
-                                p.status === 'active'
-                                  ? { background: 'rgba(34,197,94,0.12)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.2)' }
-                                  : { background: 'rgba(239,68,68,0.12)', color: 'var(--error)', border: '1px solid rgba(239,68,68,0.2)' }
-                              }
-                            >
-                              {p.status === 'active' ? 'Aktif' : 'Nonaktif'}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex gap-1">
-                              <Link href={`/products/${p.id}`} className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(255,255,255,0.06)]" style={{ color: 'var(--text-muted)' }}>
-                                <Eye className="w-3.5 h-3.5" />
-                              </Link>
-                              <button className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(255,255,255,0.06)]" style={{ color: 'var(--text-muted)' }}>
-                                <Settings className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+              {products.length === 0 ? (
+                <div className="glass-card flex flex-col items-center py-16 gap-3">
+                  <span className="text-5xl">📦</span>
+                  <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Belum ada produk</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Klik "Tambah Produk" untuk mulai berjualan</p>
+                  <button onClick={() => setShowAddModal(true)} className="btn-primary text-sm mt-2">
+                    <Plus className="w-4 h-4" /> Tambah Produk Pertama
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className="glass-card overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr style={{ background: 'var(--surface-raised)' }}>
+                          {['Produk', 'Game', 'Harga', 'Views', 'Status', 'Aksi'].map((h) => (
+                            <th key={h} className="p-3 text-left font-semibold" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {products.map((p) => (
+                          <tr key={p.id} style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <div className="relative w-8 h-10 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
+                                  <Image src={p.images[0]} alt={p.title} fill className="object-cover" sizes="32px" />
+                                </div>
+                                <span className="line-clamp-2 max-w-[160px]" style={{ color: 'var(--text-primary)' }}>{p.title}</span>
+                              </div>
+                            </td>
+                            <td className="p-3" style={{ color: p.game.color, whiteSpace: 'nowrap' }}>
+                              {p.game.icon} {p.game.name}
+                            </td>
+                            <td className="p-3 font-bold whitespace-nowrap" style={{ color: 'var(--primary-400)' }}>
+                              {formatCurrency(p.price)}
+                            </td>
+                            <td className="p-3 whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+                              {formatNumber(p.viewCount)}
+                            </td>
+                            <td className="p-3">
+                              <button
+                                onClick={() => handleToggleStatus(p)}
+                                className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-1 rounded-lg transition-all"
+                                style={
+                                  p.status === 'active'
+                                    ? { background: 'rgba(34,197,94,0.12)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.2)' }
+                                    : { background: 'rgba(239,68,68,0.12)', color: 'var(--error)', border: '1px solid rgba(239,68,68,0.2)' }
+                                }
+                              >
+                                {p.status === 'active'
+                                  ? <><ToggleRight className="w-3 h-3" /> Aktif</>
+                                  : <><ToggleLeft className="w-3 h-3" /> Nonaktif</>
+                                }
+                              </button>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-1">
+                                <Link
+                                  href={`/products/${p.id}`}
+                                  target="_blank"
+                                  className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(255,255,255,0.06)]"
+                                  style={{ color: 'var(--text-muted)' }}
+                                  title="Lihat di toko"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </Link>
+                                <button
+                                  onClick={() => setEditProduct(p)}
+                                  className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(232,120,159,0.1)]"
+                                  style={{ color: 'var(--primary-400)' }}
+                                  title="Edit produk"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteProduct(p)}
+                                  className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(239,68,68,0.1)]"
+                                  style={{ color: 'var(--error)' }}
+                                  title="Hapus produk"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -495,7 +603,7 @@ export default function AdminPage() {
             <div className="max-w-3xl">
               <div className="glass-card overflow-hidden">
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
-                  <span className="section-label text-sm">Pengguna Terdaftar</span>
+                  <span className="section-label text-sm">Pengguna Terdaftar ({users.length})</span>
                 </div>
                 {users.map(({ full_name, username, role, created_at, avatar_url }) => (
                   <div key={username} className="flex items-center gap-3 p-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -511,9 +619,6 @@ export default function AdminPage() {
                       </div>
                       <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{username} · Join {new Date(created_at).toLocaleDateString()}</p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>- order</p>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -521,6 +626,30 @@ export default function AdminPage() {
           )}
         </main>
       </div>
+
+      {/* ===== MODALS ===== */}
+      {showAddModal && (
+        <ProductModal
+          mode="add"
+          onClose={() => setShowAddModal(false)}
+          onSuccess={fetchProducts}
+        />
+      )}
+      {editProduct && (
+        <ProductModal
+          mode="edit"
+          product={editProduct}
+          onClose={() => setEditProduct(null)}
+          onSuccess={fetchProducts}
+        />
+      )}
+      {deleteProduct && (
+        <DeleteConfirmModal
+          productTitle={deleteProduct.title}
+          onConfirm={handleDeleteProduct}
+          onClose={() => setDeleteProduct(null)}
+        />
+      )}
     </div>
   );
 }
