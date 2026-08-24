@@ -45,15 +45,14 @@ export default function Header() {
         </Link>
 
         {/* Nav links */}
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-6">
           {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                'block px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
+                'block text-sm font-medium transition-colors',
                 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
-                'hover:bg-[rgba(255,255,255,0.05)]'
               )}
             >
               {label}
@@ -62,7 +61,7 @@ export default function Header() {
         </nav>
 
         {/* Right icons */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {[
             { href: '/search', icon: Search, label: 'Cari' },
             { href: '/flash-sales', icon: Zap, label: 'Flash Sale' },
