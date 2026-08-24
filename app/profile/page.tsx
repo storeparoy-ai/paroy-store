@@ -62,6 +62,7 @@ export default function ProfilePage() {
           whatsapp: profile.whatsapp,
           avatarUrl: profile.avatar_url,
           joinDate: new Date(profile.created_at).getFullYear(),
+          role: profile.role,
         });
       }
 
@@ -412,6 +413,21 @@ export default function ProfilePage() {
                     <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   </Link>
                 ))}
+                
+                {userProfile.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center justify-between p-4 border-b transition-colors hover:bg-[rgba(245,158,11,0.1)]"
+                    style={{ borderColor: 'var(--border-subtle)', background: 'rgba(245,158,11,0.05)' }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Settings className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
+                      <span className="text-sm font-bold" style={{ color: 'var(--primary-400)' }}>Dashboard Admin</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
+                  </Link>
+                )}
+
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 p-4 w-full text-left transition-colors hover:bg-[rgba(239,68,68,0.05)]"
