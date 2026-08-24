@@ -82,7 +82,7 @@ export default function RekberPage() {
   return (
     <>
       <Header />
-      <div className="pt-9 lg:pt-[5.75rem] min-h-screen">
+      <div className="pt-9 lg:pt-24 min-h-screen">
         <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4">
 
           {/* Hero */}

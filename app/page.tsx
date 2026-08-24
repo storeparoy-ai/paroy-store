@@ -36,7 +36,7 @@ export default async function HomePage() {
   return (
     <>
       <Header />
-      <div className="pt-9 lg:pt-[5.75rem]">
+      <div className="pt-9 lg:pt-24">
         <main className="bento-grid-full pb-4 lg:pb-8">
           {/* Hero */}
           <HomeHero />
