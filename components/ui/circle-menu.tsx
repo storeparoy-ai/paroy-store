@@ -85,7 +85,7 @@ const MenuItem = ({ icon, label, href, color = '#00f0ff', index, totalItems, isO
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-[#06080d] border border-brand-cyan/40 text-[10px] font-black uppercase tracking-wider text-brand-cyan whitespace-nowrap shadow-[0_4px_16px_rgba(0,240,255,0.3)] pointer-events-none z-50"
+            className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-bg-deep border border-brand-cyan/40 text-[10px] font-black uppercase tracking-wider text-brand-cyan whitespace-nowrap shadow-[0_4px_16px_rgba(0,240,255,0.3)] pointer-events-none z-50"
           >
             {label}
           </motion.div>

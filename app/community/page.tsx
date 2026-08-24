@@ -135,7 +135,7 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06080d] text-white flex flex-col">
+    <div className="min-h-screen bg-bg-deep text-white flex flex-col">
       <Header />
       
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-14 py-10 sm:py-14 pb-36 flex flex-col gap-10">

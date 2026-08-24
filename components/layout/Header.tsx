@@ -20,7 +20,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <header className="sticky top-0 z-50 w-full px-4 sm:px-8 lg:px-12 py-3.5 bg-[#06080d] border-b border-white/8 transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full px-4 sm:px-8 lg:px-12 py-3.5 bg-bg-deep border-b border-white/8 transition-all duration-300">
       <div className="w-full max-w-[1720px] mx-auto flex items-center justify-between gap-4 lg:gap-6">
         
         {/* Brand Logo */}

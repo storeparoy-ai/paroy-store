@@ -43,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${jakarta.variable} ${outfit.variable} ${jetbrains.variable}`}>
-      <body className="font-sans antialiased min-h-screen overflow-x-hidden bg-[#06080d] text-text-main selection:bg-brand-cyan/30 selection:text-brand-cyan">
+      <body className="font-sans antialiased min-h-screen overflow-x-hidden bg-bg-deep text-text-main selection:bg-brand-cyan/30 selection:text-brand-cyan">
         {children}
         <FloatingActionHub />
       </body>
