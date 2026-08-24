@@ -22,7 +22,7 @@ export default function WhyChooseUs() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-stretch">
         
         {/* Card 1: Kecepatan & Otomatisasi */}
-        <div className="relative p-8 sm:p-9 md:p-10 rounded-3xl bg-[#0e1320] border border-white/10 hover:border-brand-cyan/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between min-h-[340px] sm:min-h-[360px] overflow-hidden group shadow-xl">
+        <div className="relative p-8 sm:p-9 md:p-10 rounded-3xl bg-bg-card border border-white/10 hover:border-brand-cyan/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between min-h-85 sm:min-h-90 overflow-hidden group shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-brand-cyan/10 rounded-full blur-3xl pointer-events-none" />
           
           <div>
@@ -49,7 +49,7 @@ export default function WhyChooseUs() {
         </div>
 
         {/* Card 2: Escrow Rekber & Garansi */}
-        <div className="relative p-8 sm:p-9 md:p-10 rounded-3xl bg-[#0e1320] border border-white/10 hover:border-emerald-400/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between min-h-[340px] sm:min-h-[360px] overflow-hidden group shadow-xl">
+        <div className="relative p-8 sm:p-9 md:p-10 rounded-3xl bg-bg-card border border-white/10 hover:border-emerald-400/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between min-h-85 sm:min-h-90 overflow-hidden group shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div>
@@ -76,7 +76,7 @@ export default function WhyChooseUs() {
         </div>
 
         {/* Card 3: Komunitas & CS */}
-        <div className="relative p-8 sm:p-9 md:p-10 rounded-3xl bg-[#0e1320] border border-white/10 hover:border-brand-purple/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between min-h-[340px] sm:min-h-[360px] overflow-hidden group shadow-xl">
+        <div className="relative p-8 sm:p-9 md:p-10 rounded-3xl bg-bg-card border border-white/10 hover:border-brand-purple/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between min-h-85 sm:min-h-90 overflow-hidden group shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-brand-purple/10 rounded-full blur-3xl pointer-events-none" />
           
           <div>

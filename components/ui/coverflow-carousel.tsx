@@ -276,7 +276,7 @@ export function CoverflowCarousel({
                 aria-roledescription="slide"
                 aria-label={`${index + 1} of ${count}`}
                 className={cn(
-                  "absolute left-1/2 top-0 overflow-hidden rounded-3xl bg-[#0e1320] border border-white/10 shadow-2xl will-change-transform cursor-pointer transition-colors duration-200",
+                  "absolute left-1/2 top-0 overflow-hidden rounded-3xl bg-bg-card border border-white/10 shadow-2xl will-change-transform cursor-pointer transition-colors duration-200",
                   index === selected ? "border-brand-cyan/70 shadow-[0_12px_40px_rgba(0,240,255,0.2)]" : "hover:border-white/20",
                   cardClassName,
                 )}
