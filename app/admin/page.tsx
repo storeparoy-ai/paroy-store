@@ -90,25 +90,57 @@ export default function AdminPage() {
       if (productsData) setProducts(productsData.map(mapSupabaseProduct));
 
       // Fetch Orders
-      const { data: ordersData } = await supabase
-        .from('orders')
-        .select('*, products(title), profiles(full_name)')
-        .order('created_at', { ascending: false });
-        
+      const { data: ordersData } = await supabase.from('orders').select('*, products(title), profiles(full_name)').order('created_at', { ascending: false });
+      const { data: topupData } = await supabase.from('topup_orders').select('*, profiles(full_name)').order('created_at', { ascending: false });
+      const { data: rekberData } = await supabase.from('rekber_orders').select('*, profiles(full_name)').order('created_at', { ascending: false });
+
+      const combined: any[] = [];
+      
       if (ordersData) {
-        setOrders(ordersData.map((o) => ({
+        combined.push(...ordersData.map(o => ({
           id: o.order_number,
+          tableId: o.order_number,
+          idField: 'order_number',
+          type: o.mode === 'rental' ? 'Rental' : 'Marketplace',
           buyer: o.profiles?.full_name || 'Unknown',
           product: o.products?.title || 'Unknown Product',
           amount: o.amount,
           status: o.status,
-          date: new Date(o.created_at).toLocaleString('id-ID', {
-            day: '2-digit', month: 'short', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-          })
+          date: o.created_at,
+          table: 'orders'
         })));
       }
-
+      if (topupData) {
+        combined.push(...topupData.map(o => ({
+          id: o.order_number,
+          tableId: o.order_number,
+          idField: 'order_number',
+          type: 'Top Up',
+          buyer: o.profiles?.full_name || 'Unknown',
+          product: `Top Up ${o.game} - ${o.item_label}`,
+          amount: o.amount,
+          status: o.status,
+          date: o.created_at,
+          table: 'topup_orders'
+        })));
+      }
+      if (rekberData) {
+        combined.push(...rekberData.map(o => ({
+          id: o.id.substring(0, 8),
+          tableId: o.id,
+          idField: 'id',
+          type: 'RekBer',
+          buyer: o.profiles?.full_name || 'Unknown',
+          product: `RekBer: ${o.item_description}`,
+          amount: Number(o.amount) + Number(o.fee),
+          status: o.status,
+          date: o.created_at,
+          table: 'rekber_orders'
+        })));
+      }
+      
+      combined.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setOrders(combined.map(o => ({...o, dateFormatted: new Date(o.date).toLocaleString('id-ID')})));
       setLoading(false);
     };
 
@@ -116,26 +148,18 @@ export default function AdminPage() {
 
     // Subscribe to new orders (Real-time Notification)
     const supabase = createClient();
-    const ordersSubscription = supabase
-      .channel('admin-orders')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'orders' },
-        (payload) => {
-          // Put the new order at the top
-          // We can't easily join profiles/products in real-time payload, 
-          // so we re-fetch all orders to ensure we get the full_name & title
+    const channels = ['orders', 'topup_orders', 'rekber_orders'].map(table => 
+      supabase.channel(`admin-${table}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table }, (payload) => {
           fetchAdminData();
-          
-          // Optionally show a browser alert or native notification
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('Pesanan Baru Masuk! 🎉', {
-              body: `Pesanan #${payload.new.order_number} sebesar Rp ${payload.new.amount}`,
+              body: `Transaksi baru di ${table} sebesar Rp ${payload.new.amount}`,
             });
           }
-        }
-      )
-      .subscribe();
+        })
+        .subscribe()
+    );
 
     // Request Notification permission
     if ('Notification' in window && Notification.permission === 'default') {
@@ -143,19 +167,19 @@ export default function AdminPage() {
     }
 
     return () => {
-      supabase.removeChannel(ordersSubscription);
+      channels.forEach(ch => supabase.removeChannel(ch));
     };
   }, [router]);
 
-  const updateOrderStatus = async (id: string, newStatus: string) => {
+  const updateOrderStatus = async (order: any, newStatus: string) => {
     const supabase = createClient();
     const { error } = await supabase
-      .from('orders')
+      .from(order.table)
       .update({ status: newStatus })
-      .eq('order_number', id);
+      .eq(order.idField, order.tableId);
 
     if (!error) {
-      setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status: newStatus } : o));
+      setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status: newStatus } : o));
     }
   };
 
@@ -420,8 +444,13 @@ export default function AdminPage() {
                         </div>
                         <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{order.product}</p>
                         <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                          👤 {order.buyer} · {order.date}
+                          👤 {order.buyer} · {order.dateFormatted}
                         </p>
+                        <div className="flex gap-2 mt-1">
+                          <span className="badge" style={{ background: 'var(--surface-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
+                            {order.type}
+                          </span>
+                        </div>
                         <p className="text-sm font-black mt-1" style={{ color: 'var(--primary-400)' }}>{formatCurrency(order.amount)}</p>
                       </div>
 
@@ -430,13 +459,13 @@ export default function AdminPage() {
                         {order.status === 'pending' && (
                           <>
                             <button
-                              onClick={() => updateOrderStatus(order.id, 'paid')}
+                              onClick={() => updateOrderStatus(order, 'paid')}
                               className="btn-secondary text-xs py-1.5 px-3"
                             >
                               <Eye className="w-3 h-3" /> Cek Bukti
                             </button>
                             <button
-                              onClick={() => updateOrderStatus(order.id, 'approved')}
+                              onClick={() => updateOrderStatus(order, 'approved')}
                               className="btn-primary text-xs py-1.5 px-3"
                             >
                               <CheckCircle2 className="w-3 h-3" /> Approve
@@ -446,13 +475,13 @@ export default function AdminPage() {
                         {order.status === 'paid' && (
                           <>
                             <button
-                              onClick={() => updateOrderStatus(order.id, 'approved')}
+                              onClick={() => updateOrderStatus(order, 'approved')}
                               className="btn-primary text-xs py-1.5 px-3"
                             >
                               <CheckCircle2 className="w-3 h-3" /> Approve
                             </button>
                             <button
-                              onClick={() => updateOrderStatus(order.id, 'rejected')}
+                              onClick={() => updateOrderStatus(order, 'rejected')}
                               className="text-xs py-1.5 px-3 rounded-lg font-semibold transition-all"
                               style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--error)', border: '1px solid rgba(239,68,68,0.25)' }}
                             >
@@ -462,7 +491,7 @@ export default function AdminPage() {
                         )}
                         {order.status === 'approved' && (
                           <button
-                            onClick={() => updateOrderStatus(order.id, 'completed')}
+                            onClick={() => updateOrderStatus(order, 'completed')}
                             className="btn-primary text-xs py-1.5 px-3"
                           >
                             <CheckCircle2 className="w-3 h-3" /> Selesaikan

@@ -19,10 +19,15 @@ import { useRouter } from 'next/navigation';
 function CheckoutContent() {
   const router = useRouter();
   const params = useSearchParams();
+  const type = params.get('type');
   const productId = params.get('productId');
   const mode = params.get('mode') ?? 'buy';
+  const gameSlug = params.get('game');
+  const gameUserId = params.get('userId');
+  const itemId = params.get('item');
 
   const [product, setProduct] = useState<any>(null);
+  const [topupDetails, setTopupDetails] = useState<any>(null);
   const [loadingProduct, setLoadingProduct] = useState(true);
 
   const [selectedPayment, setSelectedPayment] = useState('');
@@ -37,8 +42,28 @@ function CheckoutContent() {
   const supabase = createClient();
 
   useEffect(() => {
+    if (type === 'topup') {
+      const { TOPUP_ITEMS, GAMES } = require('@/lib/mock-data');
+      const gameObj = GAMES.find((g: any) => g.slug === gameSlug);
+      const topupData = TOPUP_ITEMS.find((t: any) => t.game.slug === gameSlug);
+      const selectedItem = topupData?.items.find((i: any) => i.id === itemId);
+
+      if (gameObj && selectedItem) {
+        setTopupDetails({
+          game: gameObj,
+          userId: gameUserId,
+          item: selectedItem
+        });
+      }
+      setLoadingProduct(false);
+      return;
+    }
+
     const fetchProduct = async () => {
-      if (!productId) return;
+      if (!productId) {
+        setLoadingProduct(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('products')
         .select('*, profiles(full_name, is_verified, avatar_url)')
@@ -51,7 +76,7 @@ function CheckoutContent() {
       setLoadingProduct(false);
     };
     fetchProduct();
-  }, [productId, supabase]);
+  }, [type, productId, gameSlug, itemId, supabase]);
 
   if (loadingProduct) {
     return (
@@ -61,7 +86,7 @@ function CheckoutContent() {
     );
   }
 
-  if (!product) {
+  if (type !== 'topup' && !product) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <span className="text-5xl">😵</span>
@@ -70,8 +95,19 @@ function CheckoutContent() {
       </div>
     );
   }
+  
+  if (type === 'topup' && !topupDetails) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <span className="text-5xl">😵</span>
+        <p style={{ color: 'var(--text-muted)' }}>Item Top Up tidak valid</p>
+        <Link href="/topup" className="btn-primary">Kembali ke Top Up</Link>
+      </div>
+    );
+  }
 
-  const price = mode === 'rental' ? (product.rentalPriceDaily ?? product.price) : product.price;
+  const isTopup = type === 'topup';
+  const price = isTopup ? topupDetails.item.price : (mode === 'rental' ? (product.rentalPriceDaily ?? product.price) : product.price);
   const selectedMethod = PAYMENT_METHODS.find((m) => m.id === selectedPayment);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +153,6 @@ function CheckoutContent() {
       let proofUrl = '';
       if (uploadError) {
         console.error('Upload Error:', uploadError);
-        // Tetap lanjut tanpa URL (tapi di production harus dihandle lebih baik)
       } else {
         const { data: publicUrlData } = supabase.storage
           .from('payment_proofs')
@@ -125,20 +160,34 @@ function CheckoutContent() {
         proofUrl = publicUrlData.publicUrl;
       }
 
-      // Insert Order to Supabase
-      const { error: orderError } = await supabase.from('orders').insert({
-        order_number: orderNumber,
-        buyer_id: user.id,
-        product_id: product.id,
-        amount: price,
-        status: 'pending',
-        mode: mode,
-        payment_method: selectedPayment,
-        proof_url: proofUrl,
-        note: note
-      });
-
-      if (orderError) throw orderError;
+      // Insert Order to Supabase based on type
+      if (isTopup) {
+        const { error: orderError } = await supabase.from('topup_orders').insert({
+          order_number: orderNumber,
+          user_id: user.id,
+          game: topupDetails.game.name,
+          game_user_id: topupDetails.userId,
+          item_label: topupDetails.item.label,
+          amount: price,
+          payment_method: selectedPayment,
+          payment_proof_url: proofUrl,
+          status: 'pending'
+        });
+        if (orderError) throw orderError;
+      } else {
+        const { error: orderError } = await supabase.from('orders').insert({
+          order_number: orderNumber,
+          buyer_id: user.id,
+          product_id: product.id,
+          amount: price,
+          status: 'pending',
+          mode: mode,
+          payment_method: selectedPayment,
+          proof_url: proofUrl,
+          note: note
+        });
+        if (orderError) throw orderError;
+      }
 
       setSubmitted(true);
     } catch (error) {
@@ -190,7 +239,7 @@ function CheckoutContent() {
     <div className="max-w-lg mx-auto px-3 sm:px-4 py-4">
       {/* Back */}
       <Link
-        href={`/products/${product.id}`}
+        href={isTopup ? '/topup' : `/products/${product?.id}`}
         className="inline-flex items-center gap-1.5 text-sm mb-4 transition-colors hover:text-[var(--primary-400)]"
         style={{ color: 'var(--text-muted)' }}
       >
@@ -204,24 +253,48 @@ function CheckoutContent() {
 
       {/* Order summary */}
       <div className="glass-card p-3 mb-3 flex gap-3">
-        <div className="relative w-16 h-20 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
-          <Image src={product.images[0]} alt={product.title} fill className="object-cover" sizes="64px" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1 mb-1">
-            <span className="text-xs">{product.game.icon}</span>
-            <span className="text-xs" style={{ color: product.game.color }}>{product.game.name}</span>
-          </div>
-          <p className="text-sm font-semibold line-clamp-2 font-heading" style={{ color: 'var(--text-primary)' }}>
-            {product.title}
-          </p>
-          {mode === 'rental' && (
-            <span className="badge badge-rental mt-1">⏱ Rental 1 Hari</span>
-          )}
-          <p className="mt-2 font-black" style={{ color: 'var(--primary-400)', fontSize: '1rem' }}>
-            {formatCurrency(price)}
-          </p>
-        </div>
+        {isTopup ? (
+          <>
+            <div className="relative w-16 h-20 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)] flex items-center justify-center text-4xl">
+              {topupDetails.game.icon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 mb-1">
+                <span className="text-xs" style={{ color: topupDetails.game.color }}>Top Up {topupDetails.game.name}</span>
+              </div>
+              <p className="text-sm font-semibold line-clamp-2 font-heading" style={{ color: 'var(--text-primary)' }}>
+                {topupDetails.item.label}
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                ID: {topupDetails.userId}
+              </p>
+              <p className="mt-2 font-black" style={{ color: 'var(--primary-400)', fontSize: '1rem' }}>
+                {formatCurrency(price)}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="relative w-16 h-20 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
+              <Image src={product.images[0]} alt={product.title} fill className="object-cover" sizes="64px" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 mb-1">
+                <span className="text-xs">{product.game.icon}</span>
+                <span className="text-xs" style={{ color: product.game.color }}>{product.game.name}</span>
+              </div>
+              <p className="text-sm font-semibold line-clamp-2 font-heading" style={{ color: 'var(--text-primary)' }}>
+                {product.title}
+              </p>
+              {mode === 'rental' && (
+                <span className="badge badge-rental mt-1">⏱ Rental 1 Hari</span>
+              )}
+              <p className="mt-2 font-black" style={{ color: 'var(--primary-400)', fontSize: '1rem' }}>
+                {formatCurrency(price)}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Order number */}

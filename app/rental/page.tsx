@@ -1,16 +1,17 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Clock3, ArrowRight } from 'lucide-react';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
+import { Clock3, ArrowRight, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import ProductCard from '@/components/products/ProductCard';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
-
-const RENTAL_PRODUCTS = MOCK_PRODUCTS.filter((p) => p.canRental && p.status === 'active');
+import { createClient } from '@/utils/supabase/client';
+import { mapSupabaseProduct } from '@/lib/supabase-helpers';
+import { Product } from '@/types';
 
 const RENTAL_HOW = [
   { icon: '🔍', title: 'Pilih akun', desc: 'Cari akun rental sesuai kebutuhanmu' },
@@ -20,6 +21,26 @@ const RENTAL_HOW = [
 ];
 
 export default function RentalPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('products')
+        .select('*, profiles(full_name, username, role)')
+        .eq('can_rental', true)
+        .eq('status', 'active');
+      
+      if (data) {
+        setProducts(data.map(mapSupabaseProduct));
+      }
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
+
   return (
     <>
       <Header />
@@ -94,9 +115,13 @@ export default function RentalPage() {
               <span>Akun Tersedia untuk Rental</span>
             </div>
 
-            {RENTAL_PRODUCTS.length > 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
+              </div>
+            ) : products.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {RENTAL_PRODUCTS.map((product) => (
+                {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>

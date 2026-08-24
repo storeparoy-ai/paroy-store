@@ -27,9 +27,57 @@ const REKBER_FEE = [
   { range: '> Rp 1.000.000', fee: '1,5% dari nilai transaksi' },
 ];
 
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
+
 export default function RekberPage() {
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const product = MOCK_PRODUCTS.find((p) => p.id === selectedProduct);
+  const router = useRouter();
+  const [itemDesc, setItemDesc] = useState('');
+  const [amount, setAmount] = useState('');
+  const [sellerContact, setSellerContact] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const calculateFee = (val: number) => {
+    if (val <= 100000) return 5000;
+    if (val <= 500000) return 10000;
+    if (val <= 1000000) return 15000;
+    return val * 0.015;
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    const numericAmount = Number(amount);
+    const fee = calculateFee(numericAmount);
+
+    const { error } = await supabase.from('rekber_orders').insert({
+      requester_id: user.id,
+      item_description: itemDesc,
+      amount: numericAmount,
+      fee: fee,
+      seller_contact: sellerContact,
+      status: 'pending'
+    });
+
+    if (error) {
+      alert('Terjadi kesalahan saat mengajukan RekBer.');
+      console.error(error);
+    } else {
+      setSubmitted(true);
+      setItemDesc('');
+      setAmount('');
+      setSellerContact('');
+    }
+    setLoading(false);
+  };
 
   return (
     <>
@@ -136,64 +184,71 @@ export default function RekberPage() {
           {/* Request form */}
           <div className="glass-card p-4 mb-3">
             <h2 className="section-label text-sm mb-3">Ajukan RekBer</h2>
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                  Produk yang ingin dibeli
-                </label>
-                <select
-                  value={selectedProduct}
-                  onChange={(e) => setSelectedProduct(e.target.value)}
-                  className="input-base"
-                  aria-label="Pilih produk"
-                >
-                  <option value="">-- Pilih produk --</option>
-                  {MOCK_PRODUCTS.filter((p) => p.status === 'active').map((p) => (
-                    <option key={p.id} value={p.id}>{p.title}</option>
-                  ))}
-                </select>
+            {submitted ? (
+              <div className="text-center py-6">
+                <CheckCircle2 className="w-12 h-12 mx-auto mb-2" style={{ color: 'var(--success)' }} />
+                <h3 className="font-bold text-lg mb-1">Pengajuan Berhasil</h3>
+                <p className="text-sm text-gray-400">Admin akan segera menghubungi Anda dan penjual via WhatsApp.</p>
+                <button onClick={() => setSubmitted(false)} className="btn-secondary mt-4 w-full">Ajukan Lagi</button>
               </div>
-
-              {product && (
-                <div
-                  className="flex gap-3 p-3 rounded-xl animate-slide-up"
-                  style={{ background: 'var(--surface-raised)', border: '1px solid var(--border-default)' }}
-                >
-                  <div className="relative w-12 h-14 rounded-lg overflow-hidden shrink-0">
-                    <Image src={product.images[0]} alt={product.title} fill className="object-cover" sizes="48px" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{product.title}</p>
-                    <p className="text-sm font-black mt-1" style={{ color: 'var(--primary-400)' }}>
-                      {formatCurrency(product.price)}
-                    </p>
-                  </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                    Deskripsi Barang / Akun
+                  </label>
+                  <input
+                    type="text"
+                    value={itemDesc}
+                    onChange={(e) => setItemDesc(e.target.value)}
+                    className="input-base"
+                    placeholder="Contoh: Akun MLBB Mythic Sultan..."
+                    aria-label="Deskripsi barang"
+                  />
                 </div>
-              )}
 
-              <div>
-                <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Nama kamu</label>
-                <input type="text" className="input-base" placeholder="Nama lengkap" aria-label="Nama" />
-              </div>
-              <div>
-                <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>WhatsApp aktif</label>
-                <input type="tel" className="input-base" placeholder="0812-xxxx-xxxx" aria-label="WhatsApp" />
-              </div>
-              <div>
-                <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Catatan (opsional)</label>
-                <textarea rows={3} className="input-base resize-none" placeholder="Catatan tambahan..." aria-label="Catatan" />
-              </div>
+                <div>
+                  <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                    Harga Kesepakatan (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="input-base"
+                    placeholder="Contoh: 500000"
+                    aria-label="Harga"
+                  />
+                  {amount && (
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                      Perkiraan Biaya Admin: <strong style={{ color: 'var(--primary-400)' }}>{formatCurrency(calculateFee(Number(amount)))}</strong>
+                    </p>
+                  )}
+                </div>
 
-              <a
-                href="https://wa.me/6281234567890?text=Halo+admin+PAROY+STORE,+saya+ingin+mengajukan+RekBer"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary w-full text-sm"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Hubungi Admin via WhatsApp
-              </a>
-            </div>
+                <div>
+                  <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                    Nomor WhatsApp Penjual
+                  </label>
+                  <input
+                    type="tel"
+                    value={sellerContact}
+                    onChange={(e) => setSellerContact(e.target.value)}
+                    className="input-base"
+                    placeholder="Contoh: 081234567890"
+                    aria-label="WhatsApp Penjual"
+                  />
+                </div>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || !itemDesc || !amount || !sellerContact}
+                  className="btn-primary w-full text-sm"
+                >
+                  {loading ? 'Memproses...' : 'Ajukan RekBer Sekarang'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Warning */}

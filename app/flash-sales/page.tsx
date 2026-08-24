@@ -8,9 +8,13 @@ import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 
-function useCountdown(targetDate: Date) {
+import { createClient } from '@/utils/supabase/client';
+import { mapSupabaseProduct } from '@/lib/supabase-helpers';
+
+function useCountdown(targetDate: Date | null) {
   const [t, setT] = useState({ h: 0, m: 0, s: 0 });
   useEffect(() => {
+    if (!targetDate) return;
     const calc = () => {
       const diff = Math.max(0, targetDate.getTime() - Date.now());
       setT({ h: Math.floor(diff / 3600000), m: Math.floor((diff % 3600000) / 60000), s: Math.floor((diff % 60000) / 1000) });
@@ -23,7 +27,36 @@ function useCountdown(targetDate: Date) {
 }
 
 export default function FlashSalesPage() {
-  const { h, m, s } = useCountdown(MOCK_FLASH_SALES[0]?.endsAt ?? new Date());
+  const [flashSales, setFlashSales] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFlashSales = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('flash_sales')
+        .select('*, products(*, profiles(full_name, username, role))')
+        .eq('is_active', true)
+        .gte('ends_at', new Date().toISOString())
+        .order('ends_at', { ascending: true });
+
+      if (data) {
+        setFlashSales(data.map((fs) => ({
+          id: fs.id,
+          product: mapSupabaseProduct(fs.products),
+          salePrice: Number(fs.sale_price),
+          stock: fs.stock,
+          sold: fs.sold,
+          endsAt: new Date(fs.ends_at)
+        })));
+      }
+      setLoading(false);
+    };
+    fetchFlashSales();
+  }, []);
+
+  const firstEnd = flashSales[0]?.endsAt ?? null;
+  const { h, m, s } = useCountdown(firstEnd);
   const pad = (n: number) => String(n).padStart(2, '0');
 
   return (
@@ -76,13 +109,19 @@ export default function FlashSalesPage() {
           </div>
 
           {/* Flash sale grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-            {MOCK_FLASH_SALES.map((sale) => (
-              <FlashSaleCard key={sale.id} sale={sale} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <span className="animate-spin text-2xl" style={{ color: 'var(--primary-400)' }}>⏳</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+              {flashSales.map((sale) => (
+                <FlashSaleCard key={sale.id} sale={sale} />
+              ))}
+            </div>
+          )}
 
-          {MOCK_FLASH_SALES.length === 0 && (
+          {!loading && flashSales.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <span className="text-5xl">⚡</span>
               <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Belum ada Flash Sale aktif</p>
