@@ -10,7 +10,7 @@ import Footer from '@/components/layout/Footer';
 
 const ROLE_BADGE: Record<string, { label: string; color: string; bg: string }> = {
   seller: { label: 'Seller Pro', color: '#00f0ff', bg: 'rgba(0,240,255,0.12)' },
-  buyer:  { label: 'Member', color: '#94a3b8', bg: 'rgba(255,255,255,0.05)' },
+  buyer:  { label: 'Member', color: '#94a3b8', bg: 'rgba(255,255,255,0.06)' },
   admin:  { label: 'Admin Resmi', color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
 };
 
@@ -28,7 +28,7 @@ const INITIAL_MOCK_POSTS = [
   {
     id: 'p1',
     author: { name: 'Admin Paroy', role: 'admin', avatar: '🛡️' },
-    content: '🎉 Event Top Up Promo Kemerdekaan & Season Baru telah dibuka! Dapatkan cashback diamond hingga 20% otomatis masuk ke akun.',
+    content: '🎉 Event Top Up Promo Kemerdekaan & Season Baru telah dibuka! Dapatkan cashback diamond hingga 20% otomatis masuk ke akun game kamu 24 jam nonstop.',
     game: 'Mobile Legends',
     likes: 48,
     comments: 12,
@@ -135,36 +135,36 @@ export default function CommunityPage() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#06080d] text-white flex flex-col">
       <Header />
       
-      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto flex flex-col gap-10">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-14 py-10 sm:py-14 pb-36 flex flex-col gap-10">
         
         {/* Hero Banner Bento */}
-        <div className="relative p-8 sm:p-12 rounded-3xl bg-[#0d121f] border border-white/8 shadow-xl overflow-hidden">
+        <div className="relative p-8 sm:p-12 md:p-14 rounded-3xl bg-[#0e1422] border border-white/10 shadow-2xl overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-brand-cyan/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 text-brand-cyan">
+                <span className="p-2 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 text-brand-cyan flex items-center justify-center">
                   <Users className="w-5 h-5" />
                 </span>
-                <span className="text-xs font-black uppercase tracking-wider text-brand-cyan">
+                <span className="text-xs font-black uppercase tracking-widest text-brand-cyan">
                   FORUM & KOMUNITAS RESMI
                 </span>
               </div>
-              <h1 className="font-heading font-black text-2xl sm:text-4xl text-white tracking-tight">
+              <h1 className="font-heading font-black text-2xl sm:text-4xl md:text-5xl text-white tracking-tight">
                 Ruang Diskusi <span className="text-gradient-cyan">Gamers Indonesia</span>
               </h1>
-              <p className="text-xs sm:text-sm text-text-muted max-w-xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
                 Tempat berbagi tips pro player, info giveaway, cari teman mabar, review transaksi seller, dan diskusi seputar game favoritmu.
               </p>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs sm:text-sm font-bold shadow-sm">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-bold shadow-md">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
                 <span>1.420 Gamers Online</span>
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function CommunityPage() {
           <div className="lg:col-span-8 flex flex-col gap-6 sm:gap-8">
             
             {/* Create Post Bento Box */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg">
+            <div className="p-7 sm:p-9 rounded-3xl bg-[#0e1422] border border-white/10 shadow-xl">
               {showPostBox ? (
                 <div className="space-y-4">
                   <textarea
@@ -186,24 +186,24 @@ export default function CommunityPage() {
                     onChange={(e) => setNewPost(e.target.value)}
                     placeholder="Bagikan tips, cari mabar, atau ajukan pertanyaan ke komunitas..."
                     rows={4}
-                    className="input-base resize-none text-sm"
+                    className="w-full bg-[#141a29] border border-white/10 rounded-2xl p-5 text-sm text-white placeholder:text-slate-500 focus:bg-[#182236] focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 outline-none transition-all resize-none shadow-inner"
                     autoFocus
                   />
                   <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs text-text-dim">Gunakan bahasa yang sopan, sportif, dan ramah</span>
+                    <span className="text-xs text-slate-400">Gunakan bahasa yang sopan, sportif, dan ramah</span>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setShowPostBox(false)}
-                        className="btn-secondary text-xs sm:text-sm py-2 px-4"
+                        className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs sm:text-sm font-bold text-slate-300 transition-all cursor-pointer"
                       >
                         Batal
                       </button>
                       <button
                         onClick={handlePost}
                         disabled={!newPost.trim()}
-                        className="btn-cyber text-xs sm:text-sm py-2 px-6 disabled:opacity-40 flex items-center gap-2"
+                        className="btn-cyber text-xs sm:text-sm py-2.5 px-6 disabled:opacity-40 flex items-center gap-2 shadow-lg cursor-pointer"
                       >
-                        <Send className="w-3.5 h-3.5" />
+                        <Send className="w-4 h-4" />
                         <span>Kirim Postingan</span>
                       </button>
                     </div>
@@ -212,7 +212,7 @@ export default function CommunityPage() {
               ) : (
                 <div
                   onClick={() => setShowPostBox(true)}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-[#141a29] border border-white/8 cursor-pointer hover:border-brand-cyan/40 hover:bg-[#182236] transition-all text-text-muted text-xs sm:text-sm shadow-inner"
+                  className="flex items-center gap-4 p-5 sm:p-6 rounded-2xl bg-[#141a29] border border-white/10 cursor-pointer hover:border-brand-cyan/40 hover:bg-[#182236] transition-all text-xs sm:text-sm shadow-inner"
                 >
                   <span className="text-2xl">✍️</span>
                   <span className="text-slate-300 font-medium">Ada yang ingin kamu diskusikan hari ini? Tulis postingan...</span>
@@ -229,8 +229,8 @@ export default function CommunityPage() {
                   className={cn(
                     'px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all border cursor-pointer',
                     activeTab === tab.id
-                      ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/40 shadow-sm'
-                      : 'bg-[#0d121f] text-text-muted border-white/8 hover:text-white hover:border-white/20'
+                      ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/50 shadow-sm'
+                      : 'bg-[#0e1422] text-slate-400 border-white/8 hover:text-white hover:border-white/20'
                   )}
                 >
                   {tab.label}
@@ -245,16 +245,16 @@ export default function CommunityPage() {
                 return (
                   <div
                     key={post.id}
-                    className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 hover:border-white/18 transition-all duration-300 shadow-md flex flex-col gap-5"
+                    className="p-7 sm:p-9 rounded-3xl bg-[#0e1422] border border-white/10 hover:border-white/20 transition-all duration-300 shadow-xl flex flex-col gap-5"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-[#141a29] border border-white/10 flex items-center justify-center text-lg shadow-xs">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[#141a29] border border-white/10 flex items-center justify-center text-xl shadow-xs shrink-0">
                           {post.author.avatar}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2.5">
-                            <span className="font-heading font-black text-sm sm:text-base text-white">{post.author.name}</span>
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <span className="font-heading font-black text-base text-white">{post.author.name}</span>
                             <span
                               className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
                               style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.color}33` }}
@@ -262,22 +262,22 @@ export default function CommunityPage() {
                               {badge.label}
                             </span>
                           </div>
-                          <p className="text-xs text-text-dim mt-0.5">{timeAgo(post.createdAt)}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{timeAgo(post.createdAt)}</p>
                         </div>
                       </div>
 
                       {post.game && (
-                        <span className="text-[11px] font-bold text-brand-cyan bg-brand-cyan/10 px-3.5 py-1.5 rounded-xl border border-brand-cyan/25">
+                        <span className="text-xs font-bold text-brand-cyan bg-brand-cyan/10 px-4 py-1.5 rounded-xl border border-brand-cyan/30 shrink-0">
                           {post.game}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                    <p className="text-xs sm:text-sm md:text-base text-slate-200 leading-relaxed">
                       {post.content}
                     </p>
 
-                    <div className="flex items-center gap-8 pt-4 border-t border-white/6 text-xs text-text-muted">
+                    <div className="flex items-center gap-8 pt-4 border-t border-white/8 text-xs sm:text-sm text-slate-400">
                       <button
                         onClick={() => toggleLike(post.id)}
                         className={cn(
@@ -310,42 +310,42 @@ export default function CommunityPage() {
           <div className="lg:col-span-4 flex flex-col gap-6 sm:gap-8 sticky top-28">
             
             {/* Discord & WA Banner */}
-            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg flex flex-col gap-5">
-              <h3 className="font-heading font-black text-lg text-white">
+            <div className="p-7 sm:p-9 rounded-3xl bg-[#0e1422] border border-white/10 shadow-xl flex flex-col gap-5">
+              <h3 className="font-heading font-black text-xl text-white">
                 Gabung Saluran Resmi
               </h3>
-              <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                 Dapatkan notifikasi diskon kilat, giveaway diamond harian, dan turnamen mingguan di server Discord & WhatsApp Paroy Store.
               </p>
 
-              <div className="space-y-3 pt-2">
+              <div className="space-y-3.5 pt-2">
                 <a
                   href="https://discord.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-between p-4 px-5 rounded-2xl bg-[#5865f2]/15 border border-[#5865f2]/30 text-white text-xs sm:text-sm font-bold hover:bg-[#5865f2]/25 transition-all shadow-sm group"
+                  className="flex items-center justify-between p-4 px-6 rounded-2xl bg-[#5865f2]/15 border border-[#5865f2]/30 text-white text-xs sm:text-sm font-bold hover:bg-[#5865f2]/25 transition-all shadow-md group"
                 >
-                  <span className="flex items-center gap-2.5">🎮 Server Discord (5.2k Member)</span>
-                  <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                  <span className="flex items-center gap-3">🎮 Server Discord (5.2k Member)</span>
+                  <span className="group-hover:translate-x-1.5 transition-transform text-slate-400">&rarr;</span>
                 </a>
                 <a
                   href="https://whatsapp.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-between p-4 px-5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-bold hover:bg-emerald-500/25 transition-all shadow-sm group"
+                  className="flex items-center justify-between p-4 px-6 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-bold hover:bg-emerald-500/25 transition-all shadow-md group"
                 >
-                  <span className="flex items-center gap-2.5">💬 Saluran WhatsApp Resmi</span>
-                  <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                  <span className="flex items-center gap-3">💬 Saluran WhatsApp Resmi</span>
+                  <span className="group-hover:translate-x-1.5 transition-transform text-emerald-400">&rarr;</span>
                 </a>
               </div>
             </div>
 
             {/* Community Rules */}
-            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg space-y-4">
-              <h3 className="font-heading font-black text-lg text-white">
+            <div className="p-7 sm:p-9 rounded-3xl bg-[#0e1422] border border-white/10 shadow-xl space-y-4">
+              <h3 className="font-heading font-black text-xl text-white">
                 Tata Tertib Forum
               </h3>
-              <ul className="space-y-3 text-xs sm:text-sm text-text-muted list-disc list-inside leading-relaxed">
+              <ul className="space-y-3 text-xs sm:text-sm text-slate-300 list-disc list-inside leading-relaxed">
                 <li>Dilarang keras melakukan spam, promosi judi online, atau konten ilegal.</li>
                 <li>Gunakan selalu Rekber Resmi Paroy Store untuk transaksi akun demi keamanan 100%.</li>
                 <li>Hormati sesama member komunitas dan jaga sportifitas bermain game.</li>
@@ -360,6 +360,6 @@ export default function CommunityPage() {
 
       <Footer />
       <BottomNav />
-    </>
+    </div>
   );
 }
