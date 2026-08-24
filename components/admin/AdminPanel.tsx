@@ -341,8 +341,7 @@ export default function AdminPanel() {
                 const st = STATUS_CONFIG[order.status];
                 const StatusIcon = st.icon;
                 return (
-    <>
-      <div key={order.id} className="glass-card p-4">
+                  <div key={order.id} className="glass-card p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -592,4 +591,5 @@ export default function AdminPanel() {
     </>
   );
 }
+
 
