@@ -41,8 +41,7 @@ export default function HomeSearch() {
           className="relative flex items-center gap-3 h-12 px-4 overflow-hidden transition-all duration-300"
           style={{
             borderRadius: 'var(--radius-lg)',
-            background: 'rgba(26,24,22,0.55)',
-            ,
+            background: 'var(--surface-card)',
           }}
         >
           <Search

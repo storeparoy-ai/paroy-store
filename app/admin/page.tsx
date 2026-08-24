@@ -232,9 +232,8 @@ export default function AdminPage() {
         )}
         style={{
           width: '220px',
-          background: 'rgba(20,18,16,0.95)',
-          ,
-          borderRight: '1px solid rgba(245,158,11,0.08)',
+          background: 'var(--surface-raised)',
+          borderRight: '1px solid var(--border-default)',
         }}
       >
         {/* Logo */}
