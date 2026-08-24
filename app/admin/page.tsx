@@ -173,7 +173,7 @@ export default function AdminPage() {
 
   const updateOrderStatus = async (order: any, newStatus: string) => {
     const supabase = createClient();
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from(order.table)
       .update({ status: newStatus })
       .eq(order.idField, order.tableId);
