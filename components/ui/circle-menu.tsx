@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 const CONSTANTS = {
-  itemSize: 48,
+  itemSize: 50,
   radius: 140, // distance from trigger button
   openStagger: 0.03,
   closeStagger: 0.04
@@ -15,7 +15,6 @@ const CONSTANTS = {
 
 // Fan out smoothly in a 105-degree upward-left arc into the viewport (never goes off-screen!)
 const pointOnArc = (index: number, total: number, r: number) => {
-  // Start at 175 degrees (almost left) to 275 degrees (almost straight up)
   const startAngle = Math.PI * 0.95; // ~171 deg (Left)
   const endAngle = Math.PI * 1.55;   // ~279 deg (Up)
   const theta = total === 1 ? startAngle : startAngle + ((endAngle - startAngle) * index) / (total - 1);
@@ -23,6 +22,13 @@ const pointOnArc = (index: number, total: number, r: number) => {
   const y = r * Math.sin(theta);
   return { x, y };
 };
+
+export interface CircleMenuItem {
+  label: string;
+  icon: React.ReactNode;
+  href: string;
+  color?: string;
+}
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -66,7 +72,7 @@ const MenuItem = ({ icon, label, href, color = '#00f0ff', index, totalItems, isO
           height: CONSTANTS.itemSize,
           width: CONSTANTS.itemSize,
         }}
-        className="relative rounded-2xl bg-bg-card/95 border border-white/15 text-white flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.8)] backdrop-blur-xl hover:border-brand-cyan hover:shadow-[0_0_25px_rgba(0,240,255,0.45)] transition-all cursor-pointer group"
+        className="relative rounded-2xl bg-[#0e1422] border border-white/12 text-white flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.8)] hover:border-brand-cyan hover:shadow-[0_0_25px_rgba(0,240,255,0.4)] transition-all cursor-pointer group"
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
       >
@@ -79,7 +85,7 @@ const MenuItem = ({ icon, label, href, color = '#00f0ff', index, totalItems, isO
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-bg-deep border border-brand-cyan/40 text-[10px] font-black uppercase tracking-wider text-brand-cyan whitespace-nowrap shadow-[0_4px_16px_rgba(0,240,255,0.3)] pointer-events-none z-50"
+            className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-[#06080d] border border-brand-cyan/40 text-[10px] font-black uppercase tracking-wider text-brand-cyan whitespace-nowrap shadow-[0_4px_16px_rgba(0,240,255,0.3)] pointer-events-none z-50"
           >
             {label}
           </motion.div>
@@ -151,13 +157,6 @@ const MenuTrigger = ({
   );
 };
 
-export interface CircleMenuItem {
-  label: string;
-  icon: React.ReactNode;
-  href: string;
-  color?: string;
-}
-
 export function CircleMenu({
   items,
 }: {
@@ -187,7 +186,7 @@ export function CircleMenu({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs pointer-events-auto z-40"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs pointer-events-auto z-40"
           />
         )}
       </AnimatePresence>
@@ -198,26 +197,18 @@ export function CircleMenu({
           isOpen={isOpen}
           closeAnimationCallback={closeAnimationCallback}
         />
-      </div>
 
-      <motion.div
-        animate={animate}
-        className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none"
-      >
         {items.map((item, index) => (
           <MenuItem
-            key={`menu-item-${index}`}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            color={item.color}
+            key={item.href}
             index={index}
             totalItems={items.length}
             isOpen={isOpen}
             onItemClick={() => setIsOpen(false)}
+            {...item}
           />
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

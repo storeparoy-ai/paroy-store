@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Outfit, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import FloatingActionHub from '@/components/layout/FloatingActionHub';
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="id" className={`${jakarta.variable} ${outfit.variable} ${jetbrains.variable}`}>
       <body className="font-sans antialiased min-h-screen overflow-x-hidden bg-[#06080d] text-text-main selection:bg-brand-cyan/30 selection:text-brand-cyan">
         {children}
+        <FloatingActionHub />
       </body>
     </html>
   );
