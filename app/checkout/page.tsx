@@ -1,12 +1,12 @@
 ﻿'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { Copy, Lock, CheckCircle } from 'lucide-react';
 
 export default function CheckoutPage() {
-  const searchParams = useSearchParams();
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes
   const [copied, setCopied] = useState(false);
 
