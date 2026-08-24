@@ -162,7 +162,7 @@ export default function ProfilePage() {
     <>
       <Header />
       <div className="pt-9 lg:pt-24 min-h-screen flex flex-col">
-        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4">
+        <div className="max-w-3xl w-full mx-auto px-3 sm:px-4 py-4 flex-1 flex flex-col">
 
           {/* Profile card */}
           <div className="glass-heavy relative overflow-hidden rounded-2xl p-5 mb-4">
@@ -255,7 +255,7 @@ export default function ProfilePage() {
 
           {/* === Tab: Orders === */}
           {activeTab === 'orders' && (
-            <div>
+            <div className="flex-1 flex flex-col">
               {/* Status filter */}
               <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1">
                 {['all', 'pending', 'approved', 'completed', 'rejected'].map((s) => {
@@ -331,7 +331,7 @@ export default function ProfilePage() {
                   })}
                 </div>
               ) : (
-                <div className="flex flex-col items-center py-16 gap-3">
+                <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
                   <span className="text-5xl">📦</span>
                   <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Tidak ada pesanan</p>
                 </div>

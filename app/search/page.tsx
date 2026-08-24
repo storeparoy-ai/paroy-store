@@ -27,7 +27,7 @@ function SearchContent() {
   }, [query]);
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4">
+    <div className="max-w-6xl mx-auto px-3 w-full sm:px-4 py-4 flex-1 flex flex-col">
       <h1 className="font-bold font-heading text-xl mb-4" style={{ color: 'var(--text-primary)' }}>
         🔍 Pencarian
       </h1>
@@ -73,7 +73,7 @@ function SearchContent() {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
             <span className="text-5xl">😕</span>
             <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
               Tidak ada hasil untuk &ldquo;{query}&rdquo;
@@ -82,7 +82,7 @@ function SearchContent() {
           </div>
         )
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
           <span className="text-5xl">🔍</span>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Ketik untuk mencari produk</p>
         </div>

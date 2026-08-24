@@ -81,7 +81,7 @@ export default function ProductsPage() {
     <>
       <Header />
       <div className="pt-9 lg:pt-24 min-h-screen flex flex-col">
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4">
+        <div className="max-w-6xl w-full mx-auto px-3 sm:px-4 py-4 flex-1 flex flex-col">
 
           {/* Page title */}
           <div className="mb-4">
@@ -222,7 +222,7 @@ export default function ProductsPage() {
             </div>
           ) : (
             /* Empty state */
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4">
               <span className="text-6xl">🎮</span>
               <div className="text-center">
                 <p className="font-semibold font-heading" style={{ color: 'var(--text-primary)' }}>
