@@ -252,16 +252,16 @@ export function CoverflowCarousel({
               nudge(1);
             }
           }}
-          className="cursor-grab overflow-hidden py-8 sm:py-10 outline-none active:cursor-grabbing"
+          className="cursor-grab overflow-hidden py-8 sm:py-12 outline-none active:cursor-grabbing"
           style={{
-            perspective: `calc(var(--cf-card) * ${perspective})`,
+            perspective: "1200px",
             touchAction: "pan-y",
           }}
         >
           <div
-            className="relative"
+            className="relative w-full"
             style={{
-              height: "calc(var(--cf-card) * 1.52)",
+              height: "clamp(430px, 48vw, 540px)",
               transformStyle: "preserve-3d",
             }}
           >
@@ -276,13 +276,13 @@ export function CoverflowCarousel({
                 aria-roledescription="slide"
                 aria-label={`${index + 1} of ${count}`}
                 className={cn(
-                  "absolute left-1/2 top-0 overflow-hidden rounded-3xl bg-bg-card border border-white/10 shadow-2xl will-change-transform cursor-pointer transition-colors duration-200",
-                  index === selected ? "border-brand-cyan/60" : "hover:border-white/20",
+                  "absolute left-1/2 top-0 overflow-hidden rounded-3xl bg-[#0e1320] border border-white/10 shadow-2xl will-change-transform cursor-pointer transition-colors duration-200",
+                  index === selected ? "border-brand-cyan/70 shadow-[0_12px_40px_rgba(0,240,255,0.2)]" : "hover:border-white/20",
                   cardClassName,
                 )}
                 style={{
                   width: "var(--cf-card)",
-                  height: "calc(var(--cf-card) * 1.52)",
+                  height: "clamp(430px, 48vw, 540px)",
                 }}
               >
                 {renderCustomCard ? (
