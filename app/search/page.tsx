@@ -27,7 +27,7 @@ function SearchContent() {
   }, [query]);
 
   return (
-    <div className="max-w-6xl mx-auto px-3 w-full sm:px-4 py-4 flex-1 flex flex-col">
+    <div className="w-full flex-1 flex flex-col" style={{ maxWidth: '1152px', margin: '0 auto', padding: '16px' }}>
       <h1 className="font-bold font-heading text-xl mb-4" style={{ color: 'var(--text-primary)' }}>
         🔍 Pencarian
       </h1>
@@ -95,7 +95,7 @@ export default function SearchPage() {
   return (
     <>
       <Header />
-      <div className="pt-24 min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
         <Suspense>
           <SearchContent />
         </Suspense>

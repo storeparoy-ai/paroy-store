@@ -161,8 +161,8 @@ export default function ProfilePage() {
   return (
     <>
       <Header />
-      <div className="pt-24 min-h-screen flex flex-col">
-        <div className="max-w-3xl w-full mx-auto px-3 sm:px-4 py-4 flex-1 flex flex-col">
+      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
+        <div className="w-full flex-1 flex flex-col" style={{ maxWidth: '768px', margin: '0 auto', padding: '16px' }}>
 
           {/* Profile card */}
           <div className="glass-heavy relative overflow-hidden p-5 mb-4">

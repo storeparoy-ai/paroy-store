@@ -484,7 +484,7 @@ export default function CheckoutPage() {
   return (
     <>
       <Header />
-      <div className="pt-24 min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
         <Suspense fallback={
           <div className="flex items-center justify-center py-20">
             <div className="skeleton w-full max-w-lg h-96 mx-4" />

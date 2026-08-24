@@ -80,8 +80,8 @@ export default function ProductsPage() {
   return (
     <>
       <Header />
-      <div className="pt-24 min-h-screen flex flex-col">
-        <div className="max-w-6xl w-full mx-auto px-3 sm:px-4 py-4 flex-1 flex flex-col">
+      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
+        <div className="w-full flex-1 flex flex-col" style={{ maxWidth: '1152px', margin: '0 auto', padding: '16px' }}>
 
           {/* Page title */}
           <div className="mb-4">

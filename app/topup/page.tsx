@@ -33,7 +33,7 @@ export default function TopUpPage() {
   return (
     <>
       <Header />
-      <div className="pt-24 min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
         <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4">
 
           {/* Header */}
