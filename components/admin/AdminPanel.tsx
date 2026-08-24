@@ -198,14 +198,7 @@ export default function AdminPanel() {
     fetchProducts();
   };
 
-  if (loading) {
-    return (
-    <>
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
-      </div>
-    );
-  }
+  if (loading) { return ( <div className="flex flex-col items-center justify-center min-h-[300px] gap-4"><Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} /></div> ); }
 
   const stats = {
     totalRevenue: orders.filter((o) => o.status === 'completed').reduce((s, o) => s + o.amount, 0),
@@ -599,3 +592,4 @@ export default function AdminPanel() {
     </>
   );
 }
+
