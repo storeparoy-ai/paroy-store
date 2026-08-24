@@ -95,7 +95,7 @@ export default function SearchPage() {
   return (
     <>
       <Header />
-      <div className="pt-9 lg:pt-24 min-h-screen flex flex-col">
+      <div className="pt-24 min-h-screen flex flex-col">
         <Suspense>
           <SearchContent />
         </Suspense>
