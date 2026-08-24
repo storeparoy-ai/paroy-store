@@ -19,7 +19,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   return (
     <Link href={`/products/${product.id}`} className={cn('product-card block', className)}>
       {/* Image */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-[var(--surface-raised)]">
+      <div className="relative aspect-4/5 overflow-hidden bg-(--surface-raised)">
         <Image
           src={product.images[0]}
           alt={product.title}
@@ -52,12 +52,12 @@ export default function ProductCard({ product, className }: ProductCardProps) {
           className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
           style={{ background: 'rgba(10,9,8,0.6)',  }}
         >
-          <Heart className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+          <Heart className="w-3.5 h-3.5 text-(--text-muted)" />
         </button>
 
         {/* View count */}
         <div
-          className="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] text-[var(--text-muted)]"
+          className="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] text-(--text-muted)"
           style={{ background: 'rgba(10,9,8,0.55)',  }}
         >
           <Eye className="w-2.5 h-2.5" />
@@ -66,30 +66,29 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       </div>
 
       {/* Info */}
-      <div className="p-2.5">
+      <div className="p-4 sm:p-4.5 space-y-2">
         {/* Game badge */}
-        <div className="flex items-center gap-1 mb-1">
-          <span className="text-[10px]">{product.game.icon}</span>
-          <span className="text-[10px] font-medium" style={{ color: product.game.color }}>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs">{product.game.icon}</span>
+          <span className="text-[11px] font-bold" style={{ color: product.game.color }}>
             {product.game.name}
           </span>
         </div>
 
         {/* Title */}
         <h3
-          className="text-xs font-semibold leading-snug mb-1.5 line-clamp-2 font-heading"
-          style={{ color: 'var(--text-primary)' }}
+          className="text-xs sm:text-sm font-bold leading-snug line-clamp-2 font-heading text-white group-hover:text-brand-cyan transition-colors"
         >
           {product.title}
         </h3>
 
         {/* Price */}
-        <div className="flex items-end gap-1.5">
-          <span className="text-sm font-bold" style={{ color: 'var(--primary-400)' }}>
+        <div className="flex items-baseline gap-2 pt-1 border-t border-white/5">
+          <span className="text-sm sm:text-base font-black text-primary-container">
             {formatCurrency(product.price)}
           </span>
           {product.originalPrice && (
-            <span className="text-[10px] line-through" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-[10px] line-through text-text-dim">
               {formatCurrency(product.originalPrice)}
             </span>
           )}
@@ -97,9 +96,9 @@ export default function ProductCard({ product, className }: ProductCardProps) {
 
         {/* Rental info */}
         {product.canRental && product.rentalPriceDaily && (
-          <div className="flex items-center gap-1 mt-1">
-            <Clock3 className="w-2.5 h-2.5" style={{ color: 'var(--info)' }} />
-            <span className="text-[9px]" style={{ color: 'var(--info)' }}>
+          <div className="flex items-center gap-1 text-[10px] text-brand-cyan font-semibold">
+            <Clock3 className="w-3 h-3" />
+            <span>
               Rental {formatCurrency(product.rentalPriceDaily)}/hari
             </span>
           </div>

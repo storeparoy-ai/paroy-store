@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   User, ShoppingBag, Heart, Bell, Settings,
-  ChevronRight, Package, Clock, CheckCircle2, XCircle, AlertCircle, LogOut, Loader2, Shield
+  ChevronRight, Package, Clock, CheckCircle2, XCircle, AlertCircle, LogOut, Loader2, Shield,
 } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
@@ -16,14 +16,15 @@ import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 import AdminPanel from '@/components/admin/AdminPanel';
+import ProductCard from '@/components/products/ProductCard';
 
 const ORDER_STATUS = {
-  pending:   { label: 'Menunggu',  color: 'var(--warning)',   bg: 'rgba(245,158,11,0.12)',  icon: Clock },
-  paid:      { label: 'Dibayar',   color: 'var(--info)',      bg: 'rgba(59,130,246,0.12)',  icon: AlertCircle },
-  approved:  { label: 'Diproses',  color: 'var(--primary-400)', bg: 'rgba(245,158,11,0.12)', icon: Package },
-  completed: { label: 'Selesai',   color: 'var(--success)',   bg: 'rgba(34,197,94,0.12)',   icon: CheckCircle2 },
-  rejected:  { label: 'Ditolak',   color: 'var(--error)',     bg: 'rgba(239,68,68,0.12)',   icon: XCircle },
-  cancelled: { label: 'Dibatalkan',color: 'var(--text-muted)',bg: 'rgba(255,255,255,0.05)', icon: XCircle },
+  pending:   { label: 'Menunggu',  color: '#f59e0b',   bg: 'rgba(245,158,11,0.12)',  icon: Clock },
+  paid:      { label: 'Dibayar',   color: '#3b82f6',   bg: 'rgba(59,130,246,0.12)',  icon: AlertCircle },
+  approved:  { label: 'Diproses',  color: '#00f0ff',   bg: 'rgba(0,240,255,0.12)',   icon: Package },
+  completed: { label: 'Selesai',   color: '#10b981',   bg: 'rgba(16,185,129,0.12)',  icon: CheckCircle2 },
+  rejected:  { label: 'Ditolak',   color: '#ef4444',   bg: 'rgba(239,68,68,0.12)',   icon: XCircle },
+  cancelled: { label: 'Dibatalkan',color: '#64748b',   bg: 'rgba(255,255,255,0.05)', icon: XCircle },
 };
 
 type TabId = 'orders' | 'wishlist' | 'settings' | 'admin';
@@ -35,11 +36,11 @@ export default function ProfilePage() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       const supabase = createClient();
-      
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -98,8 +99,6 @@ export default function ProfilePage() {
     router.refresh();
   };
 
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploadingAvatar(true);
@@ -112,7 +111,6 @@ export default function ProfilePage() {
       const fileName = `${userProfile.id}-${Math.random()}.${fileExt}`;
       
       const supabase = createClient();
-      
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file);
@@ -143,8 +141,9 @@ export default function ProfilePage() {
 
   if (loading || !userProfile) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-bg-deep">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-cyan" />
+        <p className="text-xs text-text-muted">Memuat profil akun...</p>
       </div>
     );
   }
@@ -154,43 +153,47 @@ export default function ProfilePage() {
     : orders.filter((o) => o.status === filterStatus);
 
   const tabs: { id: TabId; icon: typeof ShoppingBag; label: string }[] = [
-    { id: 'orders', icon: ShoppingBag, label: 'Pesanan' },
-    { id: 'wishlist', icon: Heart, label: 'Wishlist' },
-    { id: 'settings', icon: Settings, label: 'Pengaturan' },
+    { id: 'orders', icon: ShoppingBag, label: 'Riwayat Pesanan' },
+    { id: 'wishlist', icon: Heart, label: 'Wishlist Favorit' },
+    { id: 'settings', icon: Settings, label: 'Pengaturan Akun' },
   ];
 
   if (userProfile?.role === 'admin') {
-    tabs.push({ id: 'admin' as TabId, icon: Shield, label: 'Admin Panel' });
+    tabs.push({ id: 'admin' as TabId, icon: Shield, label: 'Admin Dashboard' });
   }
 
   return (
     <>
       <Header />
-      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
-        <div className="w-full flex-1 flex flex-col" style={{ maxWidth: '768px', margin: '0 auto', padding: '16px' }}>
+      
+      <main className="min-h-screen py-8 sm:py-10 pb-24 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto">
+        
+        {/* Profile Header Card */}
+        <div className="relative p-6 sm:p-8 rounded-3xl bg-bg-card border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)] overflow-hidden mb-8">
+          
+          {/* Ambient Glow */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-cyan/10 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Profile card */}
-          <div className="glass-heavy relative overflow-hidden p-5 mb-4">
-            <div className="relative flex items-center gap-4">
-              {/* Avatar with Upload */}
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            
+            {/* User Info Left */}
+            <div className="flex items-center gap-5">
               <div className="relative group">
-                <div
-                  className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 text-2xl font-bold text-white relative"
-                  style={{ background: 'linear-gradient(135deg, var(--primary-400), var(--accent-purple))' }}
-                >
+                <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 text-3xl font-black text-white bg-linear-to-tr from-brand-cyan to-brand-purple shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                   {userProfile.avatarUrl ? (
-                    <Image src={userProfile.avatarUrl} alt="Avatar" fill className="object-cover" sizes="64px" />
+                    <Image src={userProfile.avatarUrl} alt="Avatar" fill className="object-cover" sizes="80px" />
                   ) : (
                     userProfile.name.charAt(0).toUpperCase()
                   )}
                   {uploadingAvatar && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-white" />
                     </div>
                   )}
                 </div>
-                <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--surface-card)] border border-[var(--border-default)] flex items-center justify-center cursor-pointer shadow-sm hover:scale-110 transition-transform">
-                  <span className="text-[10px]">📷</span>
+                
+                <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-xl bg-bg-card border border-white/20 flex items-center justify-center cursor-pointer shadow-md hover:scale-110 hover:border-brand-cyan transition-all">
+                  <span className="text-xs">📷</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -200,186 +203,215 @@ export default function ProfilePage() {
                   />
                 </label>
               </div>
-              
-              <div className="min-w-0 flex-1">
-                <h1 className="font-bold font-heading text-lg" style={{ color: 'var(--text-primary)' }}>
-                  {userProfile.name}
-                </h1>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{userProfile.username}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{userProfile.email}</p>
-              </div>
-            </div>
 
-            {/* Stats row */}
-            <div className="grid grid-cols-3 gap-2 mt-4">
-              {[
-                { label: 'Total Order', value: orders.length },
-                { label: 'Selesai', value: orders.filter((o) => o.status === 'completed').length },
-                { label: 'Bergabung', value: userProfile.joinDate },
-              ].map(({ label, value }) => (
-                <div
-                  key={label}
-                  className="text-center py-2.5 rounded-xl"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}
-                >
-                  <p className="text-lg font-black font-heading" style={{ color: 'var(--primary-400)' }}>{value}</p>
-                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{label}</p>
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="font-heading font-black text-xl sm:text-2xl text-white">
+                    {userProfile.name}
+                  </h1>
+                  {userProfile.role === 'admin' ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 flex items-center gap-1">
+                      <Shield className="w-3 h-3" /> Administrator
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/5 text-text-muted border border-white/10">
+                      Member Verified
+                    </span>
+                  )}
                 </div>
-              ))}
+                
+                <p className="text-xs text-text-muted mt-1 flex items-center gap-2">
+                  <span>{userProfile.username}</span> &middot; <span>{userProfile.email}</span>
+                </p>
+                <p className="text-[11px] text-text-dim mt-0.5">
+                  Bergabung sejak tahun {userProfile.joinDate}
+                </p>
+              </div>
             </div>
+
+            {/* Quick Metrics Right */}
+            <div className="grid grid-cols-3 gap-3 self-stretch md:self-auto">
+              <div className="p-3.5 rounded-2xl bg-bg-base border border-white/5 text-center flex flex-col justify-center min-w-25">
+                <span className="text-lg font-black text-white">{orders.length}</span>
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5">Total Order</span>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-bg-base border border-white/5 text-center flex flex-col justify-center min-w-25">
+                <span className="text-lg font-black text-emerald-400">
+                  {orders.filter(o => o.status === 'completed').length}
+                </span>
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5">Selesai</span>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-bg-base border border-white/5 text-center flex flex-col justify-center min-w-25">
+                <span className="text-lg font-black text-brand-cyan">
+                  {MOCK_PRODUCTS.filter((_, i) => i % 2 === 0).length}
+                </span>
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5">Wishlist</span>
+              </div>
+            </div>
+
           </div>
 
-          {/* Tabs */}
-          <div
-            className="flex gap-1 p-1 rounded-xl mb-4"
-            style={{ background: 'var(--surface-card)', border: '1px solid var(--border-default)' }}
-          >
-            {tabs.map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className={cn(
-                  'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all'
-                )}
-                style={
-                  activeTab === id
-                    ? { background: 'linear-gradient(135deg, var(--primary-400), var(--primary-500))', color: 'white' }
-                    : { color: 'var(--text-muted)' }
-                }
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {label}
-              </button>
-            ))}
+          {/* Tab Navigation Navigation Bar */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-6 mt-6 border-t border-white/5">
+            {tabs.map(({ id, icon: Icon, label }) => {
+              const isActive = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={cn(
+                    'flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer border',
+                    isActive
+                      ? 'bg-linear-to-r from-brand-cyan to-primary-container text-bg-deep border-transparent shadow-[0_0_16px_rgba(0,240,255,0.3)] scale-102'
+                      : 'bg-bg-base text-text-muted border-white/5 hover:text-white hover:border-white/15'
+                  )}
+                >
+                  <Icon className={cn('w-4 h-4', isActive ? 'text-bg-deep' : 'text-text-dim')} />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* === Tab: Orders === */}
+        </div>
+
+        {/* Tab Content Container */}
+        <div className="w-full">
+          
+          {/* TAB: ORDERS */}
           {activeTab === 'orders' && (
-            <div className="flex-1 flex flex-col">
-              {/* Status filter */}
-              <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1">
-                {['all', 'pending', 'approved', 'completed', 'rejected'].map((s) => {
-                  const isActive = filterStatus === s;
-                  const st = s !== 'all' ? ORDER_STATUS[s as keyof typeof ORDER_STATUS] : null;
-                  return (
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="font-heading font-black text-xl text-white">Daftar Transaksi Saya</h2>
+                  <p className="text-xs text-text-muted">Pantau status transaksi top up dan akun pesananmu</p>
+                </div>
+
+                {/* Status Filters */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {['all', 'pending', 'paid', 'approved', 'completed', 'rejected'].map((st) => (
                     <button
-                      key={s}
-                      onClick={() => setFilterStatus(s)}
-                      className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border"
-                      style={{
-                        background: isActive && st ? st.bg : isActive ? 'rgba(245,158,11,0.12)' : 'var(--surface-card)',
-                        borderColor: isActive && st ? st.color + '66' : isActive ? 'rgba(245,158,11,0.4)' : 'var(--border-default)',
-                        color: isActive && st ? st.color : isActive ? 'var(--primary-400)' : 'var(--text-muted)',
-                      }}
+                      key={st}
+                      onClick={() => setFilterStatus(st)}
+                      className={cn(
+                        'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border',
+                        filterStatus === st
+                          ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/40 shadow-sm'
+                          : 'bg-bg-card text-text-muted border-white/5 hover:text-white'
+                      )}
                     >
-                      {s === 'all' ? '🎮 Semua' : st?.label}
+                      {st === 'all' ? 'Semua' : (ORDER_STATUS as any)[st]?.label || st}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
 
-              {filteredOrders.length > 0 ? (
-                <div className="flex flex-col gap-2">
+              {filteredOrders.length === 0 ? (
+                <div className="py-20 rounded-3xl bg-bg-card border border-white/8 flex flex-col items-center justify-center text-center p-6 gap-3">
+                  <span className="text-5xl">📦</span>
+                  <h3 className="font-heading font-bold text-base text-white">Belum Ada Pesanan</h3>
+                  <p className="text-xs text-text-muted max-w-sm">Kamu belum melakukan pembelian apapun atau filter tidak sesuai.</p>
+                  <Link href="/products" className="btn-cyber text-xs mt-2">
+                    Mulai Belanja Akun
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {filteredOrders.map((order) => {
-                    const st = ORDER_STATUS[order.status as keyof typeof ORDER_STATUS];
+                    const st = (ORDER_STATUS as any)[order.status] || ORDER_STATUS.pending;
                     const StatusIcon = st.icon;
                     return (
                       <div
                         key={order.id}
-                        className="glass-card p-3 flex gap-3 hover:border-[rgba(245,158,11,0.3)] transition-all"
+                        className="p-5 rounded-2xl bg-bg-card border border-white/8 hover:border-brand-cyan/40 transition-all flex flex-col justify-between gap-4 group"
                       >
-                        {/* Product image */}
-                        <div className="relative w-14 h-[72px] rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
-                          <Image
-                            src={order.product.images[0]}
-                            alt={order.product.title}
-                            fill
-                            className="object-cover"
-                            sizes="56px"
-                          />
+                        <div className="flex items-start gap-4">
+                          <div className="relative w-16 h-20 rounded-xl overflow-hidden shrink-0 bg-bg-raised">
+                            {order.product?.images?.[0] && (
+                              <Image
+                                src={order.product.images[0]}
+                                alt={order.product.title || 'Product'}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform"
+                                sizes="64px"
+                              />
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <span className="font-mono text-xs font-bold text-brand-cyan">{order.id}</span>
+                              <span
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                                style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}33` }}
+                              >
+                                <StatusIcon className="w-3 h-3" />
+                                {st.label}
+                              </span>
+                            </div>
+
+                            <h3 className="font-heading font-bold text-sm text-white line-clamp-1 group-hover:text-brand-cyan transition-colors">
+                              {order.product?.title || 'Produk Game'}
+                            </h3>
+                            <p className="text-[11px] text-text-muted mt-0.5">
+                              {order.mode === 'rental' ? '⏱ Rental Akun' : '🛒 Pembelian Akun'} &middot; {order.date}
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Info */}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <p className="text-xs font-semibold line-clamp-2 font-heading" style={{ color: 'var(--text-primary)' }}>
-                              {order.product.title}
-                            </p>
-                            {/* Status badge */}
-                            <span
-                              className="badge shrink-0 flex items-center gap-1"
-                              style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}33` }}
-                            >
-                              <StatusIcon className="w-2.5 h-2.5" />
-                              {st.label}
-                            </span>
+                        <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] text-text-dim block">Total Tagihan</span>
+                            <span className="text-sm font-black text-primary-container">{formatCurrency(order.amount)}</span>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                                {order.id} · {order.mode === 'rental' ? '⏱ Rental' : '🛒 Beli'}
-                              </p>
-                              <p className="text-xs font-bold mt-0.5" style={{ color: 'var(--primary-400)' }}>
-                                {formatCurrency(order.amount)}
-                              </p>
-                            </div>
-                            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{order.date}</p>
-                          </div>
+
+                          <Link
+                            href={`/cek-transaksi?id=${order.id}`}
+                            className="btn-secondary text-xs py-1.5 px-3"
+                          >
+                            Detail Pesanan &rarr;
+                          </Link>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
-                  <span className="text-5xl">📦</span>
-                  <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Tidak ada pesanan</p>
-                </div>
               )}
             </div>
           )}
 
-          {/* === Tab: Wishlist === */}
+          {/* TAB: WISHLIST */}
           {activeTab === 'wishlist' && (
             <div>
-              <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-                {MOCK_PRODUCTS.filter((_, i) => i % 2 === 0).length} produk tersimpan
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="mb-6">
+                <h2 className="font-heading font-black text-xl text-white">Wishlist & Produk Tersimpan</h2>
+                <p className="text-xs text-text-muted">Koleksi akun impian yang kamu tandai untuk dibeli nanti</p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {MOCK_PRODUCTS.filter((_, i) => i % 2 === 0).map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/products/${p.id}`}
-                    className="glass-card p-2 flex gap-2 hover:border-[rgba(245,158,11,0.35)] transition-all"
-                  >
-                    <div className="relative w-12 h-14 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
-                      <Image src={p.images[0]} alt={p.title} fill className="object-cover" sizes="48px" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] line-clamp-2 font-semibold" style={{ color: 'var(--text-primary)' }}>{p.title}</p>
-                      <p className="text-xs font-bold mt-1" style={{ color: 'var(--primary-400)' }}>{formatCurrency(p.price)}</p>
-                    </div>
-                  </Link>
+                  <ProductCard key={p.id} product={p} />
                 ))}
               </div>
             </div>
           )}
 
-          {/* === Tab: Settings === */}
+          {/* TAB: SETTINGS */}
           {activeTab === 'settings' && (
-            <div className="flex flex-col gap-3">
-              {/* Edit profile */}
-              <div className="glass-card p-4">
-                <h2 className="section-label text-sm mb-4">Info Profil</h2>
-                <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* Profil Info */}
+              <div className="md:col-span-2 p-6 sm:p-8 rounded-3xl bg-bg-card border border-white/8 flex flex-col gap-4">
+                <h2 className="font-heading font-bold text-base text-white">Informasi Akun & Kontak</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     { label: 'Nama Lengkap', value: userProfile.name, type: 'text' },
                     { label: 'Username', value: userProfile.username, type: 'text' },
-                    { label: 'Email', value: userProfile.email, type: 'email' },
-                    { label: 'WhatsApp', value: userProfile.whatsapp, type: 'tel' },
+                    { label: 'Email Terdaftar', value: userProfile.email, type: 'email' },
+                    { label: 'Nomor WhatsApp', value: userProfile.whatsapp || 'Belum diisi', type: 'tel' },
                   ].map(({ label, value, type }) => (
                     <div key={label}>
-                      <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>{label}</label>
+                      <label className="block text-xs font-semibold text-text-muted mb-1.5">{label}</label>
                       <input
                         type={type}
                         defaultValue={value}
@@ -388,69 +420,63 @@ export default function ProfilePage() {
                       />
                     </div>
                   ))}
-                  <button className="btn-primary w-full text-sm mt-1">
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button className="btn-cyber text-xs py-2.5 px-6">
                     Simpan Perubahan
                   </button>
                 </div>
               </div>
 
-              {/* Menu settings */}
-              <div className="glass-card overflow-hidden">
-                {[
-                  { icon: Bell, label: 'Pengaturan Notifikasi', href: '/notifications' },
-                  { icon: Heart, label: 'Wishlist', href: '/wishlist' },
-                ].map(({ icon: Icon, label, href }) => (
-                  <Link
-                    key={label}
-                    href={href}
-                    className="flex items-center justify-between p-4 border-b transition-colors hover:bg-[rgba(255,255,255,0.03)]"
-                    style={{ borderColor: 'var(--border-subtle)' }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                  </Link>
-                ))}
-                
-                {userProfile.role === 'admin' && (
-                  <button
-                    onClick={() => setActiveTab('admin')}
-                    className="w-full flex items-center justify-between p-4 border-b transition-colors hover:bg-[rgba(245,158,11,0.1)]"
-                    style={{ borderColor: 'var(--border-subtle)', background: 'rgba(245,158,11,0.05)' }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Shield className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
-                      <span className="text-sm font-bold" style={{ color: 'var(--primary-400)' }}>Dashboard Admin</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
-                  </button>
-                )}
+              {/* Quick Actions & Logout */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-bg-card border border-white/8 flex flex-col justify-between gap-6">
+                <div>
+                  <h2 className="font-heading font-bold text-base text-white mb-3">Keamanan & Sesi</h2>
+                  <div className="space-y-2 text-xs">
+                    <Link href="/notifications" className="flex items-center justify-between p-3.5 rounded-xl bg-bg-base hover:bg-white/5 border border-white/5 transition-colors">
+                      <div className="flex items-center gap-2.5 text-slate-300">
+                        <Bell className="w-4 h-4 text-text-dim" />
+                        <span>Pengaturan Notifikasi</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-text-dim" />
+                    </Link>
+
+                    <Link href="/rekber" className="flex items-center justify-between p-3.5 rounded-xl bg-bg-base hover:bg-white/5 border border-white/5 transition-colors">
+                      <div className="flex items-center gap-2.5 text-slate-300">
+                        <Shield className="w-4 h-4 text-emerald-400" />
+                        <span>Verifikasi Rekber</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-text-dim" />
+                    </Link>
+                  </div>
+                </div>
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 p-4 w-full text-left transition-colors hover:bg-[rgba(239,68,68,0.05)]"
-                  style={{ color: 'var(--error)' }}
+                  className="flex items-center justify-center gap-2 w-full p-3.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold transition-all cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="text-sm font-semibold">Keluar</span>
+                  <span>Keluar dari Akun</span>
                 </button>
               </div>
+
             </div>
           )}
-          
-          {/* ===== ADMIN PANEL TAB ===== */}
+
+          {/* TAB: ADMIN DASHBOARD (FULL WIDESCREEN) */}
           {activeTab === 'admin' && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="w-full">
               <AdminPanel />
             </div>
           )}
+
         </div>
-        <Footer />
-      </div>
+
+      </main>
+
+      <Footer />
       <BottomNav />
-      <div className="h-[116px] lg:hidden" />
     </>
   );
 }

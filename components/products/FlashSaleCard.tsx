@@ -45,7 +45,7 @@ export default function FlashSaleCard({ sale, className }: FlashSaleCardProps) {
       className={cn('product-card block group', className)}
     >
       {/* Image */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-[var(--surface-raised)]">
+      <div className="relative aspect-4/5 overflow-hidden bg-(--surface-raised)">
         <Image
           src={sale.product.images[0]}
           alt={sale.product.title}
@@ -61,8 +61,8 @@ export default function FlashSaleCard({ sale, className }: FlashSaleCardProps) {
           className="absolute bottom-0 inset-x-0 px-2 py-1.5 flex items-center justify-center gap-0.5"
           style={{ background: 'rgba(10,9,8,0.75)',  }}
         >
-          <Zap className="w-3 h-3 text-[var(--warning)] shrink-0" />
-          <span className="countdown-digit text-[11px] font-bold text-[var(--warning)] tabular-nums">
+          <Zap className="w-3 h-3 text-(--warning) shrink-0" />
+          <span className="countdown-digit text-[11px] font-bold text-(--warning) tabular-nums">
             {pad(h)}:{pad(m)}:{pad(s)}
           </span>
         </div>

@@ -1,38 +1,24 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Home, Users, Grid3X3, Search, Bell, User,
-} from 'lucide-react';
+import { Home, Search, User, Zap, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { href: '/', icon: Home, label: 'Home' },
-  { href: '/leaderboard', icon: Users, label: 'Leaderboard' },
-  { href: '/cek-transaksi', icon: Search, label: 'Transactions' },
-  { href: '/notifications', icon: Bell, label: 'Notifikasi' },
-  { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/', icon: Home, label: 'Beranda' },
+  { href: '/topup', icon: Zap, label: 'Top Up' },
+  { href: '/flash-sales', icon: Flame, label: 'Promo' },
+  { href: '/cek-transaksi', icon: Search, label: 'Pesanan' },
+  { href: '/profile', icon: User, label: 'Akun' },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav
-      className="fixed z-[100] lg:hidden"
-      style={{
-        bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-        left: '16px',
-        right: '16px',
-        background: 'var(--color-surface-container-high)',
-        border: '1px solid var(--color-surface-variant)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
-        borderRadius: '32px',
-        padding: '6px',
-      }}
-    >
-      <div className="flex items-center justify-between">
+    <nav className="fixed bottom-4 inset-x-4 z-100 lg:hidden">
+      <div className="max-w-md mx-auto rounded-2xl bg-bg-base/90 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.8)] backdrop-blur-xl p-1.5 flex items-center justify-around">
         {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
           const isActive = pathname === href;
           return (
@@ -40,25 +26,20 @@ export default function BottomNav() {
               key={href}
               href={href}
               className={cn(
-                'relative flex flex-1 flex-col items-center justify-center gap-1 min-w-0 h-[60px]',
-                'select-none transition-all duration-200 active:scale-90 touch-manipulation',
-                isActive ? 'text-primary' : 'text-on-surface-variant'
+                'relative flex flex-1 flex-col items-center justify-center py-1 rounded-xl transition-all duration-200 active:scale-95',
+                isActive ? 'text-brand-cyan' : 'text-text-dim hover:text-text-muted'
               )}
             >
-              <span className="relative z-10 flex h-9 w-9 items-center justify-center">
+              <div className="relative flex items-center justify-center">
                 {isActive && (
-                  <span
-                    className="absolute inset-0 z-0 rounded-[18px] bg-primary-container/20 border border-primary-container/30"
-                  />
+                  <div className="absolute -inset-1 rounded-xl bg-brand-cyan/15 shadow-[0_0_12px_rgba(0,240,255,0.25)] border border-brand-cyan/30" />
                 )}
-                <span className="relative z-10 flex items-center justify-center">
-                  <Icon className="w-[18px] h-[18px]" aria-hidden />
-                </span>
-              </span>
+                <Icon className={cn('w-5 h-5 relative z-10', isActive && 'text-brand-cyan')} />
+              </div>
               <span
                 className={cn(
-                  'relative z-10 truncate px-0.5 text-[9px] transition-all duration-200',
-                  isActive ? 'font-semibold opacity-100' : 'font-medium opacity-50'
+                  'text-[10px] mt-1 font-bold tracking-tight relative z-10',
+                  isActive ? 'text-brand-cyan' : 'text-text-dim'
                 )}
               >
                 {label}

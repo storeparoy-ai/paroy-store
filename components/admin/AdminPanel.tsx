@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Package, ShoppingBag, Users,
   TrendingUp, ArrowUpRight, Eye, CheckCircle2, Clock,
-  XCircle, Plus, ChevronRight, BarChart3, Settings,
-  LogOut, AlertCircle, Loader2, Pencil, Trash2, ToggleLeft, ToggleRight,
+  XCircle, Plus, ChevronRight, AlertCircle, Loader2, Pencil, Trash2, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
@@ -17,20 +16,20 @@ import ProductModal from '@/components/admin/ProductModal';
 import DeleteConfirmModal from '@/components/admin/DeleteConfirmModal';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
-  pending:   { label: 'Menunggu', color: 'var(--warning)',     bg: 'rgba(245,158,11,0.12)',   icon: Clock },
-  paid:      { label: 'Dibayar',  color: 'var(--info)',        bg: 'rgba(59,130,246,0.12)',   icon: AlertCircle },
-  approved:  { label: 'Diproses', color: 'var(--primary-400)', bg: 'rgba(245,158,11,0.12)', icon: Package },
-  completed: { label: 'Selesai',  color: 'var(--success)',     bg: 'rgba(34,197,94,0.12)',   icon: CheckCircle2 },
-  rejected:  { label: 'Ditolak',  color: 'var(--error)',       bg: 'rgba(239,68,68,0.12)',   icon: XCircle },
+  pending:   { label: 'Menunggu', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', icon: Clock },
+  paid:      { label: 'Dibayar',  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', icon: AlertCircle },
+  approved:  { label: 'Diproses', color: '#00f0ff', bg: 'rgba(0,240,255,0.12)', icon: Package },
+  completed: { label: 'Selesai',  color: '#10b981', bg: 'rgba(16,185,129,0.12)', icon: CheckCircle2 },
+  rejected:  { label: 'Ditolak',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)', icon: XCircle },
 };
 
 type AdminTab = 'dashboard' | 'orders' | 'products' | 'users';
 
 const SIDEBAR_ITEMS: { id: AdminTab; icon: typeof LayoutDashboard; label: string }[] = [
-  { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { id: 'orders',    icon: ShoppingBag,     label: 'Pesanan' },
-  { id: 'products',  icon: Package,         label: 'Produk' },
-  { id: 'users',     icon: Users,           label: 'Pengguna' },
+  { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard Ringkasan' },
+  { id: 'orders',    icon: ShoppingBag,     label: 'Semua Pesanan' },
+  { id: 'products',  icon: Package,         label: 'Manajemen Produk' },
+  { id: 'users',     icon: Users,           label: 'Pengguna Terdaftar' },
 ];
 
 export default function AdminPanel() {
@@ -74,16 +73,11 @@ export default function AdminPanel() {
     }
 
     // Fetch Users
-    const { data: usersData } = await supabase
-      .from('profiles')
-      .select('*');
+    const { data: usersData } = await supabase.from('profiles').select('*');
     if (usersData) setUsers(usersData);
 
     // Fetch Products
-    const { data: productsData } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (productsData) setProducts(productsData.map(mapSupabaseProduct));
 
     // Fetch Orders
@@ -98,86 +92,68 @@ export default function AdminPanel() {
         id: o.order_number,
         tableId: o.order_number,
         idField: 'order_number',
-        type: o.mode === 'rental' ? 'Rental' : 'Marketplace',
-        buyer: o.profiles?.full_name || 'Unknown',
-        product: o.products?.title || 'Unknown Product',
+        type: 'Akun',
+        table: 'orders',
+        product: o.products?.title || 'Akun Game',
+        buyer: o.profiles?.full_name || 'Pembeli',
         amount: o.amount,
         status: o.status,
         date: o.created_at,
-        table: 'orders'
+        dateFormatted: new Date(o.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
       })));
     }
+
     if (topupData) {
-      combined.push(...topupData.map(o => ({
-        id: o.order_number,
-        tableId: o.order_number,
+      combined.push(...topupData.map(t => ({
+        id: t.order_number,
+        tableId: t.order_number,
         idField: 'order_number',
         type: 'Top Up',
-        buyer: o.profiles?.full_name || 'Unknown',
-        product: `Top Up ${o.game} - ${o.item_label}`,
-        amount: o.amount,
-        status: o.status,
-        date: o.created_at,
-        table: 'topup_orders'
+        table: 'topup_orders',
+        product: `${t.game_slug.toUpperCase()} (${t.item_label})`,
+        buyer: t.profiles?.full_name || t.user_id_game,
+        amount: t.amount,
+        status: t.status,
+        date: t.created_at,
+        dateFormatted: new Date(t.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
       })));
     }
+
     if (rekberData) {
-      combined.push(...rekberData.map(o => ({
-        id: o.id.substring(0, 8),
-        tableId: o.id,
-        idField: 'id',
-        type: 'RekBer',
-        buyer: o.profiles?.full_name || 'Unknown',
-        product: `RekBer: ${o.item_description}`,
-        amount: Number(o.amount) + Number(o.fee),
-        status: o.status,
-        date: o.created_at,
-        table: 'rekber_orders'
+      combined.push(...rekberData.map(r => ({
+        id: r.transaction_number,
+        tableId: r.transaction_number,
+        idField: 'transaction_number',
+        type: 'Rekber',
+        table: 'rekber_orders',
+        product: r.item_name,
+        buyer: r.buyer_name,
+        amount: r.price,
+        status: r.status,
+        date: r.created_at,
+        dateFormatted: new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
       })));
     }
-    
-    combined.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setOrders(combined.map(o => ({...o, dateFormatted: new Date(o.date).toLocaleString('id-ID')})));
+
+    combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setOrders(combined);
     setLoading(false);
   }, [router]);
 
   useEffect(() => {
     fetchAdminData();
-
-    // Subscribe to new orders (Real-time Notification)
-    const supabase = createClient();
-    const channels = ['orders', 'topup_orders', 'rekber_orders'].map(table => 
-      supabase.channel(`admin-${table}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table }, (payload) => {
-          fetchAdminData();
-          if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('Pesanan Baru Masuk!', {
-              body: `Transaksi baru di ${table} sebesar Rp ${payload.new.amount}`,
-            });
-          }
-        })
-        .subscribe()
-    );
-
-    // Request Notification permission
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-
-    return () => {
-      channels.forEach(ch => supabase.removeChannel(ch));
-    };
   }, [fetchAdminData]);
 
   const updateOrderStatus = async (order: any, newStatus: string) => {
     const supabase = createClient();
-    const { error } = await (supabase as any)
-      .from(order.table)
+    const { error } = await (supabase.from(order.table as any) as any)
       .update({ status: newStatus })
       .eq(order.idField, order.tableId);
 
-    if (!error) {
-      setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status: newStatus } : o));
+    if (error) {
+      alert(`Gagal update status: ${error.message}`);
+    } else {
+      setOrders(orders.map(o => o.id === order.id ? { ...o, status: newStatus } : o));
     }
   };
 
@@ -198,9 +174,9 @@ export default function AdminPanel() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00c896]" />
-        <p className="text-xs text-on-surface-variant">Memuat data admin...</p>
+      <div className="flex flex-col items-center justify-center min-h-75 gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-cyan" />
+        <p className="text-xs text-text-muted">Memuat data admin...</p>
       </div>
     );
   }
@@ -213,319 +189,304 @@ export default function AdminPanel() {
   };
 
   return (
-    <>
-      <div className="w-full">
-        {/* Admin Tabs */}
-        <div className="flex overflow-x-auto gap-1 mb-6 p-1 bg-surface-container-low rounded-xl border border-white/5">
-          {SIDEBAR_ITEMS.map((tab) => {
-            const Icon = tab.icon;
-            return (
+    <div className="w-full flex flex-col gap-6">
+      
+      {/* Admin Navigation Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar p-1.5 bg-bg-card rounded-2xl border border-white/8">
+        {SIDEBAR_ITEMS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex-1 justify-center cursor-pointer',
+                isActive
+                  ? 'bg-linear-to-r from-brand-cyan to-primary-container text-bg-deep shadow-[0_0_16px_rgba(0,240,255,0.35)] scale-102'
+                  : 'text-text-muted hover:bg-white/5 hover:text-white'
+              )}
+            >
+              <Icon className={cn('w-4 h-4', isActive ? 'text-bg-deep' : 'text-text-dim')} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* TAB: DASHBOARD */}
+      {activeTab === 'dashboard' && (
+        <div className="flex flex-col gap-6">
+          
+          {/* Top 3 Stat Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {[
+              { label: 'Total Omzet Selesai', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: '#00f0ff', sub: '+12% performa bulan ini' },
+              { label: 'Pesanan Perlu Diproses', value: String(stats.pendingOrders), icon: AlertCircle, color: '#f59e0b', sub: 'Segera cek & verifikasi' },
+              { label: 'Total Produk Terdaftar', value: String(products.length), icon: Package, color: '#10b981', sub: `${stats.activeProducts} Produk Aktif` },
+            ].map(({ label, value, icon: Icon, color, sub }) => (
+              <div key={label} className="p-6 rounded-2xl bg-bg-card border border-white/8 hover:border-white/20 transition-all flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-xs font-bold text-text-muted uppercase tracking-wider">{label}</span>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}18` }}>
+                    <Icon className="w-5 h-5" style={{ color }} />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-white">{value}</div>
+                <div className="text-xs font-semibold mt-2 flex items-center gap-1" style={{ color }}>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <span>{sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Recent Orders Table Card */}
+          <div className="p-6 rounded-2xl bg-bg-card border border-white/8 overflow-hidden">
+            <div className="flex items-center justify-between pb-4 border-b border-white/8 mb-4">
+              <div>
+                <h2 className="font-heading font-bold text-lg text-white">Pesanan Terbaru</h2>
+                <p className="text-xs text-text-muted">Aktivitas transaksi masuk terkini</p>
+              </div>
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-label-md font-label-md whitespace-nowrap transition-all duration-200 flex-1 justify-center',
-                  activeTab === tab.id
-                    ? 'bg-[#00c896] text-black shadow-[0_0_10px_rgba(0,200,150,0.3)]'
-                    : 'text-on-surface-variant hover:bg-surface-variant hover:text-on-surface'
-                )}
+                onClick={() => setActiveTab('orders')}
+                className="text-xs font-bold text-brand-cyan hover:underline flex items-center gap-1"
               >
-                <Icon className="w-4 h-4" />
-                {tab.label}
+                <span>Lihat Semua ({orders.length})</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-bg-raised text-text-muted text-xs font-bold uppercase tracking-wider">
+                    {['Order ID', 'Tipe', 'Pembeli', 'Produk', 'Total', 'Status'].map(h => (
+                      <th key={h} className="p-3.5 whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-xs text-white divide-y divide-white/5 font-medium">
+                  {orders.slice(0, 5).map((order) => {
+                    const st = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+                    return (
+                      <tr key={order.id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-3.5 font-mono text-brand-cyan font-bold">{order.id}</td>
+                        <td className="p-3.5">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white/5 border border-white/10">{order.type}</span>
+                        </td>
+                        <td className="p-3.5 font-semibold">{order.buyer}</td>
+                        <td className="p-3.5 text-text-muted max-w-45 truncate">{order.product}</td>
+                        <td className="p-3.5 font-bold text-primary-container whitespace-nowrap">{formatCurrency(order.amount)}</td>
+                        <td className="p-3.5">
+                          <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                            style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}33` }}
+                          >
+                            {st.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* TAB: ORDERS */}
+      {activeTab === 'orders' && (
+        <div className="flex flex-col gap-3">
+          {orders.length === 0 && (
+            <div className="p-16 rounded-2xl bg-bg-card border border-white/8 flex flex-col items-center gap-3">
+              <span className="text-5xl">📋</span>
+              <p className="font-bold text-white">Belum ada pesanan masuk</p>
+            </div>
+          )}
+          {orders.map((order) => {
+            const st = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+            const StatusIcon = st.icon;
+            return (
+              <div key={order.id} className="p-5 rounded-2xl bg-bg-card border border-white/8 hover:border-brand-cyan/40 transition-all">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-brand-cyan">{order.id}</span>
+                      <span
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                        style={{ background: st.bg, color: st.color, border: `1px solid ${st.color}33` }}
+                      >
+                        <StatusIcon className="w-3 h-3" />
+                        {st.label}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/5 border border-white/10 text-text-muted">{order.type}</span>
+                    </div>
+                    <p className="text-sm font-bold text-white">{order.product}</p>
+                    <p className="text-xs text-text-muted mt-1">
+                      👤 {order.buyer} &middot; {order.dateFormatted}
+                    </p>
+                    <p className="text-sm font-black text-primary-container mt-1.5">{formatCurrency(order.amount)}</p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {order.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => updateOrderStatus(order, 'approved')}
+                          className="btn-cyber text-xs py-1.5 px-3"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                        </button>
+                      </>
+                    )}
+                    {order.status === 'paid' && (
+                      <>
+                        <button
+                          onClick={() => updateOrderStatus(order, 'approved')}
+                          className="btn-cyber text-xs py-1.5 px-3"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Proses Pesanan
+                        </button>
+                        <button
+                          onClick={() => updateOrderStatus(order, 'rejected')}
+                          className="btn-secondary text-xs py-1.5 px-3 text-red-400 hover:text-red-300"
+                        >
+                          <XCircle className="w-3.5 h-3.5" /> Tolak
+                        </button>
+                      </>
+                    )}
+                    {order.status === 'approved' && (
+                      <button
+                        onClick={() => updateOrderStatus(order, 'completed')}
+                        className="btn-cyber text-xs py-1.5 px-3"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Selesaikan
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
+      )}
 
-        {/* DASHBOARD TAB */}
-        {activeTab === 'dashboard' && (
-          <div className="flex flex-col gap-stack-md">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-              {[
-                { label: 'Total Pendapatan', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: '#00c896', sub: '+12% dari bulan lalu' },
-                { label: 'Pesanan Pending', value: String(stats.pendingOrders), icon: AlertCircle, color: '#ffb4ab', sub: 'Perlu diproses segera' },
-                { label: 'Total Produk', value: String(products.length), icon: Package, color: '#00c896', sub: `${stats.activeProducts} Aktif` },
-              ].map(({ label, value, icon: Icon, color, sub }) => (
-                <div key={label} className="card-level-1 rounded-xl p-gutter card-hover transition-all duration-300">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="text-on-surface-variant text-label-md font-label-md">{label}</div>
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: `${color}22` }}>
-                      <Icon className="w-5 h-5" style={{ color }} />
-                    </div>
-                  </div>
-                  <div className="text-headline-lg font-headline-lg text-on-surface">{value}</div>
-                  <div className="text-body-md mt-2 flex items-center gap-1" style={{ color }}>
-                    <ArrowUpRight className="w-4 h-4" />{sub}
-                  </div>
-                </div>
-              ))}
+      {/* TAB: PRODUCTS */}
+      {activeTab === 'products' && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-heading font-bold text-lg text-white">Daftar Produk Toko</h2>
+              <p className="text-xs text-text-muted">{products.length} total produk ({products.filter(p => p.status === 'active').length} aktif)</p>
             </div>
-
-            <div className="card-level-1 rounded-xl overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-white/10">
-                <h2 className="text-headline-md font-headline-md text-on-surface">Pesanan Terbaru</h2>
-                <button onClick={() => setActiveTab('orders')} className="text-[#00c896] text-label-md hover:underline flex items-center gap-1">
-                  Lihat Semua <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-surface-container-high text-on-surface-variant text-label-md border-b border-white/10">
-                      {['Order ID','Pembeli','Produk','Jumlah','Status'].map(h => (
-                        <th key={h} className="p-4 font-semibold uppercase tracking-wider whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="text-body-md text-on-surface divide-y divide-white/5">
-                    {orders.slice(0, 5).map((order) => {
-                      const st = STATUS_CONFIG[order.status];
-                      const scMap: Record<string,{bg:string;text:string;border:string}> = {
-                        pending:   {bg:'rgba(245,158,11,0.1)',text:'#fbbf24',border:'rgba(245,158,11,0.2)'},
-                        paid:      {bg:'rgba(59,130,246,0.1)',text:'#60a5fa',border:'rgba(59,130,246,0.2)'},
-                        approved:  {bg:'rgba(0,200,150,0.1)',text:'#00c896',border:'rgba(0,200,150,0.2)'},
-                        completed: {bg:'rgba(34,197,94,0.1)',text:'#4ade80',border:'rgba(34,197,94,0.2)'},
-                        rejected:  {bg:'rgba(239,68,68,0.1)',text:'#f87171',border:'rgba(239,68,68,0.2)'},
-                      };
-                      const sc = scMap[order.status] ?? scMap.pending;
-                      return (
-                        <tr key={order.id} className="hover:bg-surface-container-highest/50 transition-colors">
-                          <td className="p-4 font-mono text-[#3adfab] text-sm">{order.id}</td>
-                          <td className="p-4 font-semibold">{order.buyer}</td>
-                          <td className="p-4 text-on-surface-variant max-w-[180px]"><span className="block truncate">{order.product}</span></td>
-                          <td className="p-4 font-bold text-[#00c896] whitespace-nowrap">{formatCurrency(order.amount)}</td>
-                          <td className="p-4">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border"
-                              style={{background:sc.bg,color:sc.text,borderColor:sc.border}}>
-                              {st?.label || order.status}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="card-level-1 rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-white/10">
-                <h2 className="text-headline-md font-headline-md text-on-surface">Produk Populer</h2>
-              </div>
-              <div className="divide-y divide-white/5">
-                {products.sort((a, b) => b.viewCount - a.viewCount).slice(0, 5).map((p, i) => (
-                  <div key={p.id} className="flex items-center gap-4 p-4 hover:bg-surface-container-highest/30 transition-colors">
-                    <span className="text-on-surface-variant font-bold w-5 text-center text-sm">#{i+1}</span>
-                    <div className="relative w-10 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container-high">
-                      {p.images[0] && <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-on-surface truncate">{p.title}</p>
-                      <p className="text-xs text-on-surface-variant">{p.game.icon} {p.game.name}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-[#00c896]">{formatCurrency(p.price)}</p>
-                      <p className="text-xs text-on-surface-variant flex items-center gap-1 justify-end"><Eye className="w-3 h-3" />{formatNumber(p.viewCount)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="btn-cyber text-xs py-2 px-4 flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Produk Baru</span>
+            </button>
           </div>
-        )}
 
-        {/* ORDERS TAB */}
-        {activeTab === 'orders' && (
-          <div className="flex flex-col gap-3">
-            {orders.length === 0 && (
-              <div className="card-level-1 rounded-xl flex flex-col items-center py-16 gap-3">
-                <span className="text-5xl">&#x1F4CB;</span>
-                <p className="font-semibold text-on-surface">Belum ada pesanan</p>
-              </div>
-            )}
-            {orders.map((order) => {
-              const st = STATUS_CONFIG[order.status];
-              const StatusIcon = st ? st.icon : Clock;
-              const scMap: Record<string,{bg:string;text:string;border:string}> = {
-                pending:   {bg:'rgba(245,158,11,0.1)',text:'#fbbf24',border:'rgba(245,158,11,0.2)'},
-                paid:      {bg:'rgba(59,130,246,0.1)',text:'#60a5fa',border:'rgba(59,130,246,0.2)'},
-                approved:  {bg:'rgba(0,200,150,0.1)',text:'#00c896',border:'rgba(0,200,150,0.2)'},
-                completed: {bg:'rgba(34,197,94,0.1)',text:'#4ade80',border:'rgba(34,197,94,0.2)'},
-                rejected:  {bg:'rgba(239,68,68,0.1)',text:'#f87171',border:'rgba(239,68,68,0.2)'},
-              };
-              const sc = scMap[order.status] ?? scMap.pending;
-              return (
-                <div key={order.id} className="card-level-1 rounded-xl p-4 hover:border-[#00c896]/30 transition-all duration-200">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="font-mono text-xs font-bold text-[#3adfab]">{order.id}</span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border"
-                          style={{background:sc.bg,color:sc.text,borderColor:sc.border}}>
-                          <StatusIcon className="w-3 h-3" />{st?.label || order.status}
-                        </span>
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs bg-surface-container-high text-on-surface-variant border border-white/10">{order.type}</span>
-                      </div>
-                      <p className="text-sm font-semibold text-on-surface">{order.product}</p>
-                      <p className="text-xs mt-0.5 text-on-surface-variant">&#x1F464; {order.buyer} &middot; {order.dateFormatted}</p>
-                      <p className="text-sm font-black mt-1 text-[#00c896]">{formatCurrency(order.amount)}</p>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {order.status === 'pending' && (
-                        <>
-                          <button onClick={() => updateOrderStatus(order, 'paid')}
-                            className="flex items-center gap-1 text-xs py-1.5 px-3 rounded-lg font-semibold border border-white/10 text-on-surface-variant hover:bg-surface-variant transition-all">
-                            <Eye className="w-3 h-3" /> Cek Bukti
-                          </button>
-                          <button onClick={() => updateOrderStatus(order, 'approved')}
-                            className="flex items-center gap-1 text-xs py-1.5 px-3 rounded-lg font-semibold bg-[#00c896] text-black hover:bg-[#3adfab] transition-all">
-                            <CheckCircle2 className="w-3 h-3" /> Approve
-                          </button>
-                        </>
-                      )}
-                      {order.status === 'paid' && (
-                        <>
-                          <button onClick={() => updateOrderStatus(order, 'approved')}
-                            className="flex items-center gap-1 text-xs py-1.5 px-3 rounded-lg font-semibold bg-[#00c896] text-black hover:bg-[#3adfab] transition-all">
-                            <CheckCircle2 className="w-3 h-3" /> Approve
-                          </button>
-                          <button onClick={() => updateOrderStatus(order, 'rejected')}
-                            className="flex items-center gap-1 text-xs py-1.5 px-3 rounded-lg font-semibold transition-all"
-                            style={{background:'rgba(239,68,68,0.1)',color:'#f87171',border:'1px solid rgba(239,68,68,0.25)'}}>
-                            <XCircle className="w-3 h-3" /> Tolak
-                          </button>
-                        </>
-                      )}
-                      {order.status === 'approved' && (
-                        <button onClick={() => updateOrderStatus(order, 'completed')}
-                          className="flex items-center gap-1 text-xs py-1.5 px-3 rounded-lg font-semibold bg-[#00c896] text-black hover:bg-[#3adfab] transition-all">
-                          <CheckCircle2 className="w-3 h-3" /> Selesaikan
+          <div className="p-6 rounded-2xl bg-bg-card border border-white/8 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-bg-raised text-text-muted text-xs font-bold uppercase tracking-wider">
+                    {['Produk', 'Game', 'Harga', 'Views', 'Status', 'Aksi'].map(h => (
+                      <th key={h} className="p-3.5 whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-xs text-white divide-y divide-white/5 font-medium">
+                  {products.map((p) => (
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-10 h-12 rounded-xl overflow-hidden shrink-0 bg-bg-raised">
+                            {p.images[0] && <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />}
+                          </div>
+                          <span className="font-semibold text-white max-w-40 truncate">{p.title}</span>
+                        </div>
+                      </td>
+                      <td className="p-3.5 whitespace-nowrap font-bold" style={{ color: p.game.color }}>
+                        {p.game.icon} {p.game.name}
+                      </td>
+                      <td className="p-3.5 font-bold text-primary-container whitespace-nowrap">{formatCurrency(p.price)}</td>
+                      <td className="p-3.5 text-text-muted whitespace-nowrap">{formatNumber(p.viewCount)}</td>
+                      <td className="p-3.5">
+                        <button
+                          onClick={() => handleToggleStatus(p)}
+                          className={cn(
+                            'flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all',
+                            p.status === 'active'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                              : 'bg-red-500/10 text-red-400 border-red-500/30'
+                          )}
+                        >
+                          {p.status === 'active' ? <><ToggleRight className="w-3.5 h-3.5" /> Aktif</> : <><ToggleLeft className="w-3.5 h-3.5" /> Nonaktif</>}
                         </button>
-                      )}
-                      {(order.status === 'completed' || order.status === 'rejected') && (
-                        <span className="text-xs py-1.5 px-3 rounded-lg bg-surface-container text-on-surface-variant">
-                          {order.status === 'completed' ? 'Selesai' : 'Ditolak'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* PRODUCTS TAB */}
-        {activeTab === 'products' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="font-bold text-base text-on-surface">Manajemen Produk</p>
-                <p className="text-xs text-on-surface-variant mt-0.5">{products.length} produk &middot; {products.filter(p => p.status === 'active').length} aktif</p>
-              </div>
-              <button onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 bg-[#00c896] text-black font-bold text-label-md px-4 py-2 rounded-lg hover:bg-[#3adfab] transition-colors">
-                <Plus className="w-4 h-4" /> Tambah Produk
-              </button>
-            </div>
-            {products.length === 0 ? (
-              <div className="card-level-1 rounded-xl flex flex-col items-center py-16 gap-3">
-                <span className="text-5xl">&#x1F4E6;</span>
-                <p className="font-semibold text-on-surface">Belum ada produk</p>
-                <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 bg-[#00c896] text-black font-bold px-4 py-2 rounded-lg mt-2">
-                  <Plus className="w-4 h-4" /> Tambah Produk Pertama
-                </button>
-              </div>
-            ) : (
-              <div className="card-level-1 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-surface-container-high text-on-surface-variant text-label-md border-b border-white/10">
-                        {['Produk','Game','Harga','Views','Status','Aksi'].map(h => (
-                          <th key={h} className="p-4 font-semibold uppercase tracking-wider whitespace-nowrap">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {products.map((p) => (
-                        <tr key={p.id} className="hover:bg-surface-container-highest/40 transition-colors">
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="relative w-9 h-11 rounded-lg overflow-hidden shrink-0 bg-surface-container-high">
-                                {p.images[0] && <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />}
-                              </div>
-                              <span className="text-sm font-semibold text-on-surface line-clamp-2 max-w-[160px]">{p.title}</span>
-                            </div>
-                          </td>
-                          <td className="p-4 text-sm whitespace-nowrap" style={{color:p.game.color}}>{p.game.icon} {p.game.name}</td>
-                          <td className="p-4 text-sm font-bold text-[#00c896] whitespace-nowrap">{formatCurrency(p.price)}</td>
-                          <td className="p-4 text-sm text-on-surface-variant whitespace-nowrap">{formatNumber(p.viewCount)}</td>
-                          <td className="p-4">
-                            <button onClick={() => handleToggleStatus(p)}
-                              className="flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-lg transition-all border"
-                              style={p.status === 'active'
-                                ? {background:'rgba(34,197,94,0.1)',color:'#4ade80',borderColor:'rgba(34,197,94,0.2)'}
-                                : {background:'rgba(239,68,68,0.1)',color:'#f87171',borderColor:'rgba(239,68,68,0.2)'}}>
-                              {p.status === 'active' ? <><ToggleRight className="w-3 h-3" /> Aktif</> : <><ToggleLeft className="w-3 h-3" /> Nonaktif</>}
-                            </button>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex gap-1">
-                              <Link href={`/products/${p.id}`} target="_blank"
-                                className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" title="Lihat di toko">
-                                <Eye className="w-3.5 h-3.5" />
-                              </Link>
-                              <button onClick={() => setEditProduct(p)}
-                                className="p-1.5 rounded-lg text-[#00c896] hover:bg-[#00c896]/10 transition-colors" title="Edit produk">
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button onClick={() => setDeleteProduct(p)}
-                                className="p-1.5 rounded-lg text-[#f87171] hover:bg-red-500/10 transition-colors" title="Hapus produk">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* USERS TAB */}
-        {activeTab === 'users' && (
-          <div className="card-level-1 rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-headline-md font-headline-md text-on-surface">Pengguna Terdaftar</h2>
-              <span className="bg-surface-container-high text-on-surface-variant text-label-md px-3 py-1 rounded-full border border-white/10">{users.length} total</span>
-            </div>
-            <div className="divide-y divide-white/5">
-              {users.map(({ full_name, username, role, created_at, avatar_url }) => (
-                <div key={username} className="flex items-center gap-4 p-4 hover:bg-surface-container-highest/30 transition-colors">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 bg-surface-container-high border border-white/10">
-                    {avatar_url ? <img src={avatar_url} alt={full_name} className="w-full h-full object-cover rounded-full" /> : <span>&#x1F464;</span>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-on-surface">{full_name || username}</p>
-                      {role === 'admin' && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#00c896]/10 text-[#00c896] border border-[#00c896]/20">Admin</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-on-surface-variant">{username} &middot; Join {new Date(created_at).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td className="p-3.5">
+                        <div className="flex items-center gap-1.5">
+                          <Link href={`/products/${p.id}`} target="_blank" className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-text-muted hover:text-white" title="Lihat">
+                            <Eye className="w-3.5 h-3.5" />
+                          </Link>
+                          <button onClick={() => setEditProduct(p)} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-brand-cyan" title="Edit">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => setDeleteProduct(p)} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-red-400" title="Hapus">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* MODALS */}
+      {/* TAB: USERS */}
+      {activeTab === 'users' && (
+        <div className="p-6 rounded-2xl bg-bg-card border border-white/8">
+          <div className="flex items-center justify-between pb-4 border-b border-white/8 mb-4">
+            <div>
+              <h2 className="font-heading font-bold text-lg text-white">Daftar Pengguna</h2>
+              <p className="text-xs text-text-muted">{users.length} akun terdaftar di sistem</p>
+            </div>
+          </div>
+
+          <div className="divide-y divide-white/5">
+            {users.map(({ full_name, username, role, created_at, avatar_url }) => (
+              <div key={username} className="flex items-center gap-4 py-3.5 hover:bg-white/5 px-3 rounded-xl transition-colors">
+                <div className="w-10 h-10 rounded-xl overflow-hidden bg-bg-raised border border-white/10 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                  {avatar_url ? <img src={avatar_url} alt={full_name} className="w-full h-full object-cover" /> : <span>👤</span>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs font-bold text-white">{full_name || username}</p>
+                    {role === 'admin' && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-text-muted mt-0.5">{username} &middot; Join {new Date(created_at).toLocaleDateString('id-ID')}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
       {showAddModal && (
         <ProductModal mode="add" onClose={() => setShowAddModal(false)} onSuccess={fetchProducts} />
       )}
@@ -535,6 +496,7 @@ export default function AdminPanel() {
       {deleteProduct && (
         <DeleteConfirmModal productTitle={deleteProduct.title} onConfirm={handleDeleteProduct} onClose={() => setDeleteProduct(null)} />
       )}
-    </>
+
+    </div>
   );
 }
