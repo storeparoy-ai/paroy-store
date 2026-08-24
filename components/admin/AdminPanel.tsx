@@ -33,7 +33,7 @@ const SIDEBAR_ITEMS: { id: AdminTab; icon: typeof LayoutDashboard; label: string
   { id: 'users',     icon: Users,           label: 'Pengguna' },
 ];
 
-export default function AdminPage() {
+export default function AdminPanel() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -200,6 +200,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
+    <>
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
       </div>
@@ -214,116 +215,32 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-row" style={{ background: 'var(--surface-base)' }}>
-      {/* Sidebar overlay (mobile) */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          'fixed top-0 left-0 h-full z-50 flex flex-col transition-transform duration-300',
-          'lg:static lg:translate-x-0 lg:z-auto',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
-        style={{
-          width: '220px',
-          background: 'var(--surface-raised)',
-          borderRight: '1px solid var(--border-default)',
-        }}
-      >
-        {/* Logo */}
-        <div className="p-5 flex items-center gap-2.5 border-b" style={{ borderColor: 'rgba(245,158,11,0.08)' }}>
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm text-white"
-            style={{ background: 'linear-gradient(135deg, var(--primary-400), var(--accent-purple))' }}
-          >
-            P
-          </div>
-          <div>
-            <p className="text-xs font-bold font-heading" style={{ color: 'var(--text-primary)' }}>PAROY STORE</p>
-            <p className="text-[10px]" style={{ color: 'var(--primary-400)' }}>Admin Panel</p>
-          </div>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 p-3 flex flex-col gap-1">
-          {SIDEBAR_ITEMS.map(({ id, icon: Icon, label }) => (
+    <>
+      <div className="w-full">
+      {/* Admin Tabs */}
+      <div className="flex overflow-x-auto no-scrollbar gap-2 mb-6">
+        {SIDEBAR_ITEMS.map((tab) => {
+          const Icon = tab.icon;
+          return (
             <button
-              key={id}
-              onClick={() => { setActiveTab(id); setSidebarOpen(false); }}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left transition-all',
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200',
+                activeTab === tab.id
+                  ? 'bg-[var(--primary-500)] text-white shadow-lg'
+                  : 'bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               )}
-              style={
-                activeTab === id
-                  ? { background: 'rgba(245,158,11,0.12)', color: 'var(--primary-400)', border: '1px solid rgba(245,158,11,0.2)' }
-                  : { color: 'var(--text-muted)', border: '1px solid transparent' }
-              }
             >
-              <Icon className="w-4 h-4 shrink-0" />
-              {label}
-              {id === 'orders' && stats.pendingOrders > 0 && (
-                <span
-                  className="ml-auto text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center text-white"
-                  style={{ background: 'var(--warning)' }}
-                >
-                  {stats.pendingOrders}
-                </span>
-              )}
+              <Icon className="w-4 h-4" />
+              {tab.label}
             </button>
-          ))}
-        </nav>
+          );
+        })}
+      </div>
 
-        {/* Bottom */}
-        <div className="p-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all hover:bg-[rgba(255,255,255,0.04)]"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <LogOut className="w-4 h-4" />
-            Kembali ke Toko
-          </Link>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        {/* Top bar */}
-        <header
-          className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 h-14 shrink-0"
-          style={{ background: 'rgba(16,14,13,0.8)', borderBottom: '1px solid rgba(245,158,11,0.07)' }}
-        >
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg"
-              style={{ color: 'var(--text-muted)' }}
-              aria-label="Buka sidebar"
-            >
-              <BarChart3 className="w-4 h-4" />
-            </button>
-            <h1 className="font-bold font-heading text-sm capitalize" style={{ color: 'var(--text-primary)' }}>
-              {activeTab === 'dashboard' ? '📊 Dashboard' :
-               activeTab === 'orders' ? '📦 Pesanan' :
-               activeTab === 'products' ? '🎮 Produk' : '👥 Pengguna'}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--success)' }}>
-              ● Admin
-            </span>
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-auto p-4 sm:p-6">
-
-          {/* ===== DASHBOARD TAB ===== */}
+      {/* Main Content */}
+      <div className="w-full">{/* ===== DASHBOARD TAB ===== */}
           {activeTab === 'dashboard' && (
             <div className="space-y-4 max-w-5xl">
               {/* Stats cards */}
@@ -431,7 +348,8 @@ export default function AdminPage() {
                 const st = STATUS_CONFIG[order.status];
                 const StatusIcon = st.icon;
                 return (
-                  <div key={order.id} className="glass-card p-4">
+    <>
+      <div key={order.id} className="glass-card p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -652,7 +570,7 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-        </main>
+        </div>
       </div>
 
       {/* ===== MODALS ===== */}
@@ -678,6 +596,6 @@ export default function AdminPage() {
           onClose={() => setDeleteProduct(null)}
         />
       )}
-    </div>
+    </>
   );
 }

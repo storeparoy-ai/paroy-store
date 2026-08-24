@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   User, ShoppingBag, Heart, Bell, Settings,
-  ChevronRight, Package, Clock, CheckCircle2, XCircle, AlertCircle, LogOut, Loader2
+  ChevronRight, Package, Clock, CheckCircle2, XCircle, AlertCircle, LogOut, Loader2, Shield
 } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
@@ -15,6 +15,7 @@ import { mapSupabaseProduct } from '@/lib/supabase-helpers';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
+import AdminPanel from '@/components/admin/AdminPanel';
 
 const ORDER_STATUS = {
   pending:   { label: 'Menunggu',  color: 'var(--warning)',   bg: 'rgba(245,158,11,0.12)',  icon: Clock },
@@ -25,7 +26,7 @@ const ORDER_STATUS = {
   cancelled: { label: 'Dibatalkan',color: 'var(--text-muted)',bg: 'rgba(255,255,255,0.05)', icon: XCircle },
 };
 
-type TabId = 'orders' | 'wishlist' | 'settings';
+type TabId = 'orders' | 'wishlist' | 'settings' | 'admin';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -157,6 +158,10 @@ export default function ProfilePage() {
     { id: 'wishlist', icon: Heart, label: 'Wishlist' },
     { id: 'settings', icon: Settings, label: 'Pengaturan' },
   ];
+
+  if (userProfile?.role === 'admin') {
+    tabs.push({ id: 'admin' as TabId, icon: Shield, label: 'Admin Panel' });
+  }
 
   return (
     <>
@@ -410,17 +415,17 @@ export default function ProfilePage() {
                 ))}
                 
                 {userProfile.role === 'admin' && (
-                  <Link
-                    href="/admin"
-                    className="flex items-center justify-between p-4 border-b transition-colors hover:bg-[rgba(245,158,11,0.1)]"
+                  <button
+                    onClick={() => setActiveTab('admin')}
+                    className="w-full flex items-center justify-between p-4 border-b transition-colors hover:bg-[rgba(245,158,11,0.1)]"
                     style={{ borderColor: 'var(--border-subtle)', background: 'rgba(245,158,11,0.05)' }}
                   >
                     <div className="flex items-center gap-3">
-                      <Settings className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
+                      <Shield className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
                       <span className="text-sm font-bold" style={{ color: 'var(--primary-400)' }}>Dashboard Admin</span>
                     </div>
                     <ChevronRight className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
-                  </Link>
+                  </button>
                 )}
 
                 <button
@@ -432,6 +437,13 @@ export default function ProfilePage() {
                   <span className="text-sm font-semibold">Keluar</span>
                 </button>
               </div>
+            </div>
+          )}
+          
+          {/* ===== ADMIN PANEL TAB ===== */}
+          {activeTab === 'admin' && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <AdminPanel />
             </div>
           )}
         </div>
