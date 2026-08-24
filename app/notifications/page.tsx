@@ -70,7 +70,7 @@ const TYPE_CONFIG: Record<NotificationType, { icon: typeof Bell; color: string; 
   order:     { icon: Package,       color: 'var(--success)',     bg: 'rgba(34,197,94,0.12)' },
   promo:     { icon: Tag,           color: 'var(--warning)',     bg: 'rgba(245,158,11,0.12)' },
   system:    { icon: AlertCircle,   color: 'var(--info)',        bg: 'rgba(59,130,246,0.12)' },
-  community: { icon: MessageCircle, color: 'var(--primary-400)', bg: 'rgba(232,120,159,0.12)' },
+  community: { icon: MessageCircle, color: 'var(--primary-400)', bg: 'rgba(245,158,11,0.12)' },
 };
 
 export default function NotificationsPage() {
@@ -129,8 +129,8 @@ export default function NotificationsPage() {
                 onClick={() => setActiveTab(tab)}
                 className="px-4 py-2 rounded-xl text-xs font-semibold transition-all border"
                 style={{
-                  background: activeTab === tab ? 'rgba(232,120,159,0.12)' : 'var(--surface-card)',
-                  borderColor: activeTab === tab ? 'rgba(232,120,159,0.4)' : 'var(--border-default)',
+                  background: activeTab === tab ? 'rgba(245,158,11,0.12)' : 'var(--surface-card)',
+                  borderColor: activeTab === tab ? 'rgba(245,158,11,0.4)' : 'var(--border-default)',
                   color: activeTab === tab ? 'var(--primary-400)' : 'var(--text-muted)',
                 }}
               >

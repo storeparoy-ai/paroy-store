@@ -9,7 +9,7 @@ import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 
 const ROLE_BADGE: Record<string, { label: string; color: string; bg: string }> = {
-  seller: { label: 'Seller', color: 'var(--primary-400)', bg: 'rgba(232,120,159,0.12)' },
+  seller: { label: 'Seller', color: 'var(--primary-400)', bg: 'rgba(245,158,11,0.12)' },
   buyer:  { label: 'Buyer',  color: 'var(--info)',        bg: 'rgba(59,130,246,0.12)' },
   admin:  { label: 'Admin',  color: 'var(--warning)',     bg: 'rgba(245,158,11,0.12)' },
 };
@@ -196,7 +196,7 @@ export default function CommunityPage() {
           ) : (
             <button
               onClick={() => setShowPostBox(true)}
-              className="w-full glass-card p-3 flex items-center gap-3 mb-4 text-left hover:border-[rgba(232,120,159,0.35)] transition-all"
+              className="w-full glass-card p-3 flex items-center gap-3 mb-4 text-left hover:border-[rgba(245,158,11,0.35)] transition-all"
             >
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-lg shrink-0"
@@ -218,8 +218,8 @@ export default function CommunityPage() {
                 onClick={() => setActiveTab(id)}
                 className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border"
                 style={{
-                  background: activeTab === id ? 'rgba(232,120,159,0.12)' : 'var(--surface-card)',
-                  borderColor: activeTab === id ? 'rgba(232,120,159,0.4)' : 'var(--border-default)',
+                  background: activeTab === id ? 'rgba(245,158,11,0.12)' : 'var(--surface-card)',
+                  borderColor: activeTab === id ? 'rgba(245,158,11,0.4)' : 'var(--border-default)',
                   color: activeTab === id ? 'var(--primary-400)' : 'var(--text-muted)',
                 }}
               >
@@ -235,7 +235,7 @@ export default function CommunityPage() {
               return (
                 <article
                   key={post.id}
-                  className="glass-card p-4 transition-all hover:border-[rgba(232,120,159,0.2)]"
+                  className="glass-card p-4 transition-all hover:border-[rgba(245,158,11,0.2)]"
                 >
                   {/* Author row */}
                   <div className="flex items-start justify-between gap-2 mb-3">
@@ -284,7 +284,7 @@ export default function CommunityPage() {
                       onClick={() => toggleLike(post.id)}
                       className={cn(
                         'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                        post.liked ? 'bg-[rgba(232,120,159,0.12)]' : 'hover:bg-[rgba(255,255,255,0.04)]'
+                        post.liked ? 'bg-[rgba(245,158,11,0.12)]' : 'hover:bg-[rgba(255,255,255,0.04)]'
                       )}
                       style={{ color: post.liked ? 'var(--primary-400)' : 'var(--text-muted)' }}
                       aria-label="Like"

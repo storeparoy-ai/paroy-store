@@ -29,7 +29,7 @@ export default function BottomNav() {
         background: 'rgba(26,24,22,0.75)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(232,120,159,0.10)',
+        border: '1px solid rgba(245,158,11,0.10)',
         boxShadow: '0 8px 32px rgba(10,9,8,0.6)',
         borderRadius: '32px',
         padding: '6px',
@@ -53,8 +53,8 @@ export default function BottomNav() {
                   <span
                     className="absolute inset-0 z-0 rounded-[18px]"
                     style={{
-                      background: 'rgba(232,120,159,0.12)',
-                      border: '1px solid rgba(232,120,159,0.22)',
+                      background: 'rgba(245,158,11,0.12)',
+                      border: '1px solid rgba(245,158,11,0.22)',
                     }}
                   />
                 )}

@@ -227,7 +227,7 @@ function CheckoutContent() {
       {/* Order number */}
       <div
         className="flex items-center justify-between px-3 py-2 rounded-xl mb-3 text-xs"
-        style={{ background: 'rgba(232,120,159,0.06)', border: '1px solid rgba(232,120,159,0.15)' }}
+        style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}
       >
         <span style={{ color: 'var(--text-muted)' }}>No. Order</span>
         <span className="font-bold font-heading" style={{ color: 'var(--primary-400)' }}>{orderNumber}</span>
@@ -248,8 +248,8 @@ function CheckoutContent() {
                   'hover:scale-[1.005] active:scale-[0.998]'
                 )}
                 style={{
-                  background: isActive ? 'rgba(232,120,159,0.08)' : 'var(--surface-raised)',
-                  borderColor: isActive ? 'rgba(232,120,159,0.4)' : 'var(--border-default)',
+                  background: isActive ? 'rgba(245,158,11,0.08)' : 'var(--surface-raised)',
+                  borderColor: isActive ? 'rgba(245,158,11,0.4)' : 'var(--border-default)',
                 }}
               >
                 <div
@@ -341,7 +341,7 @@ function CheckoutContent() {
             onClick={() => fileRef.current?.click()}
             className={cn(
               'w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-2',
-              'transition-all hover:border-[rgba(232,120,159,0.5)] hover:bg-[rgba(232,120,159,0.04)]'
+              'transition-all hover:border-[rgba(245,158,11,0.5)] hover:bg-[rgba(245,158,11,0.04)]'
             )}
             style={{ borderColor: 'var(--border-default)' }}
           >

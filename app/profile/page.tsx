@@ -19,7 +19,7 @@ import Footer from '@/components/layout/Footer';
 const ORDER_STATUS = {
   pending:   { label: 'Menunggu',  color: 'var(--warning)',   bg: 'rgba(245,158,11,0.12)',  icon: Clock },
   paid:      { label: 'Dibayar',   color: 'var(--info)',      bg: 'rgba(59,130,246,0.12)',  icon: AlertCircle },
-  approved:  { label: 'Diproses',  color: 'var(--primary-400)', bg: 'rgba(232,120,159,0.12)', icon: Package },
+  approved:  { label: 'Diproses',  color: 'var(--primary-400)', bg: 'rgba(245,158,11,0.12)', icon: Package },
   completed: { label: 'Selesai',   color: 'var(--success)',   bg: 'rgba(34,197,94,0.12)',   icon: CheckCircle2 },
   rejected:  { label: 'Ditolak',   color: 'var(--error)',     bg: 'rgba(239,68,68,0.12)',   icon: XCircle },
   cancelled: { label: 'Dibatalkan',color: 'var(--text-muted)',bg: 'rgba(255,255,255,0.05)', icon: XCircle },
@@ -168,7 +168,7 @@ export default function ProfilePage() {
             <div
               aria-hidden
               className="absolute -top-16 -right-16 w-48 h-48 rounded-full pointer-events-none"
-              style={{ background: 'rgba(232,120,159,0.10)', filter: 'blur(40px)' }}
+              style={{ background: 'rgba(245,158,11,0.10)', filter: 'blur(40px)' }}
             />
             <div className="relative flex items-center gap-4">
               {/* Avatar with Upload */}
@@ -266,8 +266,8 @@ export default function ProfilePage() {
                       onClick={() => setFilterStatus(s)}
                       className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border"
                       style={{
-                        background: isActive && st ? st.bg : isActive ? 'rgba(232,120,159,0.12)' : 'var(--surface-card)',
-                        borderColor: isActive && st ? st.color + '66' : isActive ? 'rgba(232,120,159,0.4)' : 'var(--border-default)',
+                        background: isActive && st ? st.bg : isActive ? 'rgba(245,158,11,0.12)' : 'var(--surface-card)',
+                        borderColor: isActive && st ? st.color + '66' : isActive ? 'rgba(245,158,11,0.4)' : 'var(--border-default)',
                         color: isActive && st ? st.color : isActive ? 'var(--primary-400)' : 'var(--text-muted)',
                       }}
                     >
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                     return (
                       <div
                         key={order.id}
-                        className="glass-card p-3 flex gap-3 hover:border-[rgba(232,120,159,0.3)] transition-all"
+                        className="glass-card p-3 flex gap-3 hover:border-[rgba(245,158,11,0.3)] transition-all"
                       >
                         {/* Product image */}
                         <div className="relative w-14 h-[72px] rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
@@ -349,7 +349,7 @@ export default function ProfilePage() {
                   <Link
                     key={p.id}
                     href={`/products/${p.id}`}
-                    className="glass-card p-2 flex gap-2 hover:border-[rgba(232,120,159,0.35)] transition-all"
+                    className="glass-card p-2 flex gap-2 hover:border-[rgba(245,158,11,0.35)] transition-all"
                   >
                     <div className="relative w-12 h-14 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
                       <Image src={p.images[0]} alt={p.title} fill className="object-cover" sizes="48px" />

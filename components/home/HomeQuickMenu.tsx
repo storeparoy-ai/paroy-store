@@ -8,8 +8,8 @@ const MENU_ITEMS = [
     desc: 'Cari akun spek terlengkap',
     icon: ShoppingCart,
     color: 'var(--primary-400)',
-    glow: 'rgba(232,120,159,0.12)',
-    hoverBorder: 'rgba(232,120,159,0.5)',
+    glow: 'rgba(245,158,11,0.12)',
+    hoverBorder: 'rgba(245,158,11,0.5)',
     span: 2,
   },
   {

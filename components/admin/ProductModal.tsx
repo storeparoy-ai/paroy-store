@@ -207,7 +207,7 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
         className="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl"
         style={{
           background: 'var(--surface-card)',
-          border: '1px solid rgba(232,120,159,0.15)',
+          border: '1px solid rgba(245,158,11,0.15)',
         }}
       >
         {/* Header */}
@@ -418,7 +418,7 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors"
-                style={{ color: 'var(--primary-400)', background: 'rgba(232,120,159,0.1)' }}
+                style={{ color: 'var(--primary-400)', background: 'rgba(245,158,11,0.1)' }}
               >
                 <Upload className="w-3 h-3" /> Pilih Foto
               </button>
@@ -447,7 +447,7 @@ export default function ProductModal({ mode, product, onClose, onSuccess }: Prod
               ))}
               {images.length === 0 && (
                 <div 
-                  className="col-span-full py-6 text-center text-xs rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors hover:border-[var(--primary-400)] hover:bg-[rgba(232,120,159,0.05)]"
+                  className="col-span-full py-6 text-center text-xs rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors hover:border-[var(--primary-400)] hover:bg-[rgba(245,158,11,0.05)]"
                   style={{ borderColor: 'var(--border-default)', color: 'var(--text-muted)' }}
                   onClick={() => fileInputRef.current?.click()}
                 >

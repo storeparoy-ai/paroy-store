@@ -314,7 +314,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   onClick={() => setWishlisted(!wishlisted)}
                   aria-label="Wishlist"
                   className="btn-secondary w-12 h-12 p-0 flex items-center justify-center shrink-0"
-                  style={wishlisted ? { borderColor: 'rgba(232,120,159,0.5)', color: 'var(--primary-400)' } : {}}
+                  style={wishlisted ? { borderColor: 'rgba(245,158,11,0.5)', color: 'var(--primary-400)' } : {}}
                 >
                   <Heart className={cn('w-4 h-4', wishlisted && 'fill-current')} />
                 </button>

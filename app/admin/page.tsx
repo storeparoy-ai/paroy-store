@@ -19,7 +19,7 @@ import DeleteConfirmModal from '@/components/admin/DeleteConfirmModal';
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
   pending:   { label: 'Menunggu', color: 'var(--warning)',     bg: 'rgba(245,158,11,0.12)',   icon: Clock },
   paid:      { label: 'Dibayar',  color: 'var(--info)',        bg: 'rgba(59,130,246,0.12)',   icon: AlertCircle },
-  approved:  { label: 'Diproses', color: 'var(--primary-400)', bg: 'rgba(232,120,159,0.12)', icon: Package },
+  approved:  { label: 'Diproses', color: 'var(--primary-400)', bg: 'rgba(245,158,11,0.12)', icon: Package },
   completed: { label: 'Selesai',  color: 'var(--success)',     bg: 'rgba(34,197,94,0.12)',   icon: CheckCircle2 },
   rejected:  { label: 'Ditolak',  color: 'var(--error)',       bg: 'rgba(239,68,68,0.12)',   icon: XCircle },
 };
@@ -210,11 +210,11 @@ export default function AdminPage() {
           width: '220px',
           background: 'rgba(20,18,16,0.95)',
           backdropFilter: 'blur(24px)',
-          borderRight: '1px solid rgba(232,120,159,0.08)',
+          borderRight: '1px solid rgba(245,158,11,0.08)',
         }}
       >
         {/* Logo */}
-        <div className="p-5 flex items-center gap-2.5 border-b" style={{ borderColor: 'rgba(232,120,159,0.08)' }}>
+        <div className="p-5 flex items-center gap-2.5 border-b" style={{ borderColor: 'rgba(245,158,11,0.08)' }}>
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm text-white"
             style={{ background: 'linear-gradient(135deg, var(--primary-400), var(--accent-purple))' }}
@@ -238,7 +238,7 @@ export default function AdminPage() {
               )}
               style={
                 activeTab === id
-                  ? { background: 'rgba(232,120,159,0.12)', color: 'var(--primary-400)', border: '1px solid rgba(232,120,159,0.2)' }
+                  ? { background: 'rgba(245,158,11,0.12)', color: 'var(--primary-400)', border: '1px solid rgba(245,158,11,0.2)' }
                   : { color: 'var(--text-muted)', border: '1px solid transparent' }
               }
             >
@@ -274,7 +274,7 @@ export default function AdminPage() {
         {/* Top bar */}
         <header
           className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 h-14 shrink-0"
-          style={{ background: 'rgba(16,14,13,0.8)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(232,120,159,0.07)' }}
+          style={{ background: 'rgba(16,14,13,0.8)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(245,158,11,0.07)' }}
         >
           <div className="flex items-center gap-3">
             <button
@@ -572,7 +572,7 @@ export default function AdminPage() {
                                 </Link>
                                 <button
                                   onClick={() => setEditProduct(p)}
-                                  className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(232,120,159,0.1)]"
+                                  className="p-1.5 rounded-lg transition-colors hover:bg-[rgba(245,158,11,0.1)]"
                                   style={{ color: 'var(--primary-400)' }}
                                   title="Edit produk"
                                 >

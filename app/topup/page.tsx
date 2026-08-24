@@ -144,8 +144,8 @@ export default function TopUpPage() {
                         'hover:scale-[1.01] active:scale-95'
                       )}
                       style={{
-                        background: isActive ? 'rgba(232,120,159,0.12)' : 'var(--surface-raised)',
-                        borderColor: isActive ? 'rgba(232,120,159,0.5)' : 'var(--border-default)',
+                        background: isActive ? 'rgba(245,158,11,0.12)' : 'var(--surface-raised)',
+                        borderColor: isActive ? 'rgba(245,158,11,0.5)' : 'var(--border-default)',
                       }}
                     >
                       <span className="text-sm font-bold" style={{ color: isActive ? 'var(--primary-400)' : 'var(--text-primary)' }}>

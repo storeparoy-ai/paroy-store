@@ -17,7 +17,7 @@ export default function Footer() {
     <footer
       className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0"
       style={{
-        borderTop: '1px solid rgba(232,120,159,0.08)',
+        borderTop: '1px solid rgba(245,158,11,0.08)',
         background: 'rgba(16,14,13,0.4)',
         backdropFilter: 'blur(16px)',
       }}

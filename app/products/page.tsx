@@ -131,7 +131,7 @@ export default function ProductsPage() {
               className={cn(
                 'relative h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-all',
                 showFilter
-                  ? 'bg-[rgba(232,120,159,0.15)] border border-[rgba(232,120,159,0.4)]'
+                  ? 'bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.4)]'
                   : 'border border-[var(--border-default)] bg-[var(--surface-card)]'
               )}
             >

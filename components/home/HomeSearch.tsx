@@ -46,7 +46,7 @@ export default function HomeSearch() {
           }}
         >
           <Search
-            className="w-4 h-4 shrink-0 transition-colors duration-200 group-hover:text-[rgba(232,120,159,0.7)]"
+            className="w-4 h-4 shrink-0 transition-colors duration-200 group-hover:text-[rgba(245,158,11,0.7)]"
             style={{ color: 'var(--text-muted)' }}
             aria-hidden
           />
@@ -81,9 +81,9 @@ export default function HomeSearch() {
               background: 'rgba(255,255,255,0.03)',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(232,120,159,0.35)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(245,158,11,0.35)';
               (e.currentTarget as HTMLButtonElement).style.color = 'var(--primary-400)';
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(232,120,159,0.06)';
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(245,158,11,0.06)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.06)';

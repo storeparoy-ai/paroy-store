@@ -21,7 +21,7 @@ export default function Header() {
         background: 'rgba(26,24,22,0.60)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(232,120,159,0.10)',
+        borderBottom: '1px solid rgba(245,158,11,0.10)',
       }}
     >
       <div className="w-full max-w-6xl mx-auto px-6 flex items-center justify-between">
@@ -31,7 +31,7 @@ export default function Header() {
             className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-black text-sm font-heading"
             style={{
               background: 'linear-gradient(135deg, var(--primary-400), var(--accent-purple))',
-              boxShadow: '0 4px 12px rgba(232,120,159,0.35)',
+              boxShadow: '0 4px 12px rgba(245,158,11,0.35)',
             }}
           >
             P
