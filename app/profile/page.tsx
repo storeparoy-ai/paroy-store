@@ -165,12 +165,7 @@ export default function ProfilePage() {
         <div className="max-w-3xl w-full mx-auto px-3 sm:px-4 py-4 flex-1 flex flex-col">
 
           {/* Profile card */}
-          <div className="glass-heavy relative overflow-hidden rounded-2xl p-5 mb-4">
-            <div
-              aria-hidden
-              className="absolute -top-16 -right-16 w-48 h-48 rounded-full pointer-events-none"
-              style={{ background: 'rgba(245,158,11,0.10)', filter: 'blur(40px)' }}
-            />
+          <div className="glass-heavy relative overflow-hidden p-5 mb-4">
             <div className="relative flex items-center gap-4">
               {/* Avatar with Upload */}
               <div className="relative group">

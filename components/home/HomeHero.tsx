@@ -11,12 +11,12 @@ export default function HomeHero() {
         <div
           aria-hidden
           className="absolute -left-10 -top-10 w-48 h-48 rounded-full pointer-events-none"
-          style={{ background: 'rgba(245,158,11,0.12)', filter: 'blur(40px)' }}
+          style={{ background: 'rgba(245,158,11,0.12)',  }}
         />
         <div
           aria-hidden
           className="absolute right-1/3 bottom-0 w-32 h-32 rounded-full pointer-events-none"
-          style={{ background: 'rgba(214,95,243,0.08)', filter: 'blur(24px)' }}
+          style={{ background: 'rgba(214,95,243,0.08)',  }}
         />
 
         <div
@@ -66,7 +66,7 @@ export default function HomeHero() {
         >
           <div
             className="absolute bottom-6 left-1/2 -translate-x-1/2 w-4/5 h-1/2 rounded-full"
-            style={{ background: 'rgba(245,158,11,0.2)', filter: 'blur(24px)' }}
+            style={{ background: 'rgba(245,158,11,0.2)',  }}
           />
           {/* Stylized controller icon as mascot placeholder */}
           <div

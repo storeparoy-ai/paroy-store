@@ -95,7 +95,7 @@ export default function HomeQuickMenu() {
           >
             <div
               className="absolute -right-8 -top-8 w-32 h-32 rounded-full"
-              style={{ background: glow, filter: 'blur(20px)' }}
+              style={{ background: glow,  }}
             />
           </div>
 

@@ -3,52 +3,52 @@
 @import "tailwindcss";
 
 :root {
-  /* Primary */
-  --primary-400: #F59E0B;
-  --primary-500: #D97706;
-  --primary-600: #B45309;
+  /* Primary (Neon Orange) */
+  --primary-400: #ff6a00;
+  --primary-500: #e65c00;
+  --primary-600: #cc5200;
 
-  /* Accent */
-  --accent-purple: #FBBF24;
-  --accent-indigo: #EF4444;
+  /* Accent (Neon Yellow) */
+  --accent-purple: #ffaa00;
+  --accent-indigo: #ff3300;
 
-  /* Surface */
-  --surface-base: #0A0908;
-  --surface-pure: #100E0D;
-  --surface-card: #1A1816;
-  --surface-raised: #232120;
-  --surface-overlay: rgba(10,9,8,0.85);
+  /* Surface (Pitch Black / Dark Zinc) */
+  --surface-base: #000000;
+  --surface-pure: #09090b;
+  --surface-card: #121214;
+  --surface-raised: #18181b;
+  --surface-overlay: rgba(0,0,0,0.9);
 
   /* Text */
-  --text-primary: #F5F0EE;
-  --text-secondary: #B5A9A4;
-  --text-muted: #6B625E;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
 
   /* Status */
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --error: #EF4444;
-  --info: #3B82F6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
 
   /* Border */
-  --border-default: rgba(255,255,255,0.07);
-  --border-subtle:  rgba(255,255,255,0.04);
+  --border-default: rgba(255,255,255,0.1);
+  --border-subtle:  rgba(255,255,255,0.05);
 
-  /* Glass */
-  --glass-bg: rgba(26,24,22,0.65);
-  --glass-border: rgba(255,255,255,0.07);
-  --glass-blur: 20px;
+  /* Glass -> Replaced with Solid Premium */
+  --glass-bg: #121214;
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-blur: 0px; /* No blur requested */
 
   /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-2xl: 28px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
 
   /* Bento */
-  --bento-radius: 16px;
-  --bento-gap: 8px;
+  --bento-radius: 20px;
+  --bento-gap: 16px;
 }
 
 * {
@@ -72,8 +72,8 @@ body {
 ======================== */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.3); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(245,158,11,0.5); }
+::-webkit-scrollbar-thumb { background: var(--primary-500); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-400); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -85,32 +85,33 @@ body {
 }
 
 /* ========================
-   GLASS MORPHISM
+   SOLID PREMIUM CARDS (Replacing Glass)
 ======================== */
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
   border-radius: var(--bento-radius);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
 }
 
 .glass-heavy {
-  background: rgba(20,18,16,0.75);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(245,158,11,0.12);
+  background: var(--surface-raised);
+  border: 1px solid rgba(255, 106, 0, 0.2);
   border-radius: var(--bento-radius);
+  box-shadow: 0 8px 32px rgba(255, 106, 0, 0.08);
 }
 
 .glass-card {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  transition: border-color 0.2s, transform 0.2s;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 .glass-card:hover {
-  border-color: rgba(245,158,11,0.35);
+  border-color: var(--primary-400);
+  box-shadow: 0 8px 24px rgba(255, 106, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 /* ========================

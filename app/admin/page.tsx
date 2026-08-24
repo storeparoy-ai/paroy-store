@@ -233,7 +233,7 @@ export default function AdminPage() {
         style={{
           width: '220px',
           background: 'rgba(20,18,16,0.95)',
-          backdropFilter: 'blur(24px)',
+          ,
           borderRight: '1px solid rgba(245,158,11,0.08)',
         }}
       >
@@ -298,7 +298,7 @@ export default function AdminPage() {
         {/* Top bar */}
         <header
           className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 h-14 shrink-0"
-          style={{ background: 'rgba(16,14,13,0.8)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(245,158,11,0.07)' }}
+          style={{ background: 'rgba(16,14,13,0.8)', borderBottom: '1px solid rgba(245,158,11,0.07)' }}
         >
           <div className="flex items-center gap-3">
             <button

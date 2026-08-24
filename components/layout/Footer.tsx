@@ -17,9 +17,8 @@ export default function Footer() {
     <footer
       className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0 mt-auto w-full"
       style={{
-        borderTop: '1px solid rgba(245,158,11,0.08)',
-        background: 'rgba(16,14,13,0.4)',
-        backdropFilter: 'blur(16px)',
+        borderTop: '1px solid var(--border-default)',
+        background: 'var(--surface-pure)',
       }}
     >
       <div className="mx-auto grid max-w-6xl gap-3 px-4 py-3 text-center sm:px-6 lg:gap-4 lg:py-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:text-left">

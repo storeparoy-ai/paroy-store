@@ -114,7 +114,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <button
                       onClick={() => setImgIdx((i) => (i - 1 + product.images.length) % product.images.length)}
                       className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                      style={{ background: 'rgba(10,9,8,0.65)', backdropFilter: 'blur(8px)' }}
+                      style={{ background: 'rgba(10,9,8,0.65)',  }}
                       aria-label="Foto sebelumnya"
                     >
                       <ChevronLeft className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
@@ -122,7 +122,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <button
                       onClick={() => setImgIdx((i) => (i + 1) % product.images.length)}
                       className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                      style={{ background: 'rgba(10,9,8,0.65)', backdropFilter: 'blur(8px)' }}
+                      style={{ background: 'rgba(10,9,8,0.65)',  }}
                       aria-label="Foto berikutnya"
                     >
                       <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
@@ -139,7 +139,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 {/* View count */}
                 <div
                   className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
-                  style={{ background: 'rgba(10,9,8,0.6)', backdropFilter: 'blur(6px)', color: 'var(--text-muted)' }}
+                  style={{ background: 'rgba(10,9,8,0.6)', color: 'var(--text-muted)' }}
                 >
                   <Eye className="w-3 h-3" />
                   {formatNumber(product.viewCount)} dilihat

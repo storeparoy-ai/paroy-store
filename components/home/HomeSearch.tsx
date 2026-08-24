@@ -42,7 +42,7 @@ export default function HomeSearch() {
           style={{
             borderRadius: 'var(--radius-lg)',
             background: 'rgba(26,24,22,0.55)',
-            backdropFilter: 'blur(20px)',
+            ,
           }}
         >
           <Search

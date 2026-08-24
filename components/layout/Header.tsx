@@ -18,10 +18,9 @@ export default function Header() {
     <header
       className="hidden lg:flex fixed top-0 inset-x-0 z-[100] h-14 items-center"
       style={{
-        background: 'rgba(26,24,22,0.60)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(245,158,11,0.10)',
+        background: 'var(--surface-pure)',
+        borderBottom: '1px solid var(--border-default)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
       }}
     >
       <div className="w-full max-w-6xl mx-auto px-6 flex items-center justify-between">

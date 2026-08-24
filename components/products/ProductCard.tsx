@@ -50,7 +50,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
           aria-label="Tambah ke wishlist"
           onClick={(e) => { e.preventDefault(); }}
           className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
-          style={{ background: 'rgba(10,9,8,0.6)', backdropFilter: 'blur(8px)' }}
+          style={{ background: 'rgba(10,9,8,0.6)',  }}
         >
           <Heart className="w-3.5 h-3.5 text-[var(--text-muted)]" />
         </button>
@@ -58,7 +58,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         {/* View count */}
         <div
           className="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] text-[var(--text-muted)]"
-          style={{ background: 'rgba(10,9,8,0.55)', backdropFilter: 'blur(6px)' }}
+          style={{ background: 'rgba(10,9,8,0.55)',  }}
         >
           <Eye className="w-2.5 h-2.5" />
           {formatNumber(product.viewCount)}
