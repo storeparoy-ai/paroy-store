@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 
 interface DeleteConfirmModalProps {
   productTitle: string;
@@ -24,52 +24,40 @@ export default function DeleteConfirmModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/85 backdrop-blur-xs" onClick={onClose} />
       <div
-        className="relative w-full max-w-sm rounded-2xl p-6 flex flex-col items-center gap-4 text-center"
-        style={{
-          background: 'var(--surface-card)',
-          border: '1px solid rgba(239,68,68,0.2)',
-        }}
+        className="relative w-full max-w-md rounded-3xl p-7 flex flex-col items-center gap-5 text-center bg-[#0d1220] border border-red-500/25 shadow-[0_20px_60px_rgba(0,0,0,0.85)] z-10"
       >
         <div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center"
-          style={{ background: 'rgba(239,68,68,0.12)' }}
+          className="w-16 h-16 rounded-2xl flex items-center justify-center bg-red-500/15 border border-red-500/30 text-red-400 shadow-md"
         >
-          <AlertTriangle className="w-7 h-7" style={{ color: 'var(--error)' }} />
+          <AlertTriangle className="w-8 h-8" />
         </div>
 
-        <div>
-          <h3 className="font-bold font-heading text-base mb-1" style={{ color: 'var(--text-primary)' }}>
-            Hapus Produk?
+        <div className="space-y-2">
+          <h3 className="font-bold font-heading text-xl text-white">
+            Konfirmasi Hapus Produk
           </h3>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            Produk{' '}
-            <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>
-              "{productTitle}"
-            </span>{' '}
-            akan dihapus permanen dan tidak bisa dikembalikan.
+          <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+            Produk <span className="font-bold text-white">"{productTitle}"</span> akan dihapus permanen dari database etalase toko dan tidak dapat dipulihkan.
           </p>
         </div>
 
-        <div className="flex gap-3 w-full">
-          <button onClick={onClose} className="btn-secondary flex-1 text-sm">
+        <div className="flex gap-3 w-full pt-2">
+          <button onClick={onClose} className="btn-secondary flex-1 text-xs sm:text-sm py-3">
             Batal
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all"
-            style={{
-              background: 'rgba(239,68,68,0.15)',
-              color: 'var(--error)',
-              border: '1px solid rgba(239,68,68,0.3)',
-            }}
+            className="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all cursor-pointer flex items-center justify-center gap-2"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Menghapus...
+              </>
             ) : (
-              <><Trash2 className="w-4 h-4" /> Hapus</>
+              'Ya, Hapus Produk'
             )}
           </button>
         </div>
