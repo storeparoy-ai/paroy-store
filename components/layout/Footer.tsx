@@ -1,53 +1,26 @@
-import Link from 'next/link';
+'use client';
 
-const FOOTER_LINKS = [
-  { href: '/products', label: 'Produk' },
-  { href: '/flash-sales', label: 'Flash Sale' },
-  { href: '/rental', label: 'Rental' },
-  { href: '/community', label: 'Komunitas' },
-  { href: '/help', label: 'Bantuan' },
-  { href: '/rekber', label: 'RekBer' },
-  { href: '/about', label: 'Tentang' },
-  { href: '/privacy', label: 'Privasi' },
-  { href: '/terms', label: 'Syarat' },
-];
+import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer
-      className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0 mt-auto w-full"
-      style={{
-        borderTop: '1px solid var(--border-default)',
-        background: 'var(--surface-pure)',
-      }}
-    >
-      <div className="mx-auto grid max-w-6xl gap-3 px-4 py-3 text-center sm:px-6 lg:gap-4 lg:py-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:text-left">
-        <p className="text-[11px] lg:text-xs md:justify-self-start" style={{ color: 'var(--text-muted)' }}>
-          Â© {new Date().getFullYear()} PAROY STORE. Premium Gaming Platform.
-        </p>
-
-        <nav
-          aria-label="Tautan situs"
-          className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 md:justify-self-center lg:gap-4"
-        >
-          {FOOTER_LINKS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="text-[11px] lg:text-xs transition-colors hover:text-[var(--text-secondary)]"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <p
-          className="text-[11px] lg:text-xs md:justify-self-end md:text-right"
-          style={{ color: 'rgba(107,98,94,0.5)' }}
-        >
-          v1.0.0
-        </p>
+    <footer className="w-full py-stack-lg bg-surface-container-lowest border-t border-white/10 flat no-shadows">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+        <div className="col-span-1 md:col-span-1">
+          <span className="text-headline-md font-headline-md font-black text-primary mb-4 block">PAROY STORE</span>
+          <p className="text-body-md font-body-md text-on-surface-variant">© 2024 PAROY STORE. All Rights Reserved.</p>
+        </div>
+        <div className="col-span-1 md:col-span-3 flex flex-wrap gap-gutter justify-start md:justify-end items-start">
+          <Link href="/terms" className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100">
+            Terms of Service
+          </Link>
+          <Link href="/privacy" className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100">
+            Privacy Policy
+          </Link>
+          <Link href="/contact" className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100">
+            Contact Us
+          </Link>
+        </div>
       </div>
     </footer>
   );

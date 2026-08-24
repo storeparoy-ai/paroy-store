@@ -3,15 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, Users, Grid3X3, Clock3, Bell, User,
+  Home, Users, Grid3X3, Search, Bell, User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { href: '/', icon: Home, label: 'Beranda' },
-  { href: '/community', icon: Users, label: 'Komunitas' },
-  { href: '/products', icon: Grid3X3, label: 'Produk' },
-  { href: '/rental', icon: Clock3, label: 'Rental' },
+  { href: '/', icon: Home, label: 'Home' },
+  { href: '/community', icon: Users, label: 'Leaderboard' },
+  { href: '/search', icon: Search, label: 'Transactions' },
   { href: '/notifications', icon: Bell, label: 'Notifikasi' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
@@ -26,8 +25,8 @@ export default function BottomNav() {
         bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
         left: '16px',
         right: '16px',
-        background: 'var(--surface-card)',
-        border: '1px solid var(--border-default)',
+        background: 'var(--color-surface-container-high)',
+        border: '1px solid var(--color-surface-variant)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
         borderRadius: '32px',
         padding: '6px',
@@ -43,17 +42,13 @@ export default function BottomNav() {
               className={cn(
                 'relative flex flex-1 flex-col items-center justify-center gap-1 min-w-0 h-[60px]',
                 'select-none transition-all duration-200 active:scale-90 touch-manipulation',
-                isActive ? 'text-[var(--primary-400)]' : 'text-[var(--text-muted)]'
+                isActive ? 'text-primary' : 'text-on-surface-variant'
               )}
             >
               <span className="relative z-10 flex h-9 w-9 items-center justify-center">
                 {isActive && (
                   <span
-                    className="absolute inset-0 z-0 rounded-[18px]"
-                    style={{
-                      background: 'rgba(245,158,11,0.12)',
-                      border: '1px solid rgba(245,158,11,0.22)',
-                    }}
+                    className="absolute inset-0 z-0 rounded-[18px] bg-primary-container/20 border border-primary-container/30"
                   />
                 )}
                 <span className="relative z-10 flex items-center justify-center">
