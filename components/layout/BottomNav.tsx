@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -9,8 +9,8 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { href: '/', icon: Home, label: 'Home' },
-  { href: '/community', icon: Users, label: 'Leaderboard' },
-  { href: '/search', icon: Search, label: 'Transactions' },
+  { href: '/leaderboard', icon: Users, label: 'Leaderboard' },
+  { href: '/cek-transaksi', icon: Search, label: 'Transactions' },
   { href: '/notifications', icon: Bell, label: 'Notifikasi' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];

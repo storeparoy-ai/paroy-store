@@ -1,55 +1,58 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  ChevronLeft, ChevronRight, Heart, ShoppingCart,
-  Clock3, Eye, Shield, Zap, Share2, Info, Loader2,
-} from 'lucide-react';
+import { Loader2, ShoppingCart } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { mapSupabaseProduct } from '@/lib/supabase-helpers';
 import { Product } from '@/types';
-import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 import BottomNav from '@/components/layout/BottomNav';
-import ProductCard from '@/components/products/ProductCard';
+
+const NOMINALS = [
+  { label: '86 Diamonds', price: 'Rp 24.500' },
+  { label: '172 Diamonds', price: 'Rp 48.000' },
+  { label: '257 Diamonds', price: 'Rp 72.000' },
+  { label: '344 Diamonds', price: 'Rp 96.000' },
+  { label: '429 Diamonds', price: 'Rp 120.000' },
+  { label: '514 Diamonds', price: 'Rp 144.000' },
+];
+
+const PAYMENT_METHODS = [
+  { group: 'E-Wallet', items: [
+    { id: 'dana', name: 'Dana', price: 'Rp 24.500' },
+    { id: 'ovo', name: 'OVO', price: 'Rp 24.500' },
+    { id: 'gopay', name: 'GoPay', price: 'Rp 24.500' },
+  ]},
+  { group: 'QRIS', items: [
+    { id: 'qris', name: 'QRIS (All Payment)', price: 'Rp 24.800' },
+  ]},
+  { group: 'Virtual Account', items: [
+    { id: 'bca', name: 'BCA Virtual Account', price: 'Rp 25.500' },
+    { id: 'mandiri', name: 'Mandiri Virtual Account', price: 'Rp 25.500' },
+  ]},
+];
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
-  const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imgIdx, setImgIdx] = useState(0);
-  const [wishlisted, setWishlisted] = useState(false);
-  const [buyMode, setBuyMode] = useState<'buy' | 'rental'>('buy');
+  const [userId, setUserId] = useState('');
+  const [zoneId, setZoneId] = useState('');
+  const [selectedNominal, setSelectedNominal] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState('dana');
 
   useEffect(() => {
     const fetchProduct = async () => {
       const supabase = createClient();
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('products')
         .select('*, profiles(full_name, username, role)')
         .eq('id', params.id)
         .single();
-      
-      if (data) {
-        const p = mapSupabaseProduct(data);
-        setProduct(p);
-        
-        // Fetch related
-        const { data: relData } = await supabase
-          .from('products')
-          .select('*, profiles(full_name, username, role)')
-          .eq('game', data.game)
-          .neq('id', data.id)
-          .limit(4);
-          
-        if (relData) {
-          setRelated(relData.map(mapSupabaseProduct));
-        }
-      }
+      if (data) setProduct(mapSupabaseProduct(data));
       setLoading(false);
     };
     fetchProduct();
@@ -58,8 +61,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Memuat data produk...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-[#00c896]" />
+        <p className="text-sm text-on-surface-variant">Memuat data produk...</p>
       </div>
     );
   }
@@ -67,298 +70,173 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <span className="text-6xl">😵</span>
-        <p className="font-heading font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Produk tidak ditemukan</p>
-        <Link href="/products" className="btn-primary">Kembali ke Produk</Link>
+        <span className="text-6xl">&#128565;</span>
+        <p className="font-bold text-lg text-on-surface">Produk tidak ditemukan</p>
+        <Link href="/products" className="bg-[#00c896] text-black font-bold px-6 py-3 rounded-lg">Kembali ke Produk</Link>
       </div>
     );
   }
 
-  const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
-
   return (
     <>
       <Header />
-      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
-        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4">
+      <main
+        className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex flex-col gap-stack-lg relative"
+        style={{ paddingTop: '96px', paddingBottom: '120px' }}
+      >
+        {/* Background gradient accent */}
+        <div className="absolute top-0 left-0 w-full h-[400px] -z-10 bg-gradient-to-b from-[#00c896]/10 to-transparent pointer-events-none" />
 
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-            <Link href="/" className="hover:text-[var(--primary-400)] transition-colors">Beranda</Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link href="/products" className="hover:text-[var(--primary-400)] transition-colors">Produk</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="line-clamp-1" style={{ color: 'var(--text-secondary)' }}>{product.title}</span>
+        {/* Game Header */}
+        <header className="relative rounded-xl overflow-hidden card-level-1 p-6 md:p-10 flex flex-col md:flex-row items-center gap-gutter">
+          <div className="w-32 h-32 md:w-48 md:h-48 rounded-xl overflow-hidden shrink-0 border-2 border-surface-container-highest">
+            <img
+              src={product.images[0] || 'https://placehold.co/400x400/232B2B/00c896?text=GAME'}
+              alt={product.title}
+              className="w-full h-full object-cover"
+            />
           </div>
-
-          <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
-            {/* === LEFT: Image Gallery === */}
-            <div className="flex flex-col gap-2">
-              {/* Main image */}
-              <div
-                className="relative rounded-xl overflow-hidden aspect-[4/5]"
-                style={{ background: 'var(--surface-card)' }}
-              >
-                <Image
-                  src={product.images[imgIdx]}
-                  alt={product.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-
-                {/* Nav arrows */}
-                {product.images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setImgIdx((i) => (i - 1 + product.images.length) % product.images.length)}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                      style={{ background: 'rgba(10,9,8,0.65)',  }}
-                      aria-label="Foto sebelumnya"
-                    >
-                      <ChevronLeft className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
-                    </button>
-                    <button
-                      onClick={() => setImgIdx((i) => (i + 1) % product.images.length)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                      style={{ background: 'rgba(10,9,8,0.65)',  }}
-                      aria-label="Foto berikutnya"
-                    >
-                      <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
-                    </button>
-                  </>
-                )}
-
-                {/* Badges */}
-                <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                  {discount > 0 && <span className="badge badge-hot">-{discount}%</span>}
-                  {product.canRental && <span className="badge badge-rental">⏱ Bisa Rental</span>}
-                </div>
-
-                {/* View count */}
-                <div
-                  className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
-                  style={{ background: 'rgba(10,9,8,0.6)', color: 'var(--text-muted)' }}
-                >
-                  <Eye className="w-3 h-3" />
-                  {formatNumber(product.viewCount)} dilihat
-                </div>
-              </div>
-
-              {/* Thumbnails */}
-              {product.images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                  {product.images.map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setImgIdx(i)}
-                      className={cn(
-                        'relative shrink-0 w-16 h-20 rounded-lg overflow-hidden transition-all',
-                        i === imgIdx ? 'ring-2 ring-[var(--primary-400)]' : 'ring-1 ring-[var(--border-default)] opacity-60 hover:opacity-100'
-                      )}
-                      aria-label={`Foto ${i + 1}`}
-                    >
-                      <Image src={img} alt={`Foto ${i + 1}`} fill className="object-cover" sizes="64px" />
-                    </button>
-                  ))}
-                </div>
-              )}
+          <div className="text-center md:text-left flex flex-col gap-stack-sm">
+            <h1 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-surface">{product.title}</h1>
+            <p className="text-body-md font-body-md text-on-surface-variant max-w-2xl">
+              Top up resmi, instan, dan terpercaya. Masukkan data akun, pilih nominal, dan selesaikan pembayaran.
+            </p>
+            <div className="flex items-center justify-center md:justify-start gap-2 text-[#00c896] text-label-md font-label-md">
+              <span>&#10003;</span><span>Verified Official Reseller</span>
             </div>
+          </div>
+        </header>
 
-            {/* === RIGHT: Product Info === */}
-            <div className="flex flex-col gap-4">
-              {/* Game + title */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-                    style={{
-                      background: `${product.game.color}22`,
-                      color: product.game.color,
-                      border: `1px solid ${product.game.color}44`,
-                    }}
-                  >
-                    {product.game.icon} {product.game.name}
-                  </span>
-                  <span
-                    className={cn(
-                      'badge',
-                      product.status === 'active' ? 'badge-available' : 'badge-sold'
-                    )}
-                  >
-                    {product.status === 'active' ? '● Tersedia' : '● Terjual'}
-                  </span>
-                </div>
-                <h1 className="font-bold font-heading text-lg leading-snug" style={{ color: 'var(--text-primary)' }}>
-                  {product.title}
-                </h1>
+        {/* Two column grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+          {/* Left col */}
+          <div className="lg:col-span-2 flex flex-col gap-gutter">
+            {/* Card 1: Account data */}
+            <section className="card-level-1 rounded-xl p-6 flex flex-col gap-stack-md">
+              <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                <div className="w-8 h-8 rounded-full bg-[#00c896]/20 text-[#00c896] flex items-center justify-center font-bold text-sm">1</div>
+                <h2 className="text-headline-md font-headline-md text-on-surface">Masukkan Data Akun</h2>
               </div>
-
-              {/* Price */}
-              <div
-                className="glass-card p-4 flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Harga</p>
-                  <div className="flex items-end gap-2">
-                    <span className="text-2xl font-black font-heading" style={{ color: 'var(--primary-400)' }}>
-                      {formatCurrency(product.price)}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="text-sm line-through mb-0.5" style={{ color: 'var(--text-muted)' }}>
-                        {formatCurrency(product.originalPrice)}
-                      </span>
-                    )}
-                  </div>
-                  {product.canRental && product.rentalPriceDaily && (
-                    <p className="text-xs mt-1" style={{ color: 'var(--info)' }}>
-                      <Clock3 className="w-3 h-3 inline mr-1" />
-                      Rental: {formatCurrency(product.rentalPriceDaily)}/hari • {formatCurrency(product.rentalPriceHourly ?? 0)}/jam
-                    </p>
-                  )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+                <div className="flex flex-col gap-2">
+                  <label className="text-label-md font-label-md text-on-surface-variant">User ID</label>
+                  <input
+                    value={userId}
+                    onChange={e => setUserId(e.target.value)}
+                    className="bg-surface-container border border-surface-container-highest rounded-lg px-4 py-3 text-on-surface font-mono focus:border-[#00c896] focus:outline-none transition-colors"
+                    placeholder="Contoh: 12345678"
+                    type="text"
+                  />
                 </div>
-                {discount > 0 && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-label-md font-label-md text-on-surface-variant">Zone ID</label>
+                  <input
+                    value={zoneId}
+                    onChange={e => setZoneId(e.target.value)}
+                    className="bg-surface-container border border-surface-container-highest rounded-lg px-4 py-3 text-on-surface font-mono focus:border-[#00c896] focus:outline-none transition-colors"
+                    placeholder="1234"
+                    type="text"
+                  />
+                </div>
+              </div>
+              <button className="text-[#00c896] text-label-md self-start hover:underline">? Di mana letak ID?</button>
+            </section>
+
+            {/* Card 2: Nominal selection */}
+            <section className="card-level-1 rounded-xl p-6 flex flex-col gap-stack-md">
+              <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                <div className="w-8 h-8 rounded-full bg-[#00c896]/20 text-[#00c896] flex items-center justify-center font-bold text-sm">2</div>
+                <h2 className="text-headline-md font-headline-md text-on-surface">Pilih Nominal Top Up</h2>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-stack-sm">
+                {NOMINALS.map(item => (
                   <div
-                    className="text-center px-3 py-2 rounded-xl"
-                    style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)' }}
+                    key={item.label}
+                    onClick={() => setSelectedNominal(item.label)}
+                    className={`relative bg-surface-container border rounded-lg p-4 cursor-pointer transition-all duration-200 text-center ${
+                      selectedNominal === item.label
+                        ? 'border-[#00c896] bg-[#00c896]/5'
+                        : 'border-surface-container-highest hover:border-[#00c896]/40'
+                    }`}
                   >
-                    <p className="text-xl font-black" style={{ color: 'var(--error)' }}>-{discount}%</p>
-                    <p className="text-[10px]" style={{ color: 'var(--error)' }}>HEMAT</p>
+                    <div className="text-2xl mb-2">&#128142;</div>
+                    <div className="text-label-md font-bold text-on-surface">{item.label}</div>
+                    <div className="text-xs text-on-surface-variant">{item.price}</div>
+                    {selectedNominal === item.label && (
+                      <div className="absolute top-2 right-2 text-[#00c896] text-xs font-bold">&#10003;</div>
+                    )}
                   </div>
-                )}
-              </div>
-
-              {/* Specs */}
-              <div className="glass-card p-4">
-                <h2 className="section-label text-sm mb-3">
-                  <Info className="w-4 h-4" style={{ color: 'var(--primary-400)' }} />
-                  Spesifikasi Akun
-                </h2>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(product.specs).map(([key, val]) => (
-                    <div key={key} className="flex flex-col gap-0.5">
-                      <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
-                      <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {String(val)}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Platform</span>
-                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                      {product.platform.join(' / ')}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Region</span>
-                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{product.region}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Safety note */}
-              <div
-                className="flex items-start gap-2 p-3 rounded-xl text-xs"
-                style={{
-                  background: 'rgba(34,197,94,0.08)',
-                  border: '1px solid rgba(34,197,94,0.18)',
-                  color: 'var(--success)',
-                }}
-              >
-                <Shield className="w-4 h-4 shrink-0 mt-0.5" />
-                <p>Transaksi aman & terjamin. Akun akan dikirim setelah pembayaran dikonfirmasi admin dalam 1×24 jam.</p>
-              </div>
-
-              {/* Buy/Rental mode toggle */}
-              {product.canRental && (
-                <div
-                  className="flex rounded-xl p-1 gap-1"
-                  style={{ background: 'var(--surface-card)', border: '1px solid var(--border-default)' }}
-                >
-                  {(['buy', 'rental'] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => setBuyMode(mode)}
-                      className={cn(
-                        'flex-1 py-2 rounded-lg text-xs font-semibold transition-all',
-                        buyMode === mode ? 'text-white shadow-lg' : ''
-                      )}
-                      style={
-                        buyMode === mode
-                          ? { background: 'linear-gradient(135deg, var(--primary-400), var(--primary-500))' }
-                          : { color: 'var(--text-muted)' }
-                      }
-                    >
-                      {mode === 'buy' ? '🛒 Beli Permanen' : '⏱ Rental'}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Action buttons */}
-              <div className="flex gap-2">
-                <Link
-                  href={product.status === 'active' ? `/checkout?productId=${product.id}&mode=${buyMode}` : '#'}
-                  className={cn(
-                    'btn-primary flex-1 text-sm py-3',
-                    product.status !== 'active' && 'opacity-50 pointer-events-none'
-                  )}
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  {buyMode === 'rental' ? 'Rental Sekarang' : 'Beli Sekarang'}
-                </Link>
-                <button
-                  onClick={() => setWishlisted(!wishlisted)}
-                  aria-label="Wishlist"
-                  className="btn-secondary w-12 h-12 p-0 flex items-center justify-center shrink-0"
-                  style={wishlisted ? { borderColor: 'rgba(245,158,11,0.5)', color: 'var(--primary-400)' } : {}}
-                >
-                  <Heart className={cn('w-4 h-4', wishlisted && 'fill-current')} />
-                </button>
-                <button
-                  aria-label="Bagikan"
-                  className="btn-secondary w-12 h-12 p-0 flex items-center justify-center shrink-0"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* RekBer prompt */}
-              <Link
-                href="/rekber"
-                className="flex items-center gap-2 p-3 rounded-xl text-xs transition-all hover:scale-[1.01]"
-                style={{
-                  background: 'rgba(245,158,11,0.08)',
-                  border: '1px solid rgba(245,158,11,0.2)',
-                  color: 'var(--warning)',
-                }}
-              >
-                <Zap className="w-4 h-4 shrink-0" />
-                <span>Mau bayar via RekBer? Klik di sini untuk transaksi lebih aman</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Related products */}
-          {related.length > 0 && (
-            <div className="mt-8">
-              <div className="section-label mb-3">
-                <span>Produk Serupa</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {related.map((p) => (
-                  <ProductCard key={p.id} product={p} />
                 ))}
               </div>
-            </div>
-          )}
+            </section>
+          </div>
+
+          {/* Right col: Payment */}
+          <div className="flex flex-col gap-gutter">
+            <section className="card-level-1 rounded-xl p-6 flex flex-col gap-stack-md">
+              <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                <div className="w-8 h-8 rounded-full bg-[#00c896]/20 text-[#00c896] flex items-center justify-center font-bold text-sm">3</div>
+                <h2 className="text-headline-md font-headline-md text-on-surface">Pilih Pembayaran</h2>
+              </div>
+              <div className="flex flex-col gap-stack-sm">
+                {PAYMENT_METHODS.map(group => (
+                  <div key={group.group}>
+                    <h3 className="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">{group.group}</h3>
+                    {group.items.map(pm => (
+                      <div
+                        key={pm.id}
+                        onClick={() => setSelectedPayment(pm.id)}
+                        className={`bg-surface-container border rounded-lg p-3 flex justify-between items-center cursor-pointer transition-colors mb-2 ${
+                          selectedPayment === pm.id
+                            ? 'border-[#00c896] bg-[#00c896]/5'
+                            : 'border-surface-container-highest hover:border-surface-variant'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-white rounded flex items-center justify-center p-1 text-[10px] font-bold text-gray-800 shrink-0">
+                            {pm.name.split(' ')[0].slice(0, 4)}
+                          </div>
+                          <div>
+                            <div className="text-body-md font-semibold text-on-surface text-sm">{pm.name}</div>
+                            <div className={`text-xs ${selectedPayment === pm.id ? 'text-[#00c896]' : 'text-on-surface-variant'}`}>{pm.price}</div>
+                          </div>
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedPayment === pm.id ? 'border-[#00c896]' : 'border-on-surface-variant'}`}>
+                          {selectedPayment === pm.id && <div className="w-2 h-2 rounded-full bg-[#00c896]" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+
+      {/* Floating bottom bar */}
+      <div
+        className="fixed bottom-0 left-0 w-full border-t border-white/10 z-40 p-4 md:p-6"
+        style={{ background: 'rgba(15,20,20,0.97)', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}
+      >
+        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex justify-between items-center">
+          <div className="flex flex-col">
+            <span className="text-label-md text-on-surface-variant">Total Pembayaran</span>
+            <span className="text-headline-md text-[#00c896] font-bold">
+              {selectedNominal ? NOMINALS.find(n => n.label === selectedNominal)?.price ?? 'Rp 0' : 'Pilih Nominal'}
+            </span>
+          </div>
+          <button
+            onClick={() => router.push('/checkout')}
+            className="bg-[#00c896] text-black font-bold px-8 py-3 rounded-lg flex items-center gap-2 hover:bg-[#3adfab] transition-colors shadow-[0_0_15px_rgba(0,200,150,0.3)]"
+          >
+            <ShoppingCart className="w-5 h-5" /> Beli Sekarang
+          </button>
         </div>
       </div>
+
+      <Footer />
       <BottomNav />
-      <div className="h-[116px] lg:hidden" />
     </>
   );
 }

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { Search, Bell, User } from 'lucide-react';
@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
-  { href: '/community', label: 'Leaderboard' },
-  { href: '/search', label: 'Transactions' },
+  { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/cek-transaksi', label: 'Transactions' },
   { href: '/help', label: 'Support' },
 ];
 

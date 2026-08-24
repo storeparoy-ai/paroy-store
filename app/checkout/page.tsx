@@ -1,500 +1,135 @@
-'use client';
+﻿'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import {
-  CheckCircle2, Upload, X, Copy, ChevronLeft, AlertCircle, Loader2
-} from 'lucide-react';
-import { MOCK_PRODUCTS, PAYMENT_METHODS } from '@/lib/mock-data';
-import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
-import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
-import { Suspense } from 'react';
-import { createClient } from '@/utils/supabase/client';
-import { mapSupabaseProduct } from '@/lib/supabase-helpers';
-import { useRouter } from 'next/navigation';
-
-function CheckoutContent() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const type = params.get('type');
-  const productId = params.get('productId');
-  const mode = params.get('mode') ?? 'buy';
-  const gameSlug = params.get('game');
-  const gameUserId = params.get('userId');
-  const itemId = params.get('item');
-
-  const [product, setProduct] = useState<any>(null);
-  const [topupDetails, setTopupDetails] = useState<any>(null);
-  const [loadingProduct, setLoadingProduct] = useState(true);
-
-  const [selectedPayment, setSelectedPayment] = useState('');
-  const [proofFile, setProofFile] = useState<File | null>(null);
-  const [proofPreview, setProofPreview] = useState('');
-  const [note, setNote] = useState('');
-  const [copied, setCopied] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [orderNumber] = useState(generateOrderNumber());
-  const fileRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
-
-  useEffect(() => {
-    if (type === 'topup') {
-      const { TOPUP_ITEMS, GAMES } = require('@/lib/mock-data');
-      const gameObj = GAMES.find((g: any) => g.slug === gameSlug);
-      const topupData = TOPUP_ITEMS.find((t: any) => t.game.slug === gameSlug);
-      const selectedItem = topupData?.items.find((i: any) => i.id === itemId);
-
-      if (gameObj && selectedItem) {
-        setTopupDetails({
-          game: gameObj,
-          userId: gameUserId,
-          item: selectedItem
-        });
-      }
-      setLoadingProduct(false);
-      return;
-    }
-
-    const fetchProduct = async () => {
-      if (!productId) {
-        setLoadingProduct(false);
-        return;
-      }
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, profiles(full_name, is_verified, avatar_url)')
-        .eq('id', productId)
-        .single();
-      
-      if (!error && data) {
-        setProduct(mapSupabaseProduct(data));
-      }
-      setLoadingProduct(false);
-    };
-    fetchProduct();
-  }, [type, productId, gameSlug, itemId, supabase]);
-
-  if (loadingProduct) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--primary-400)' }} />
-      </div>
-    );
-  }
-
-  if (type !== 'topup' && !product) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <span className="text-5xl">😵</span>
-        <p style={{ color: 'var(--text-muted)' }}>Produk tidak ditemukan</p>
-        <Link href="/products" className="btn-primary">Kembali</Link>
-      </div>
-    );
-  }
-  
-  if (type === 'topup' && !topupDetails) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <span className="text-5xl">😵</span>
-        <p style={{ color: 'var(--text-muted)' }}>Item Top Up tidak valid</p>
-        <Link href="/topup" className="btn-primary">Kembali ke Top Up</Link>
-      </div>
-    );
-  }
-
-  const isTopup = type === 'topup';
-  const price = isTopup ? topupDetails.item.price : (mode === 'rental' ? (product.rentalPriceDaily ?? product.price) : product.price);
-  const selectedMethod = PAYMENT_METHODS.find((m) => m.id === selectedPayment);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Ukuran file maksimal 5MB');
-      return;
-    }
-    setProofFile(file);
-    setProofPreview(URL.createObjectURL(file));
-  };
-
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(id);
-      setTimeout(() => setCopied(''), 2000);
-    });
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedPayment || !proofFile) return;
-    setIsLoading(true);
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      // Upload proof to Supabase Storage (bucket: payment_proofs)
-      const fileExt = proofFile.name.split('.').pop();
-      const fileName = `${orderNumber}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('payment_proofs')
-        .upload(fileName, proofFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      let proofUrl = '';
-      if (uploadError) {
-        console.error('Upload Error:', uploadError);
-      } else {
-        const { data: publicUrlData } = supabase.storage
-          .from('payment_proofs')
-          .getPublicUrl(fileName);
-        proofUrl = publicUrlData.publicUrl;
-      }
-
-      // Insert Order to Supabase based on type
-      if (isTopup) {
-        const { error: orderError } = await supabase.from('topup_orders').insert({
-          order_number: orderNumber,
-          user_id: user.id,
-          game: topupDetails.game.name,
-          game_user_id: topupDetails.userId,
-          item_label: topupDetails.item.label,
-          amount: price,
-          payment_method: selectedPayment,
-          payment_proof_url: proofUrl,
-          status: 'pending'
-        });
-        if (orderError) throw orderError;
-      } else {
-        const { error: orderError } = await supabase.from('orders').insert({
-          order_number: orderNumber,
-          buyer_id: user.id,
-          product_id: product.id,
-          amount: price,
-          status: 'pending',
-          mode: mode,
-          payment_method: selectedPayment,
-          proof_url: proofUrl,
-          note: note
-        });
-        if (orderError) throw orderError;
-      }
-
-      setSubmitted(true);
-    } catch (error) {
-      console.error('Checkout failed:', error);
-      alert('Terjadi kesalahan saat checkout. Silakan coba lagi.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Success state
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 gap-6 animate-slide-up">
-        <div
-          className="w-20 h-20 rounded-full flex items-center justify-center animate-pulse-glow"
-          style={{ background: 'rgba(34,197,94,0.15)', border: '2px solid rgba(34,197,94,0.3)' }}
-        >
-          <CheckCircle2 className="w-10 h-10" style={{ color: 'var(--success)' }} />
-        </div>
-        <div className="text-center">
-          <h2 className="font-bold font-heading text-xl mb-1" style={{ color: 'var(--text-primary)' }}>
-            Pesanan Terkirim! 🎉
-          </h2>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Order kamu sedang diproses admin. Cek status di halaman pesanan.
-          </p>
-        </div>
-        <div
-          className="w-full max-w-sm p-4 rounded-xl text-center"
-          style={{ background: 'var(--surface-card)', border: '1px solid var(--border-default)' }}
-        >
-          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Nomor Order</p>
-          <p className="font-black font-heading text-lg" style={{ color: 'var(--primary-400)' }}>{orderNumber}</p>
-        </div>
-        <div className="flex gap-3 w-full max-w-sm">
-          <Link href="/" className="btn-secondary flex-1 text-sm justify-center">
-            Beranda
-          </Link>
-          <Link href="/profile" className="btn-primary flex-1 text-sm justify-center">
-            Cek Pesanan
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-lg mx-auto px-3 sm:px-4 py-4">
-      {/* Back */}
-      <Link
-        href={isTopup ? '/topup' : `/products/${product?.id}`}
-        className="inline-flex items-center gap-1.5 text-sm mb-4 transition-colors hover:text-[var(--primary-400)]"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        <ChevronLeft className="w-4 h-4" />
-        Kembali
-      </Link>
-
-      <h1 className="font-bold font-heading text-lg mb-4" style={{ color: 'var(--text-primary)' }}>
-        💳 Checkout
-      </h1>
-
-      {/* Order summary */}
-      <div className="glass-card p-3 mb-3 flex gap-3">
-        {isTopup ? (
-          <>
-            <div className="relative w-16 h-20 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)] flex items-center justify-center text-4xl">
-              {topupDetails.game.icon}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-xs" style={{ color: topupDetails.game.color }}>Top Up {topupDetails.game.name}</span>
-              </div>
-              <p className="text-sm font-semibold line-clamp-2 font-heading" style={{ color: 'var(--text-primary)' }}>
-                {topupDetails.item.label}
-              </p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                ID: {topupDetails.userId}
-              </p>
-              <p className="mt-2 font-black" style={{ color: 'var(--primary-400)', fontSize: '1rem' }}>
-                {formatCurrency(price)}
-              </p>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="relative w-16 h-20 rounded-lg overflow-hidden shrink-0 bg-[var(--surface-raised)]">
-              <Image src={product.images[0]} alt={product.title} fill className="object-cover" sizes="64px" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-xs">{product.game.icon}</span>
-                <span className="text-xs" style={{ color: product.game.color }}>{product.game.name}</span>
-              </div>
-              <p className="text-sm font-semibold line-clamp-2 font-heading" style={{ color: 'var(--text-primary)' }}>
-                {product.title}
-              </p>
-              {mode === 'rental' && (
-                <span className="badge badge-rental mt-1">⏱ Rental 1 Hari</span>
-              )}
-              <p className="mt-2 font-black" style={{ color: 'var(--primary-400)', fontSize: '1rem' }}>
-                {formatCurrency(price)}
-              </p>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Order number */}
-      <div
-        className="flex items-center justify-between px-3 py-2 rounded-xl mb-3 text-xs"
-        style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}
-      >
-        <span style={{ color: 'var(--text-muted)' }}>No. Order</span>
-        <span className="font-bold font-heading" style={{ color: 'var(--primary-400)' }}>{orderNumber}</span>
-      </div>
-
-      {/* Payment method */}
-      <div className="glass-card p-4 mb-3">
-        <p className="section-label text-sm mb-3">Metode Pembayaran</p>
-        <div className="flex flex-col gap-2">
-          {PAYMENT_METHODS.map((method) => {
-            const isActive = selectedPayment === method.id;
-            return (
-              <button
-                key={method.id}
-                onClick={() => setSelectedPayment(method.id)}
-                className={cn(
-                  'flex items-center gap-3 p-3 rounded-xl text-left transition-all border',
-                  'hover:scale-[1.005] active:scale-[0.998]'
-                )}
-                style={{
-                  background: isActive ? 'rgba(245,158,11,0.08)' : 'var(--surface-raised)',
-                  borderColor: isActive ? 'rgba(245,158,11,0.4)' : 'var(--border-default)',
-                }}
-              >
-                <div
-                  className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
-                  style={{
-                    borderColor: isActive ? 'var(--primary-400)' : 'var(--text-muted)',
-                    background: isActive ? 'var(--primary-400)' : 'transparent',
-                  }}
-                >
-                  {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                </div>
-                <span className="text-sm font-medium" style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                  {method.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Account detail after method selected */}
-      {selectedMethod && (
-        <div className="glass-card p-4 mb-3 animate-slide-up">
-          <p className="section-label text-sm mb-3">Detail Rekening</p>
-          <div className="space-y-2">
-            {[
-              { label: 'Bank / Platform', value: selectedMethod.label },
-              { label: 'Nomor Rekening', value: selectedMethod.number, copyId: 'number' },
-              { label: 'Atas Nama', value: selectedMethod.name },
-              { label: 'Jumlah Transfer', value: formatCurrency(price), copyId: 'amount', highlight: true },
-            ].map(({ label, value, copyId, highlight }) => (
-              <div key={label} className="flex items-center justify-between gap-2">
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{label}</span>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn('text-sm font-semibold', highlight && 'font-black')}
-                    style={{ color: highlight ? 'var(--primary-400)' : 'var(--text-primary)' }}
-                  >
-                    {value}
-                  </span>
-                  {copyId && (
-                    <button
-                      onClick={() => handleCopy(value, copyId)}
-                      aria-label={`Copy ${label}`}
-                      className="p-1 rounded-md transition-all hover:scale-110"
-                      style={{ color: copied === copyId ? 'var(--success)' : 'var(--text-muted)' }}
-                    >
-                      {copied === copyId ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Upload proof */}
-      <div className="glass-card p-4 mb-3">
-        <p className="section-label text-sm mb-3">Upload Bukti Transfer</p>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-          aria-label="Upload bukti transfer"
-        />
-        {proofPreview ? (
-          <div className="relative">
-            <Image
-              src={proofPreview}
-              alt="Bukti transfer"
-              width={400}
-              height={200}
-              className="w-full rounded-xl object-cover max-h-48"
-            />
-            <button
-              onClick={() => { setProofFile(null); setProofPreview(''); }}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(239,68,68,0.8)' }}
-              aria-label="Hapus bukti"
-            >
-              <X className="w-3.5 h-3.5 text-white" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => fileRef.current?.click()}
-            className={cn(
-              'w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-2',
-              'transition-all hover:border-[rgba(245,158,11,0.5)] hover:bg-[rgba(245,158,11,0.04)]'
-            )}
-            style={{ borderColor: 'var(--border-default)' }}
-          >
-            <Upload className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
-            <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-              Klik untuk upload foto bukti
-            </span>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>PNG, JPG, WEBP • Maks 5MB</span>
-          </button>
-        )}
-      </div>
-
-      {/* Note */}
-      <div className="glass-card p-4 mb-4">
-        <p className="section-label text-sm mb-3">Catatan (opsional)</p>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Tambahkan catatan untuk admin..."
-          rows={3}
-          className="input-base resize-none"
-          aria-label="Catatan"
-        />
-      </div>
-
-      {/* Warning */}
-      {!selectedPayment && (
-        <div
-          className="flex items-center gap-2 p-3 rounded-xl mb-3 text-xs"
-          style={{ background: 'rgba(245,158,11,0.08)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.2)' }}
-        >
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          Pilih metode pembayaran terlebih dahulu
-        </div>
-      )}
-
-      {/* Submit */}
-      <button
-        onClick={handleSubmit}
-        disabled={!selectedPayment || !proofFile || isLoading}
-        className={cn(
-          'btn-primary w-full text-sm py-3.5',
-          (!selectedPayment || !proofFile) && 'opacity-50 cursor-not-allowed'
-        )}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="animate-spin w-4 h-4" />
-            Memproses...
-          </>
-        ) : (
-          <>
-            <CheckCircle2 className="w-4 h-4" />
-            Konfirmasi Pembayaran
-          </>
-        )}
-      </button>
-
-      <p className="text-center text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
-        Pesananmu akan diproses admin dalam 1×24 jam setelah pembayaran dikonfirmasi
-      </p>
-    </div>
-  );
-}
+import { Copy, Lock, CheckCircle } from 'lucide-react';
 
 export default function CheckoutPage() {
+  const searchParams = useSearchParams();
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 0) { clearInterval(timer); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const seconds = (timeLeft % 60).toString().padStart(2, '0');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText('24500');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <>
-      <Header />
-      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
-        <Suspense fallback={
-          <div className="flex items-center justify-center py-20">
-            <div className="skeleton w-full max-w-lg h-96 mx-4" />
+    <div className="min-h-screen flex flex-col" style={{ background: '#0f1414', color: '#dfe3e3' }}>
+      {/* Simplified Secure Header */}
+      <nav className="fixed top-0 w-full z-50 border-b border-white/10 shadow-sm px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto h-16 flex justify-between items-center" style={{ background: 'rgba(15,20,20,0.95)' }}>
+        <div className="text-headline-md font-headline-md font-black tracking-tight text-[#42e5b0]">PAROY STORE</div>
+        <div className="text-on-surface-variant text-label-md font-label-md flex items-center gap-2">
+          <Lock className="w-4 h-4" />
+          Secure Checkout
+        </div>
+      </nav>
+
+      <main className="flex-grow pt-[104px] pb-stack-lg px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
+        {/* Status Banner - Pending */}
+        <div className="rounded-lg p-gutter mb-stack-md flex flex-col md:flex-row justify-between items-center gap-4 border" style={{ background: '#2B2516', borderColor: 'rgba(255,208,54,0.3)' }}>
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">⏳</span>
+            <div>
+              <h2 className="text-headline-md font-headline-md" style={{ color: '#FFD036' }}>Menunggu Pembayaran</h2>
+              <p className="text-body-md font-body-md text-on-surface-variant">Selesaikan pembayaran sebelum batas waktu berakhir.</p>
+            </div>
           </div>
-        }>
-          <CheckoutContent />
-        </Suspense>
-      </div>
-      <BottomNav />
-      <div className="h-[116px] lg:hidden" />
-    </>
+          <div className="bg-surface-container-highest px-6 py-3 rounded-lg border border-white/10 text-center">
+            <div className="text-label-md font-label-md text-on-surface-variant mb-1">BATAS WAKTU</div>
+            <div className="text-headline-lg font-headline-lg text-[#42e5b0] tracking-widest font-mono">{minutes}:{seconds}</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+          {/* Order Details */}
+          <div className="lg:col-span-5 flex flex-col gap-gutter">
+            <div className="bg-surface-container rounded-xl border border-white/10 p-gutter">
+              <div className="border-b border-white/10 pb-4 mb-4 flex justify-between items-center">
+                <h3 className="text-headline-md font-headline-md text-on-surface">Detail Pesanan</h3>
+                <span className="bg-surface-container-highest px-3 py-1 rounded text-label-md font-label-md font-mono text-on-surface-variant">#INV-12345</span>
+              </div>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-lg bg-surface-container-highest flex-shrink-0 border border-white/10 overflow-hidden">
+                  <img src="https://placehold.co/64x64/232B2B/00c896?text=ML" alt="game" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <div className="text-body-md font-body-md text-on-surface-variant">Mobile Legends</div>
+                  <div className="text-headline-md font-headline-md text-on-surface">86 Diamonds</div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-body-md text-on-surface-variant">User ID</span>
+                  <span className="text-body-md font-mono text-on-surface">12345678 (1234)</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-body-md text-on-surface-variant">Metode</span>
+                  <span className="text-body-md text-on-surface">QRIS</span>
+                </div>
+                <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                  <span className="text-body-lg text-on-surface-variant">Total Bayar</span>
+                  <span className="text-headline-md font-headline-md text-[#42e5b0]">Rp 24.500</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Instructions */}
+          <div className="lg:col-span-7">
+            <div className="bg-surface-container rounded-xl border border-white/10 p-gutter h-full">
+              <h3 className="text-headline-md font-headline-md border-b border-white/10 pb-4 mb-6 text-on-surface">Instruksi Pembayaran</h3>
+              <div className="flex flex-col items-center justify-center bg-surface-container-highest rounded-lg p-8 mb-6 border border-white/5">
+                <div className="w-48 h-48 bg-white p-3 rounded-lg mb-4 flex items-center justify-center">
+                  <div className="text-black text-center text-sm font-mono">QR CODE PLACEHOLDER</div>
+                </div>
+                <p className="text-body-md text-on-surface-variant text-center max-w-md">
+                  Scan QR code di atas menggunakan aplikasi e-wallet atau m-banking pilihan Anda (GoPay, OVO, Dana, BCA, dll).
+                </p>
+              </div>
+              <div className="bg-surface-container-lowest rounded-lg border border-white/10 p-4 flex justify-between items-center">
+                <div>
+                  <div className="text-label-md text-on-surface-variant mb-1">Nominal Pembayaran (Bayar Sesuai Nominal)</div>
+                  <div className="text-headline-md font-headline-md font-mono text-on-surface">Rp 24.500</div>
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-2 px-4 py-2 rounded border transition-colors text-label-md"
+                  style={{
+                    background: copied ? 'rgba(0,200,150,0.2)' : 'rgba(0,200,150,0.1)',
+                    color: '#00c896',
+                    borderColor: 'rgba(0,200,150,0.2)',
+                  }}
+                >
+                  {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-stack-md text-center">
+          <Link href="/" className="text-label-md text-on-surface-variant hover:text-[#00c896] transition-colors">
+            Kembali ke Beranda
+          </Link>
+        </div>
+      </main>
+    </div>
   );
 }
