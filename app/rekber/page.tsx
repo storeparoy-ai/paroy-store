@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
-  ShieldCheck, CheckCircle2, MessageCircle, FileText, Lock, Clock, Headphones, Zap, ArrowRight, Loader2
+  ShieldCheck, CheckCircle2, MessageCircle, FileText, Lock, Clock, Headphones, Zap, ArrowRight, Loader2, Info
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import Header from '@/components/layout/Header';
@@ -13,18 +13,38 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 
 const HOW_IT_WORKS = [
-  { step: '1', title: 'Ajukan Transaksi', desc: 'Isi formulir rekber dengan nominal harga dan detail akun yang ingin ditransaksikan.' },
-  { step: '2', title: 'Buyer Transfer ke Escrow', desc: 'Pembeli transfer dana aman ke rekening resmi Rekber Paroy Store.' },
-  { step: '3', title: 'Seller Serahkan Akun', desc: 'Penjual mengirimkan data login akun, email pertama, dan bukti unbind ke buyer.' },
-  { step: '4', title: 'Verifikasi & Ganti Data', desc: 'Buyer memverifikasi dan mengamankan seluruh akses akun game.' },
-  { step: '5', title: 'Dana Diteruskan ke Seller', desc: 'Setelah buyer konfirmasi aman 100%, dana langsung cair ke rekening penjual.' },
+  { 
+    step: '1', 
+    title: 'Ajukan Transaksi', 
+    desc: 'Isi formulir rekber di samping dengan nominal harga dan rincian spesifikasi akun yang akan ditransaksikan.' 
+  },
+  { 
+    step: '2', 
+    title: 'Buyer Transfer ke Escrow Paroy', 
+    desc: 'Pembeli mentransfer dana transaksi ke rekening escrow resmi Paroy Store. Dana aman dipegang sistem hingga serah terima selesai.' 
+  },
+  { 
+    step: '3', 
+    title: 'Seller Serahkan Akun ke Buyer', 
+    desc: 'Setelah dana terverifikasi masuk ke rekening escrow, penjual menyerahkan seluruh data login, email pertama, dan bukti unbind.' 
+  },
+  { 
+    step: '4', 
+    title: 'Verifikasi & Ganti Keamanan Data', 
+    desc: 'Pembeli mengecek kelengkapan akun game dan mengamankan seluruh akses keamanan (ganti password, nomor HP, dan 2FA).' 
+  },
+  { 
+    step: '5', 
+    title: 'Dana Diteruskan ke Seller', 
+    desc: 'Setelah pembeli mengonfirmasi bahwa data akun 100% aman, admin langsung mencairkan dana ke rekening penjual dalam hitungan menit.' 
+  },
 ];
 
 const REKBER_FEE = [
-  { range: 'Rp 10.000 – Rp 250.000', fee: 'Rp 5.000' },
-  { range: 'Rp 250.001 – Rp 1.000.000', fee: 'Rp 10.000' },
-  { range: 'Rp 1.000.001 – Rp 3.000.000', fee: 'Rp 25.000' },
-  { range: '> Rp 3.000.000', fee: '1% dari total transaksi' },
+  { range: 'Rp 10.000 – Rp 250.000', fee: 'Rp 5.000', note: 'Biaya Flat' },
+  { range: 'Rp 250.001 – Rp 1.000.000', fee: 'Rp 10.000', note: 'Biaya Flat' },
+  { range: 'Rp 1.000.001 – Rp 3.000.000', fee: 'Rp 25.000', note: 'Biaya Flat' },
+  { range: 'Di atas Rp 3.000.000', fee: '1% Transaksi', note: 'Persentase' },
 ];
 
 export default function RekberPage() {
@@ -36,10 +56,11 @@ export default function RekberPage() {
   const [submitted, setSubmitted] = useState(false);
 
   const calculateFee = (val: number) => {
+    if (!val || val <= 0) return 0;
     if (val <= 250000) return 5000;
     if (val <= 1000000) return 10000;
     if (val <= 3000000) return 25000;
-    return val * 0.01;
+    return Math.round(val * 0.01);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,87 +99,135 @@ export default function RekberPage() {
     setLoading(false);
   };
 
+  const numericAmount = Number(amount) || 0;
+  const currentFee = calculateFee(numericAmount);
+  const totalTransfer = numericAmount + currentFee;
+
   return (
     <>
       <Header />
       
-      <main className="min-h-screen py-8 sm:py-12 pb-32 px-4 sm:px-6 lg:px-8 w-full max-w-[1440px] mx-auto flex flex-col gap-10">
+      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-6 lg:px-8 w-full max-w-[1440px] mx-auto flex flex-col gap-10">
         
-        {/* Page Hero Bento */}
-        <div className="relative p-8 sm:p-12 rounded-3xl bg-[#0d121f] border border-emerald-500/25 shadow-xl overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 max-w-3xl space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                <ShieldCheck className="w-5 h-5" />
-              </span>
-              <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
-                ESCROW SERVICE RESMI
+        {/* 1. Page Hero Banner */}
+        <div className="relative p-8 sm:p-12 md:p-14 rounded-3xl bg-[#0D121F] border border-emerald-500/25 shadow-2xl overflow-hidden">
+          {/* Ambient Glow */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] bg-brand-cyan/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-3xl space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+              <ShieldCheck className="w-4 h-4" />
+              <span className="text-xs font-black uppercase tracking-wider">
+                LAYANAN REKBER ESCROW RESMI
               </span>
             </div>
             
-            <h1 className="font-heading font-black text-3xl sm:text-5xl text-white tracking-tight">
+            <h1 className="font-heading font-black text-3xl sm:text-4xl md:text-5xl text-white tracking-tight leading-tight">
               Rekber Terpercaya <span className="text-gradient-cyan">100% Anti Tipu</span>
             </h1>
-            <p className="text-xs sm:text-sm md:text-base text-text-muted leading-relaxed">
-              Lindungi uangmu saat transaksi jual beli akun game antar player. Dana diamankan di sistem escrow Paroy Store sampai kamu mengonfirmasi bahwa data akun sudah 100% milikmu dan di-unbind penuh.
+
+            <p className="text-sm sm:text-base text-text-muted leading-relaxed">
+              Lindungi uangmu saat transaksi jual beli akun game antar player. Dana diamankan di sistem escrow resmi Paroy Store sampai kamu mengonfirmasi bahwa data akun sudah 100% milikmu dan di-unbind penuh.
             </p>
 
-            <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-bold text-text-muted">
-              <span className="flex items-center gap-2 text-emerald-400"><Lock className="w-4 h-4" /> Dana Dijamin Aman 100%</span>
-              <span className="flex items-center gap-2 text-brand-cyan"><Zap className="w-4 h-4" /> Proses 15 Menit Selesai</span>
-              <span className="flex items-center gap-2 text-amber-400"><Headphones className="w-4 h-4" /> Admin Siaga 24 Jam</span>
+            {/* Feature Badges */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-emerald-400">
+                <Lock className="w-4 h-4 text-emerald-400" />
+                <span>Dana Dijamin Aman 100%</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-brand-cyan">
+                <Zap className="w-4 h-4 text-brand-cyan" />
+                <span>Proses Cepat 15 Menit</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-amber-400">
+                <Headphones className="w-4 h-4 text-amber-400" />
+                <span>Admin Siaga 24 Jam</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 2-Column Layout */}
+        {/* 2. Main 2-Column Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-start">
           
-          {/* Left Column: Flow & Benefits (7 cols) */}
+          {/* Left Column: Alur & Tabel Tarif (7 Cols) */}
           <div className="lg:col-span-7 flex flex-col gap-8">
             
-            {/* Flow Steps */}
-            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg space-y-6">
-              <h2 className="font-heading font-black text-xl text-white">
-                Tahapan Alur Rekber Escrow Paroy Store
-              </h2>
+            {/* Alur Tahapan */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0D121F] border border-white/8 shadow-xl space-y-6">
+              <div className="flex items-center gap-3 border-b border-white/8 pb-4">
+                <div className="w-10 h-10 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan font-bold">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-heading font-black text-lg sm:text-xl text-white">
+                    Tahapan Alur Rekber Escrow
+                  </h2>
+                  <p className="text-xs text-text-muted">
+                    5 langkah mudah transaksi aman tanpa resiko penipuan
+                  </p>
+                </div>
+              </div>
 
               <div className="space-y-4">
                 {HOW_IT_WORKS.map((item) => (
-                  <div key={item.step} className="flex items-start gap-4 p-5 rounded-2xl bg-[#141a29] border border-white/6">
-                    <span className="w-9 h-9 rounded-xl bg-linear-to-tr from-brand-cyan to-brand-purple text-black font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
+                  <div 
+                    key={item.step} 
+                    className="flex items-start gap-4 p-5 rounded-2xl bg-[#111728] border border-white/6 hover:border-brand-cyan/30 transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-2xl bg-brand-cyan/15 border border-brand-cyan/30 text-brand-cyan font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
                       {item.step}
-                    </span>
-                    <div>
-                      <h3 className="font-heading font-bold text-sm sm:text-base text-white mb-1">{item.title}</h3>
-                      <p className="text-xs sm:text-sm text-text-muted leading-relaxed">{item.desc}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-heading font-bold text-sm sm:text-base text-white">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-text-muted leading-relaxed">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Fee Table */}
-            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-lg space-y-4">
-              <h2 className="font-heading font-black text-lg text-white">
-                Tarif Biaya Jasa Rekber
-              </h2>
+            {/* Tabel Tarif Biaya */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0D121F] border border-white/8 shadow-xl space-y-5">
+              <div className="flex items-center justify-between border-b border-white/8 pb-4">
+                <div>
+                  <h2 className="font-heading font-black text-lg sm:text-xl text-white">
+                    Tarif Biaya Jasa Rekber
+                  </h2>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Biaya admin resmi dan transparan tanpa biaya tersembunyi
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                  Termurah Se-Indonesia
+                </span>
+              </div>
               
-              <div className="overflow-x-auto">
+              <div className="overflow-hidden rounded-2xl border border-white/8">
                 <table className="w-full text-left text-xs sm:text-sm">
                   <thead>
-                    <tr className="bg-[#141a29] text-text-muted uppercase tracking-wider font-bold">
-                      <th className="p-4 rounded-l-xl">Nilai Transaksi</th>
-                      <th className="p-4 rounded-r-xl">Biaya Admin</th>
+                    <tr className="bg-[#141C30] text-text-muted font-bold uppercase text-[11px] tracking-wider">
+                      <th className="py-3.5 px-5">Nilai Transaksi</th>
+                      <th className="py-3.5 px-5 text-right">Biaya Admin</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 font-medium text-white">
-                    {REKBER_FEE.map((f) => (
-                      <tr key={f.range}>
-                        <td className="p-4">{f.range}</td>
-                        <td className="p-4 font-bold text-primary-container font-mono">{f.fee}</td>
+                  <tbody className="divide-y divide-white/5 bg-[#101626]">
+                    {REKBER_FEE.map((f, idx) => (
+                      <tr key={f.range} className={idx % 2 === 1 ? 'bg-white/[0.02]' : ''}>
+                        <td className="py-3.5 px-5 text-white font-medium">
+                          {f.range}
+                        </td>
+                        <td className="py-3.5 px-5 text-right">
+                          <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-black font-mono bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20">
+                            {f.fee}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -168,23 +237,23 @@ export default function RekberPage() {
 
           </div>
 
-          {/* Right Column: Submission Form (5 cols) */}
-          <div className="lg:col-span-5 flex flex-col gap-6 sm:gap-8 sticky top-28">
+          {/* Right Column: Formulir Pengajuan (5 Cols) */}
+          <div className="lg:col-span-5 flex flex-col gap-6 sticky top-24">
             
-            <div className="p-7 sm:p-8 rounded-3xl bg-[#0d121f] border border-white/8 shadow-xl space-y-6">
-              <div>
-                <h2 className="font-heading font-black text-xl text-white">
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0D121F] border border-white/8 shadow-xl space-y-6">
+              <div className="border-b border-white/8 pb-4">
+                <h2 className="font-heading font-black text-lg sm:text-xl text-white">
                   Ajukan Rekber Baru
                 </h2>
-                <p className="text-xs sm:text-sm text-text-muted mt-1">
-                  Masukkan detail transaksi untuk memulai pembuatan grup rekber dengan admin.
+                <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                  Masukkan detail transaksi untuk memulai pembuatan grup rekber resmi dengan admin Paroy Store.
                 </p>
               </div>
 
               {submitted ? (
                 <div className="p-8 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center flex flex-col items-center gap-3">
                   <CheckCircle2 className="w-14 h-14 text-emerald-400" />
-                  <h3 className="font-bold text-lg text-white">Pengajuan Rekber Berhasil!</h3>
+                  <h3 className="font-heading font-black text-lg text-white">Pengajuan Rekber Berhasil!</h3>
                   <p className="text-xs text-text-muted leading-relaxed">
                     Admin kami akan segera menghubungi kamu melalui WhatsApp untuk membuat grup transaksi 3 pihak yang aman.
                   </p>
@@ -197,22 +266,22 @@ export default function RekberPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-text-main mb-2">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-white">
                       Nama Akun / Item Game <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
                       value={itemDesc}
                       onChange={(e) => setItemDesc(e.target.value)}
-                      placeholder="Contoh: Akun MLBB All Skin Collector"
-                      className="input-base"
+                      placeholder="Contoh: Akun MLBB All Skin Collector Mythic"
+                      className="w-full h-11 px-4 rounded-xl bg-[#111728] border border-white/10 text-xs text-white placeholder:text-text-dim focus:border-brand-cyan/60 focus:outline-none focus:ring-1 focus:ring-brand-cyan/30 transition-all"
                       required
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-text-main mb-2">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-white">
                       Nominal Harga Transaksi (Rp) <span className="text-red-400">*</span>
                     </label>
                     <input
@@ -220,33 +289,36 @@ export default function RekberPage() {
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="Contoh: 500000"
-                      className="input-base font-mono font-bold"
+                      className="w-full h-11 px-4 rounded-xl bg-[#111728] border border-white/10 text-xs text-white font-mono font-bold placeholder:text-text-dim focus:border-brand-cyan/60 focus:outline-none focus:ring-1 focus:ring-brand-cyan/30 transition-all"
                       required
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-text-main mb-2">
-                      Nomor WhatsApp Penjual (Opsional)
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-white">
+                      Nomor WhatsApp Penjual / Pembeli (Opsional)
                     </label>
                     <input
                       type="tel"
                       value={sellerContact}
                       onChange={(e) => setSellerContact(e.target.value)}
                       placeholder="Contoh: 081234567890"
-                      className="input-base"
+                      className="w-full h-11 px-4 rounded-xl bg-[#111728] border border-white/10 text-xs text-white placeholder:text-text-dim focus:border-brand-cyan/60 focus:outline-none focus:ring-1 focus:ring-brand-cyan/30 transition-all"
                     />
                   </div>
 
-                  {amount && Number(amount) > 0 && (
-                    <div className="p-4 rounded-2xl bg-[#141a29] border border-white/6 space-y-2 text-xs">
+                  {/* Summary Box */}
+                  {numericAmount > 0 && (
+                    <div className="p-4 rounded-2xl bg-[#141C30] border border-white/8 space-y-2 text-xs mt-2">
                       <div className="flex justify-between text-text-muted">
-                        <span>Biaya Jasa Rekber:</span>
-                        <span className="font-bold text-white font-mono">{formatCurrency(calculateFee(Number(amount)))}</span>
+                        <span>Biaya Admin Rekber:</span>
+                        <span className="font-bold text-white font-mono">{formatCurrency(currentFee)}</span>
                       </div>
-                      <div className="flex justify-between font-bold text-white pt-2 border-t border-white/6">
-                        <span>Total Ditransfer:</span>
-                        <span className="text-primary-container text-base font-black font-mono">{formatCurrency(Number(amount) + calculateFee(Number(amount)))}</span>
+                      <div className="flex justify-between items-center font-bold text-white pt-2 border-t border-white/8">
+                        <span>Total Ditransfer Buyer:</span>
+                        <span className="text-brand-cyan text-base font-black font-mono">
+                          {formatCurrency(totalTransfer)}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -254,7 +326,7 @@ export default function RekberPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="btn-cyber w-full py-3.5 text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-lg"
+                    className="btn-cyber w-full py-3 text-xs font-black flex items-center justify-center gap-2 shadow-lg mt-3"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                       <>
@@ -267,17 +339,17 @@ export default function RekberPage() {
               )}
             </div>
 
-            {/* Direct WhatsApp Box */}
-            <div className="p-6 rounded-3xl bg-[#0d121f] border border-emerald-500/25 flex items-center justify-between gap-4 shadow-md">
-              <div>
-                <p className="text-xs sm:text-sm font-bold text-white">Butuh bantuan rekber kilat?</p>
-                <p className="text-xs text-emerald-400 mt-0.5 font-semibold">Chat Admin via WhatsApp resmi</p>
+            {/* Direct WhatsApp Contact Card */}
+            <div className="p-5 rounded-3xl bg-[#0D121F] border border-emerald-500/25 flex items-center justify-between gap-4 shadow-md">
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-white">Butuh bantuan rekber kilat?</p>
+                <p className="text-xs text-emerald-400 font-semibold">Hubungi Admin via WhatsApp resmi</p>
               </div>
               <a
                 href="https://wa.me/6281234567890"
                 target="_blank"
                 rel="noreferrer"
-                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shrink-0 shadow-sm"
+                className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shrink-0 shadow-sm"
               >
                 Chat WA &rarr;
               </a>
