@@ -166,7 +166,7 @@ export default function ProfilePage() {
     <>
       <Header />
       
-      <main className="min-h-screen py-8 sm:py-10 pb-24 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto">
+      <main className="min-h-screen py-10 sm:py-14 pb-32 px-4 sm:px-6 lg:px-8 w-full max-w-5xl mx-auto flex flex-col gap-8">
         
         {/* Profile Header Card */}
         <div className="relative p-6 sm:p-8 rounded-3xl bg-bg-card border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.5)] overflow-hidden mb-8">

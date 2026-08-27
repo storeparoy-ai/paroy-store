@@ -70,32 +70,32 @@ export default function CategoryProductTabs({ initialProducts }: CategoryProduct
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {/* Dual View Toggle */}
-          <div className="flex items-center p-1 rounded-xl bg-bg-card border border-white/10 shadow-inner">
-            <button
-              onClick={() => setViewMode('3d')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
-                viewMode === '3d'
-                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                  : 'text-text-muted hover:text-white'
-              )}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>3D Showcase</span>
-            </button>
+          <div className="flex items-center p-1.5 rounded-2xl bg-[#0D121F] border border-white/10 shadow-inner">
             <button
               onClick={() => setViewMode('grid')}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
                 viewMode === 'grid'
-                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)] font-black'
                   : 'text-text-muted hover:text-white'
               )}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4" />
               <span>Grid View</span>
+            </button>
+            <button
+              onClick={() => setViewMode('3d')}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
+                viewMode === '3d'
+                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)] font-black'
+                  : 'text-text-muted hover:text-white'
+              )}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>3D Showcase</span>
             </button>
           </div>
 
@@ -252,7 +252,7 @@ export default function CategoryProductTabs({ initialProducts }: CategoryProduct
         </div>
       ) : (
         /* Grid Mode */
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

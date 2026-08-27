@@ -11,7 +11,7 @@ export default function AdminPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen py-8 sm:py-10 pb-24 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto">
+      <main className="min-h-screen py-8 sm:py-10 pb-24 px-4 sm:px-8 lg:px-12 xl:px-16 w-full">
         <div className="mb-6">
           <h1 className="font-heading font-black text-2xl sm:text-4xl text-white tracking-tight">
             Dashboard <span className="text-gradient-cyan">Administrator</span>

@@ -42,10 +42,10 @@ export default function CekTransaksiPage() {
     <>
       <Header />
       
-      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto flex flex-col gap-10">
+      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 w-full flex flex-col items-center gap-10">
         
         {/* Search Hero Bento Box */}
-        <div className="p-8 sm:p-14 rounded-3xl bg-[#0d121f] border border-white/8 shadow-xl text-center max-w-4xl mx-auto w-full relative overflow-hidden">
+        <div className="p-8 sm:p-12 rounded-3xl bg-[#0D121F] border border-white/8 shadow-xl text-center max-w-3xl mx-auto w-full relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-brand-cyan/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10 space-y-4">

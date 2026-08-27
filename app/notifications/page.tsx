@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Package, Tag, MessageCircle, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Bell, Package, Tag, MessageCircle, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { cn, timeAgo } from '@/lib/utils';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
+import Link from 'next/link';
 
 type NotificationType = 'order' | 'promo' | 'system' | 'community';
 
@@ -24,7 +25,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     id: '1',
     type: 'order',
     title: 'Pesanan Selesai 🎉',
-    message: 'Pesanan akun MLBB Mythic Glory kamu telah selesai. Selamat bermain!',
+    message: 'Pesanan akun MLBB Mythic Glory kamu telah selesai dikirim. Selamat bermain dan terima kasih telah bertransaksi di Paroy Store!',
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
     isRead: false,
     link: '/profile',
@@ -33,7 +34,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     id: '2',
     type: 'promo',
     title: 'Flash Sale Alert! ⚡',
-    message: 'Flash Sale dimulai dalam 30 menit! Diskon hingga 70% untuk top up Diamond MLBB.',
+    message: 'Flash Sale kilat telah dimulai! Dapatkan diskon hingga 70% untuk top up Diamond MLBB dan Akun Sultan.',
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
     isRead: false,
     link: '/flash-sales',
@@ -41,8 +42,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: '3',
     type: 'system',
-    title: 'Selamat Datang di PAROY STORE',
-    message: 'Terima kasih telah mendaftar. Lengkapi profil kamu untuk pengalaman berbelanja yang lebih baik.',
+    title: 'Selamat Datang di PAROY STORE 🚀',
+    message: 'Terima kasih telah mendaftar. Lengkapi nomor WhatsApp dan verifikasi profil kamu untuk transaksi rekber yang lebih aman.',
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
     isRead: true,
     link: '/profile',
@@ -51,26 +52,26 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     id: '4',
     type: 'order',
     title: 'Pembayaran Diterima 💸',
-    message: 'Pembayaran untuk pesanan Top Up Free Fire telah kami terima. Sedang diproses oleh admin.',
+    message: 'Pembayaran untuk pesanan Top Up Free Fire 1450 Diamond telah kami verifikasi. Item berhasil dikirim otomatis.',
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
     isRead: true,
   },
   {
     id: '5',
     type: 'community',
-    title: 'Komentar Baru di Postinganmu',
-    message: 'GamerPro_ID membalas komentar kamu di grup Komunitas MLBB.',
+    title: 'Komentar Baru di Komunitas 💬',
+    message: 'GamerPro_ID membalas postingan kamu di grup Komunitas Turnamen MLBB Paroy Store.',
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
     isRead: true,
     link: '/community',
   },
 ];
 
-const TYPE_CONFIG: Record<NotificationType, { icon: typeof Bell; color: string; bg: string }> = {
-  order:     { icon: Package,       color: 'var(--success)',     bg: 'rgba(34,197,94,0.12)' },
-  promo:     { icon: Tag,           color: 'var(--warning)',     bg: 'rgba(245,158,11,0.12)' },
-  system:    { icon: AlertCircle,   color: 'var(--info)',        bg: 'rgba(59,130,246,0.12)' },
-  community: { icon: MessageCircle, color: 'var(--primary-400)', bg: 'rgba(245,158,11,0.12)' },
+const TYPE_CONFIG: Record<NotificationType, { icon: typeof Bell; color: string; bg: string; badge: string }> = {
+  order:     { icon: Package,       color: '#00c896', bg: 'rgba(0,200,150,0.12)', badge: 'Pesanan' },
+  promo:     { icon: Tag,           color: '#ff6a00', bg: 'rgba(255,106,0,0.12)', badge: 'Promo' },
+  system:    { icon: AlertCircle,   color: '#00f0ff', bg: 'rgba(0,240,255,0.12)', badge: 'Sistem' },
+  community: { icon: MessageCircle, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', badge: 'Komunitas' },
 };
 
 export default function NotificationsPage() {
@@ -94,53 +95,70 @@ export default function NotificationsPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen flex flex-col" style={{ paddingTop: '96px' }}>
-        <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4">
+
+      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 w-full flex justify-center">
+        <div className="w-full max-w-3xl flex flex-col gap-6">
           
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="font-bold font-heading text-xl flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                🔔 Notifikasi
-                {unreadCount > 0 && (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--primary-400)', color: 'white' }}>
-                    {unreadCount} Baru
-                  </span>
-                )}
-              </h1>
+          {/* Header Card */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#0D121F] border border-white/8 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-brand-cyan/10 border border-brand-cyan/25 flex items-center justify-center text-brand-cyan shadow-sm">
+                <Bell className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="font-heading font-black text-2xl text-white tracking-tight flex items-center gap-2.5">
+                  Notifikasi
+                  {unreadCount > 0 && (
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-cyan text-black shadow-xs">
+                      {unreadCount} Baru
+                    </span>
+                  )}
+                </h1>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Pemberitahuan transaksi, promo flash sale, dan update akun kamu
+                </p>
+              </div>
             </div>
+
             {unreadCount > 0 && (
               <button 
                 onClick={markAllAsRead}
-                className="text-xs font-medium flex items-center gap-1.5 transition-colors"
-                style={{ color: 'var(--primary-400)' }}
+                className="text-xs font-bold text-brand-cyan hover:underline flex items-center gap-1.5 cursor-pointer self-start sm:self-center"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                Tandai semua dibaca
+                <span>Tandai semua dibaca</span>
               </button>
             )}
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-2 mb-4">
-            {(['all', 'unread'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold transition-all border"
-                style={{
-                  background: activeTab === tab ? 'rgba(245,158,11,0.12)' : 'var(--surface-card)',
-                  borderColor: activeTab === tab ? 'rgba(245,158,11,0.4)' : 'var(--border-default)',
-                  color: activeTab === tab ? 'var(--primary-400)' : 'var(--text-muted)',
-                }}
-              >
-                {tab === 'all' ? 'Semua' : 'Belum Dibaca'}
-              </button>
-            ))}
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={cn(
+                'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border',
+                activeTab === 'all'
+                  ? 'bg-white/10 text-white border-white/20 shadow-xs font-black'
+                  : 'bg-[#0D121F] text-text-muted border-white/6 hover:text-white hover:border-white/15'
+              )}
+            >
+              Semua Notifikasi ({notifications.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('unread')}
+              className={cn(
+                'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border',
+                activeTab === 'unread'
+                  ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/30 shadow-xs font-black'
+                  : 'bg-[#0D121F] text-text-muted border-white/6 hover:text-white hover:border-white/15'
+              )}
+            >
+              Belum Dibaca ({unreadCount})
+            </button>
           </div>
 
-          {/* List */}
-          <div className="flex flex-col gap-2">
+          {/* Notification List */}
+          <div className="flex flex-col gap-3">
             {filteredNotifications.length > 0 ? (
               filteredNotifications.map((notif) => {
                 const config = TYPE_CONFIG[notif.type];
@@ -150,57 +168,79 @@ export default function NotificationsPage() {
                     key={notif.id}
                     onClick={() => !notif.isRead && markAsRead(notif.id)}
                     className={cn(
-                      "glass-card p-4 transition-all relative overflow-hidden cursor-pointer",
-                      !notif.isRead ? "border-l-4" : "opacity-75"
+                      'relative p-5 sm:p-6 rounded-2xl border transition-all duration-200 cursor-pointer shadow-md flex items-start gap-4',
+                      !notif.isRead
+                        ? 'bg-[#111728] border-brand-cyan/30 hover:border-brand-cyan/50'
+                        : 'bg-[#0D121F] border-white/8 hover:border-white/15 opacity-80 hover:opacity-100'
                     )}
-                    style={{ 
-                      borderLeftColor: !notif.isRead ? 'var(--primary-400)' : 'transparent',
-                      background: !notif.isRead ? 'rgba(255,255,255,0.06)' : 'var(--surface-card)'
-                    }}
                   >
+                    {/* Unread dot indicator */}
                     {!notif.isRead && (
-                      <div className="absolute top-4 right-4 w-2 h-2 rounded-full" style={{ background: 'var(--primary-400)' }} />
+                      <span className="absolute top-5 right-5 w-2.5 h-2.5 rounded-full bg-brand-cyan shadow-[0_0_8px_#00f0ff]" />
                     )}
-                    <div className="flex gap-3">
-                      <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: config.bg, color: config.color }}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0 pr-4">
-                        <p className={cn("text-sm mb-1", !notif.isRead ? "font-bold" : "font-semibold")} style={{ color: 'var(--text-primary)' }}>
-                          {notif.title}
-                        </p>
-                        <p className="text-xs leading-relaxed mb-2" style={{ color: 'var(--text-secondary)' }}>
-                          {notif.message}
-                        </p>
-                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+
+                    {/* Notification Type Icon */}
+                    <div 
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+                      style={{ background: config.bg, color: config.color }}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pr-4 space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span 
+                          className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md"
+                          style={{ background: config.bg, color: config.color }}
+                        >
+                          {config.badge}
+                        </span>
+                        <span className="text-[10px] text-text-dim">
                           {timeAgo(notif.createdAt)}
-                        </p>
+                        </span>
                       </div>
+
+                      <h3 className={cn('text-sm font-heading text-white leading-snug', !notif.isRead ? 'font-black' : 'font-bold')}>
+                        {notif.title}
+                      </h3>
+
+                      <p className="text-xs text-text-muted leading-relaxed">
+                        {notif.message}
+                      </p>
+
+                      {notif.link && (
+                        <div className="pt-1">
+                          <Link 
+                            href={notif.link}
+                            className="text-xs font-bold text-brand-cyan hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>Lihat Selengkapnya &rarr;</span>
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <span className="text-5xl">🔕</span>
-                <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  Tidak ada notifikasi
-                </p>
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                  {activeTab === 'unread' ? 'Kamu sudah membaca semua notifikasi' : 'Kamu belum memiliki notifikasi'}
+              <div className="p-12 rounded-3xl bg-[#0D121F] border border-white/8 text-center flex flex-col items-center justify-center gap-3">
+                <span className="text-4xl">🔕</span>
+                <h3 className="font-heading font-black text-lg text-white">Tidak Ada Notifikasi</h3>
+                <p className="text-xs text-text-muted max-w-sm">
+                  {activeTab === 'unread' 
+                    ? 'Bagus! Kamu sudah membaca semua notifikasi yang ada.' 
+                    : 'Belum ada notifikasi baru untuk akun kamu.'}
                 </p>
               </div>
             )}
           </div>
 
         </div>
-        <Footer />
-      </div>
+      </main>
+
+      <Footer />
       <BottomNav />
-      <div className="h-[116px] lg:hidden" />
     </>
   );
 }

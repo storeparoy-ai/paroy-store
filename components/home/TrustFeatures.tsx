@@ -37,34 +37,33 @@ const FEATURES = [
 
 export default function TrustFeatures() {
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+    <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 w-full">
       {FEATURES.map((feat) => {
         const Icon = feat.icon;
         return (
           <div
             key={feat.title}
-            className="group relative p-5 sm:p-6 rounded-3xl bg-bg-card border border-white/10 hover:border-white/25 transition-all duration-300 hover:-translate-y-1 overflow-hidden shadow-md"
+            className="group relative p-6 sm:p-7 rounded-2xl bg-[#0D121F] border border-white/8 hover:border-brand-cyan/40 transition-all duration-300 hover:-translate-y-1 shadow-lg flex items-start gap-5"
           >
             {/* Ambient Background Gradient on Hover */}
             <div
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
               style={{
                 background: `radial-gradient(circle at 50% 0%, ${feat.glow}, transparent 70%)`,
               }}
             />
 
-            <div className="relative z-10 flex items-start gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-xs">
-                <Icon className={`w-5 h-5 ${feat.iconColor}`} />
-              </div>
-              <div className="flex flex-col space-y-1">
-                <h3 className="font-heading font-black text-sm sm:text-base text-white group-hover:text-brand-cyan transition-colors">
-                  {feat.title}
-                </h3>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  {feat.desc}
-                </p>
-              </div>
+            <div className="relative z-10 w-13 h-13 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs">
+              <Icon className={`w-6 h-6 ${feat.iconColor}`} />
+            </div>
+
+            <div className="relative z-10 space-y-1.5 flex-1 min-w-0">
+              <h3 className="font-heading font-black text-base text-white group-hover:text-brand-cyan transition-colors leading-snug">
+                {feat.title}
+              </h3>
+              <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+                {feat.desc}
+              </p>
             </div>
           </div>
         );

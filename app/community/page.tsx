@@ -138,7 +138,7 @@ export default function CommunityPage() {
     <div className="min-h-screen bg-bg-deep text-white flex flex-col">
       <Header />
       
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 sm:px-10 lg:px-14 py-10 sm:py-14 pb-36 flex flex-col gap-10">
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-32 flex flex-col gap-10">
         
         {/* Hero Banner Bento */}
         <div className="relative p-8 sm:p-12 md:p-14 rounded-3xl bg-[#0e1422] border border-white/10 shadow-2xl overflow-hidden">

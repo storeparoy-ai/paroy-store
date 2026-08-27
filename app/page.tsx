@@ -41,7 +41,7 @@ export default async function HomePage() {
     <>
       <Header />
       
-      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto flex flex-col gap-16 sm:gap-24">
+      <main className="min-h-screen py-8 sm:py-12 pb-32 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-12 sm:gap-16">
         
         {/* 1. Cinematic Widescreen Hero Banner */}
         <HeroBanner />

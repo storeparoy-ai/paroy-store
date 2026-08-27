@@ -136,38 +136,38 @@ export default function GameQuickSelect() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {/* Dual View Toggle */}
-          <div className="flex items-center p-1 rounded-xl bg-bg-card border border-white/10 shadow-inner">
-            <button
-              onClick={() => setViewMode('3d')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
-                viewMode === '3d'
-                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                  : 'text-text-muted hover:text-white'
-              )}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>3D Showcase</span>
-            </button>
+          <div className="flex items-center p-1.5 rounded-2xl bg-[#0D121F] border border-white/10 shadow-inner">
             <button
               onClick={() => setViewMode('grid')}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
                 viewMode === 'grid'
-                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)] font-black'
                   : 'text-text-muted hover:text-white'
               )}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4" />
               <span>Grid View</span>
+            </button>
+            <button
+              onClick={() => setViewMode('3d')}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
+                viewMode === '3d'
+                  ? 'bg-brand-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)] font-black'
+                  : 'text-text-muted hover:text-white'
+              )}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>3D Showcase</span>
             </button>
           </div>
 
           <Link
             href="/topup"
-            className="group hidden sm:flex items-center gap-1 text-xs font-bold text-brand-cyan hover:underline"
+            className="group hidden sm:flex items-center gap-1.5 text-xs font-bold text-brand-cyan hover:underline"
           >
             <span>Semua Game</span>
             <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -245,39 +245,39 @@ export default function GameQuickSelect() {
         </div>
       ) : (
         /* Grid Mode */
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-5 sm:gap-6">
           {POPULAR_GAMES.map((game) => (
             <Link
               key={game.id}
               href={game.href}
-              className="group relative rounded-2xl bg-bg-card border border-white/8 hover:border-brand-cyan/50 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_28px_rgba(0,240,255,0.15)] flex flex-col"
+              className="group relative rounded-2xl bg-[#0D121F] border border-white/8 hover:border-brand-cyan/50 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_28px_rgba(0,240,255,0.15)] flex flex-col"
             >
-              <div className="relative aspect-4/3 w-full overflow-hidden bg-bg-raised">
+              <div className="relative aspect-16/10 w-full overflow-hidden bg-[#141A29]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={game.bgImage}
                   alt={game.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-bg-card via-transparent to-transparent" />
-                <span className="absolute top-2 right-2 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-black/60 text-brand-cyan border border-brand-cyan/30 backdrop-blur-xs">
+                <div className="absolute inset-0 bg-linear-to-t from-[#0D121F] via-transparent to-transparent" />
+                <span className="absolute top-2.5 right-2.5 text-[9px] font-black uppercase px-2.5 py-0.5 rounded-md bg-black/60 text-brand-cyan border border-brand-cyan/30 backdrop-blur-xs">
                   {game.badge}
                 </span>
-                <span className="absolute bottom-2 left-2 w-7 h-7 rounded-lg bg-bg-deep/80 backdrop-blur-xs flex items-center justify-center text-xs border border-white/10">
+                <span className="absolute bottom-2.5 left-2.5 w-8 h-8 rounded-lg bg-[#06080D]/80 backdrop-blur-xs flex items-center justify-center text-sm border border-white/10">
                   {game.icon}
                 </span>
               </div>
 
-              <div className="p-3.5 flex flex-col flex-1 justify-between gap-2">
+              <div className="p-4 sm:p-4.5 pb-5 flex flex-col flex-1 justify-between gap-3">
                 <div>
-                  <h3 className="font-heading font-black text-xs sm:text-sm text-white group-hover:text-brand-cyan transition-colors truncate">
+                  <h3 className="font-heading font-black text-sm text-white group-hover:text-brand-cyan transition-colors truncate">
                     {game.name}
                   </h3>
-                  <p className="text-[10px] text-text-dim mt-0.5 truncate">{game.publisher}</p>
+                  <p className="text-xs text-text-dim mt-0.5 truncate">{game.publisher}</p>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[11px]">
+                <div className="flex items-center justify-between pt-2.5 border-t border-white/6 text-xs">
                   <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    <Zap className="w-3 h-3" /> Kilat
+                    <Zap className="w-3.5 h-3.5" /> Kilat
                   </span>
                   <span className="text-brand-cyan font-semibold group-hover:translate-x-0.5 transition-transform">
                     Top Up &rarr;

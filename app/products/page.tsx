@@ -78,7 +78,7 @@ export default function ProductsPage() {
     <>
       <Header />
       
-      <main className="min-h-screen py-10 sm:py-14 pb-36 px-4 sm:px-8 lg:px-12 w-full max-w-[1720px] mx-auto flex flex-col gap-8">
+      <main className="min-h-screen py-8 sm:py-12 pb-32 px-4 sm:px-6 lg:px-8 w-full max-w-[1440px] mx-auto flex flex-col gap-8">
         
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">

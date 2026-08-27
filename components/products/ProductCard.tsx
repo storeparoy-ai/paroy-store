@@ -16,93 +16,98 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     ? Math.round((1 - product.price / product.originalPrice) * 100)
     : 0;
 
+  const rankBadge = product.specs?.rank || product.specs?.level;
+
   return (
-    <Link href={`/products/${product.id}`} className={cn('product-card block', className)}>
-      {/* Image */}
-      <div className="relative aspect-4/5 overflow-hidden bg-(--surface-raised)">
+    <Link
+      href={`/products/${product.id}`}
+      className={cn('product-card block group overflow-hidden bg-[#0D121F] border border-white/8 hover:border-brand-cyan/40 transition-all duration-300 hover:-translate-y-1 rounded-2xl shadow-lg', className)}
+    >
+      {/* 1. Isolated Image Container */}
+      <div className="relative aspect-16/10 w-full overflow-hidden bg-[#141A29]">
         <Image
-          src={product.images[0]}
+          src={product.images[0] || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop'}
           alt={product.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-108"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
+        <div className="absolute inset-0 bg-linear-to-t from-[#0D121F] via-transparent to-transparent opacity-80" />
 
-        {/* Overlay badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {discount > 0 && (
-            <span className="badge badge-hot text-[9px]">-{discount}%</span>
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+          {product.canRental ? (
+            <span className="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/40 backdrop-blur-xs">
+              ⏱ Rental
+            </span>
+          ) : (
+            <span className="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-black/60 text-white border border-white/15 backdrop-blur-xs">
+              💎 Akun
+            </span>
           )}
-          {product.canRental && (
-            <span className="badge badge-rental text-[9px]">⏱ Rental</span>
+          {discount > 0 && (
+            <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-red-500 text-white shadow-xs">
+              -{discount}%
+            </span>
           )}
         </div>
+
+        {/* Wishlist Button */}
+        <button
+          aria-label="Wishlist"
+          onClick={(e) => { e.preventDefault(); }}
+          className="absolute top-3 right-3 w-7 h-7 rounded-xl bg-black/60 border border-white/10 flex items-center justify-center text-text-muted hover:text-red-400 hover:border-red-400/40 backdrop-blur-xs transition-all z-10"
+        >
+          <Heart className="w-3.5 h-3.5" />
+        </button>
 
         {/* Status overlay */}
         {product.status === 'sold' && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/75 flex items-center justify-center z-20">
             <span className="badge badge-sold text-xs">TERJUAL</span>
           </div>
         )}
-
-        {/* Wishlist btn */}
-        <button
-          aria-label="Tambah ke wishlist"
-          onClick={(e) => { e.preventDefault(); }}
-          className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
-          style={{ background: 'rgba(10,9,8,0.6)',  }}
-        >
-          <Heart className="w-3.5 h-3.5 text-(--text-muted)" />
-        </button>
-
-        {/* View count */}
-        <div
-          className="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] text-(--text-muted)"
-          style={{ background: 'rgba(10,9,8,0.55)',  }}
-        >
-          <Eye className="w-2.5 h-2.5" />
-          {formatNumber(product.viewCount)}
-        </div>
       </div>
 
-      {/* Info */}
-      <div className="p-4 sm:p-4.5 space-y-2">
-        {/* Game badge */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs">{product.game.icon}</span>
-          <span className="text-[11px] font-bold" style={{ color: product.game.color }}>
-            {product.game.name}
-          </span>
+      {/* 2. Isolated Text Content Container */}
+      <div className="p-5 pb-6 flex flex-col gap-3 flex-1 justify-between">
+        <div className="space-y-1.5">
+          {/* Game & Rank Tag */}
+          <div className="flex items-center justify-between gap-1 text-[11px]">
+            <span className="font-bold truncate text-white" style={{ color: product.game.color }}>
+              {product.game.icon} {product.game.name}
+            </span>
+            {rankBadge && (
+              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-white/5 text-text-dim border border-white/5 shrink-0">
+                {String(rankBadge)}
+              </span>
+            )}
+          </div>
+
+          {/* Title */}
+          <h3 className="text-sm font-bold leading-snug line-clamp-2 font-heading text-white group-hover:text-brand-cyan transition-colors">
+            {product.title}
+          </h3>
         </div>
 
-        {/* Title */}
-        <h3
-          className="text-xs sm:text-sm font-bold leading-snug line-clamp-2 font-heading text-white group-hover:text-brand-cyan transition-colors"
-        >
-          {product.title}
-        </h3>
-
-        {/* Price */}
-        <div className="flex items-baseline gap-2 pt-1 border-t border-white/5">
-          <span className="text-sm sm:text-base font-black text-primary-container">
-            {formatCurrency(product.price)}
-          </span>
-          {product.originalPrice && (
-            <span className="text-[10px] line-through text-text-dim">
-              {formatCurrency(product.originalPrice)}
+        {/* Price & Rental Tag */}
+        <div className="pt-2.5 border-t border-white/6 flex items-baseline justify-between gap-1">
+          <div>
+            <span className="text-base sm:text-lg font-black text-primary-container font-mono block">
+              {formatCurrency(product.price)}
+            </span>
+            {product.originalPrice && (
+              <span className="text-[10px] line-through text-text-dim font-mono">
+                {formatCurrency(product.originalPrice)}
+              </span>
+            )}
+          </div>
+          {product.canRental && product.rentalPriceDaily && (
+            <span className="text-[11px] text-brand-cyan font-bold text-right">
+              {formatCurrency(product.rentalPriceDaily)}/hr
             </span>
           )}
         </div>
-
-        {/* Rental info */}
-        {product.canRental && product.rentalPriceDaily && (
-          <div className="flex items-center gap-1 text-[10px] text-brand-cyan font-semibold">
-            <Clock3 className="w-3 h-3" />
-            <span>
-              Rental {formatCurrency(product.rentalPriceDaily)}/hari
-            </span>
-          </div>
-        )}
       </div>
     </Link>
   );
