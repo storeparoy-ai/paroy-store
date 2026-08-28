@@ -16,7 +16,8 @@ import Badge from '@/components/ui/Badge';
 import { Card, CardContent } from '@/components/ui/Card';
 import { buttonVariants } from '@/components/ui/Button';
 import ProductGallery from '@/components/products/ProductGallery';
-import { getProductById } from '@/lib/supabase/queries';
+import WishlistButton from '@/components/products/WishlistButton';
+import { getProductById, getCurrentUser, isProductWishlisted } from '@/lib/supabase/queries';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 
@@ -33,6 +34,8 @@ export default async function ProductDetailPage({
   if (!product) {
     notFound();
   }
+
+  const [user, wishlisted] = await Promise.all([getCurrentUser(), isProductWishlisted(product.id)]);
 
   const specEntries = Object.entries(product.specs);
 
@@ -154,6 +157,7 @@ export default async function ProductDetailPage({
                   <ShieldCheck className="w-4 h-4" />
                   Ajukan Rekber
                 </Link>
+                <WishlistButton productId={product.id} isLoggedIn={!!user} initialWishlisted={wishlisted} />
               </div>
 
               {product.canRental && (product.rentalPriceHourly || product.rentalPriceDaily) && (
