@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Wallet, Receipt, Calculator, CheckCircle2 } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
-import { formatCurrency, formatNumber, timeAgo } from '@/lib/utils';
+import { formatCurrency, formatCompactCurrency, timeAgo } from '@/lib/utils';
 import type { SalesDashboardData, SalesTrendPoint, AdminOrder } from '@/lib/supabase/admin-queries';
 
 const KIND_LABEL: Record<AdminOrder['kind'], string> = {
@@ -25,12 +25,6 @@ const COMPOSITION_COLOR: Record<AdminOrder['kind'], string> = {
   rekber: 'var(--brand-violet)',
   rental: '#4a3d75',
 };
-
-/** Compact "Rp 187,4jt" style formatting — reuses formatNumber's jt/rb
- * suffixing but swaps the decimal point for an Indonesian comma. */
-function compactCurrency(amount: number): string {
-  return `Rp ${formatNumber(Math.round(amount)).replace('.', ',')}`;
-}
 
 function pct(value: number, opts: { signed?: boolean } = {}): string {
   const formatted = Math.abs(value).toLocaleString('id-ID', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -175,7 +169,7 @@ export default function SalesDashboard({ data }: { data: SalesDashboardData }) {
         <KpiCard
           icon={Wallet}
           label="Omzet Bulan Ini"
-          value={compactCurrency(revenue)}
+          value={formatCompactCurrency(revenue)}
           delta={<Delta value={revenueDeltaPct} />}
           sparkValues={revenueSpark}
           sparkColor="#00e5ff"
@@ -191,7 +185,7 @@ export default function SalesDashboard({ data }: { data: SalesDashboardData }) {
         <KpiCard
           icon={Calculator}
           label="Rata-rata Nilai Transaksi"
-          value={compactCurrency(aov)}
+          value={formatCompactCurrency(aov)}
           delta={<Delta value={aovDeltaPct} />}
           sparkValues={aovSpark}
           sparkColor="#ff2e9a"

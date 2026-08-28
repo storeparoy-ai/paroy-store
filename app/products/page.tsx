@@ -3,7 +3,7 @@ import { PackageSearch } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import ProductCard from '@/components/products/ProductCard';
 import ProductFilters from '@/components/products/ProductFilters';
-import { getActiveProducts, getGames } from '@/lib/supabase/queries';
+import { getActiveProducts, getGames, getPriceRanges } from '@/lib/supabase/queries';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import type { Product } from '@/types';
 
@@ -52,7 +52,7 @@ export default async function ProductsPage({
   searchParams: Promise<{ game?: string; min?: string; max?: string; rental?: string; sort?: string }>;
 }) {
   const params = await searchParams;
-  const games = await getGames();
+  const [games, priceRanges] = await Promise.all([getGames(), getPriceRanges()]);
 
   const dbProducts = await getActiveProducts({
     game: params.game,
@@ -79,7 +79,7 @@ export default async function ProductsPage({
 
       <div className="p-4 sm:p-5 rounded-2xl bg-bg-card border border-border-subtle">
         <Suspense fallback={<div className="h-24 animate-pulse bg-white/5 rounded-xl" />}>
-          <ProductFilters games={games} />
+          <ProductFilters games={games} priceRanges={priceRanges} />
         </Suspense>
       </div>
 

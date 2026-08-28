@@ -7,7 +7,7 @@ import {
   type GameLookup,
 } from '@/lib/supabase-helpers';
 import { GAMES as MOCK_GAMES } from '@/lib/mock-data';
-import type { RekberFeeTier } from '@/lib/utils';
+import type { RekberFeeTier, PriceRange } from '@/lib/utils';
 import type { FlashSale, Game, Product } from '@/types';
 
 export interface ProductFilters {
@@ -164,6 +164,39 @@ export async function getRekberFeeTiers(): Promise<RekberFeeTier[]> {
   } catch (err) {
     console.error('[getRekberFeeTiers] falling back to mock data:', err);
     return MOCK_REKBER_FEE_TIERS;
+  }
+}
+
+const MOCK_PRICE_RANGES: PriceRange[] = [
+  { id: 'r1', minAmount: null, maxAmount: 200_000, sortOrder: 1 },
+  { id: 'r2', minAmount: 200_000, maxAmount: 400_000, sortOrder: 2 },
+  { id: 'r3', minAmount: 400_000, maxAmount: 600_000, sortOrder: 3 },
+  { id: 'r4', minAmount: 600_000, maxAmount: null, sortOrder: 4 },
+];
+
+/** Admin-editable price-range filter chips on /products (see migration
+ * 00000000000006). Falls back to the previously-hardcoded ranges if the
+ * table is empty/unreachable. Labels are NOT stored — both this and the
+ * admin table derive them from min/max via formatPriceRangeLabel() in
+ * lib/utils.ts, so they can never drift out of sync. */
+export async function getPriceRanges(): Promise<PriceRange[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('product_price_ranges')
+      .select('id, min_amount, max_amount, sort_order')
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    if (!data || data.length === 0) return MOCK_PRICE_RANGES;
+    return data.map((row) => ({
+      id: row.id,
+      minAmount: row.min_amount === null ? null : Number(row.min_amount),
+      maxAmount: row.max_amount === null ? null : Number(row.max_amount),
+      sortOrder: row.sort_order,
+    }));
+  } catch (err) {
+    console.error('[getPriceRanges] falling back to mock data:', err);
+    return MOCK_PRICE_RANGES;
   }
 }
 

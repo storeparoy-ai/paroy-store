@@ -302,3 +302,58 @@ export async function deleteRekberFeeTierAction(id: string): Promise<ActionResul
   revalidateRekberDependents();
   return { success: true };
 }
+
+// ---------------------------------------------------------------------------
+// Price Ranges (Rentang Harga filter on /products)
+// ---------------------------------------------------------------------------
+
+export interface PriceRangeInput {
+  minAmount: number | null;
+  maxAmount: number | null;
+  sortOrder: number;
+}
+
+function revalidatePriceRangeDependents() {
+  revalidatePath('/admin/rentang-harga');
+  revalidatePath('/products');
+}
+
+export async function createPriceRangeAction(input: PriceRangeInput): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error } = await guard.supabase.from('product_price_ranges').insert({
+    min_amount: input.minAmount,
+    max_amount: input.maxAmount,
+    sort_order: input.sortOrder,
+  });
+  if (error) return { success: false, error: error.message };
+
+  revalidatePriceRangeDependents();
+  return { success: true };
+}
+
+export async function updatePriceRangeAction(id: string, input: PriceRangeInput): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error } = await guard.supabase
+    .from('product_price_ranges')
+    .update({ min_amount: input.minAmount, max_amount: input.maxAmount, sort_order: input.sortOrder })
+    .eq('id', id);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePriceRangeDependents();
+  return { success: true };
+}
+
+export async function deletePriceRangeAction(id: string): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error } = await guard.supabase.from('product_price_ranges').delete().eq('id', id);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePriceRangeDependents();
+  return { success: true };
+}

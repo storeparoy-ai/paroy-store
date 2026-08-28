@@ -19,6 +19,29 @@ export function formatNumber(num: number): string {
   return num.toString();
 }
 
+/** Compact "Rp 187,4jt" style formatting — reuses formatNumber's jt/rb
+ * suffixing but swaps the decimal point for an Indonesian comma. */
+export function formatCompactCurrency(amount: number): string {
+  return `Rp ${formatNumber(Math.round(amount)).replace('.', ',')}`;
+}
+
+export interface PriceRange {
+  id: string;
+  minAmount: number | null;
+  maxAmount: number | null;
+  sortOrder: number;
+}
+
+/** Shared label for a price-range row, used both in the public product
+ * filter chips and the admin table that manages them — kept in one place
+ * so the two never drift apart. `null` on both ends means "no filter". */
+export function formatPriceRangeLabel(min: number | null, max: number | null): string {
+  if (min == null && max == null) return 'Semua Harga';
+  if (min == null) return `< ${formatCompactCurrency(max!)}`;
+  if (max == null) return `> ${formatCompactCurrency(min)}`;
+  return `${formatCompactCurrency(min)} - ${formatCompactCurrency(max)}`;
+}
+
 export function timeAgo(date: Date): string {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
   if (seconds < 60) return 'baru saja';

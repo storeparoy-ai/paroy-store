@@ -3,16 +3,8 @@
 import React from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Clock, ArrowUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatPriceRangeLabel, type PriceRange } from '@/lib/utils';
 import type { Game } from '@/types';
-
-const PRICE_RANGES = [
-  { label: 'Semua Harga', min: undefined, max: undefined },
-  { label: '< Rp 200rb', min: undefined, max: 200000 },
-  { label: 'Rp 200rb - 400rb', min: 200000, max: 400000 },
-  { label: 'Rp 400rb - 600rb', min: 400000, max: 600000 },
-  { label: '> Rp 600rb', min: 600000, max: undefined },
-];
 
 const SORT_OPTIONS = [
   { value: 'terbaru', label: 'Terbaru' },
@@ -21,7 +13,7 @@ const SORT_OPTIONS = [
   { value: 'populer', label: 'Paling Populer' },
 ];
 
-export default function ProductFilters({ games }: { games: Game[] }) {
+export default function ProductFilters({ games, priceRanges }: { games: Game[]; priceRanges: PriceRange[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -82,15 +74,25 @@ export default function ProductFilters({ games }: { games: Game[] }) {
       <div className="space-y-2.5">
         <span className="text-xs font-bold uppercase tracking-wider text-text-dim">Rentang Harga</span>
         <div className="flex flex-wrap gap-2">
-          {PRICE_RANGES.map((range) => {
-            const isActive =
-              (range.min?.toString() ?? '') === activeMin && (range.max?.toString() ?? '') === activeMax;
+          <button
+            onClick={() => updateParams({ min: undefined, max: undefined })}
+            className={cn(
+              'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+              activeMin === '' && activeMax === ''
+                ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/30'
+                : 'bg-white/5 text-text-muted border-border-subtle hover:border-white/20'
+            )}
+          >
+            Semua Harga
+          </button>
+          {priceRanges.map((range) => {
+            const min = range.minAmount?.toString() ?? '';
+            const max = range.maxAmount?.toString() ?? '';
+            const isActive = min === activeMin && max === activeMax;
             return (
               <button
-                key={range.label}
-                onClick={() =>
-                  updateParams({ min: range.min?.toString(), max: range.max?.toString() })
-                }
+                key={range.id}
+                onClick={() => updateParams({ min: min || undefined, max: max || undefined })}
                 className={cn(
                   'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
                   isActive
@@ -98,7 +100,7 @@ export default function ProductFilters({ games }: { games: Game[] }) {
                     : 'bg-white/5 text-text-muted border-border-subtle hover:border-white/20'
                 )}
               >
-                {range.label}
+                {formatPriceRangeLabel(range.minAmount, range.maxAmount)}
               </button>
             );
           })}

@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { mapSupabaseProduct, buildGameLookup, type SupabaseProductRow } from '@/lib/supabase-helpers';
 import { getGames } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
+import type { PriceRange } from '@/lib/utils';
 
 export interface AdminOrder {
   id: string;
@@ -421,6 +422,24 @@ export async function getAllRekberFeeTiersForAdmin(): Promise<AdminRekberFeeTier
     id: row.id,
     maxAmount: row.max_amount === null ? null : Number(row.max_amount),
     fee: Number(row.fee),
+    sortOrder: row.sort_order,
+  }));
+}
+
+export async function getAllPriceRangesForAdmin(): Promise<PriceRange[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('product_price_ranges')
+    .select('id, min_amount, max_amount, sort_order')
+    .order('sort_order', { ascending: true });
+  if (error) {
+    console.error('[getAllPriceRangesForAdmin] failed (migration applied?):', error);
+    return [];
+  }
+  return data.map((row) => ({
+    id: row.id,
+    minAmount: row.min_amount === null ? null : Number(row.min_amount),
+    maxAmount: row.max_amount === null ? null : Number(row.max_amount),
     sortOrder: row.sort_order,
   }));
 }
