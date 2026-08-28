@@ -4,7 +4,7 @@ import type { Product } from '@/types';
 
 export interface AdminOrder {
   id: string;
-  kind: 'buy' | 'topup' | 'rekber';
+  kind: 'buy' | 'rental' | 'topup' | 'rekber';
   orderNumber: string;
   buyerName: string | null;
   buyerWhatsapp: string | null;
@@ -25,7 +25,7 @@ export async function getAllOrdersForAdmin(): Promise<AdminOrder[]> {
   const [buyRes, topupRes, rekberRes] = await Promise.all([
     supabase
       .from('orders')
-      .select('id, order_number, buyer_name, buyer_whatsapp, amount, status, payment_method, note, created_at, products(title)')
+      .select('id, order_number, buyer_name, buyer_whatsapp, amount, status, payment_method, mode, note, created_at, products(title)')
       .order('created_at', { ascending: false }),
     supabase
       .from('topup_orders')
@@ -39,13 +39,15 @@ export async function getAllOrdersForAdmin(): Promise<AdminOrder[]> {
 
   const buyOrders: AdminOrder[] = (buyRes.data ?? []).map((row) => {
     const product = Array.isArray(row.products) ? row.products[0] : row.products;
+    const isRental = row.mode === 'rental';
+    const title = product?.title ?? 'Pembelian Akun';
     return {
       id: row.id,
-      kind: 'buy',
+      kind: isRental ? 'rental' : 'buy',
       orderNumber: row.order_number,
       buyerName: row.buyer_name,
       buyerWhatsapp: row.buyer_whatsapp,
-      itemLabel: product?.title ?? row.note ?? 'Pembelian Akun',
+      itemLabel: isRental && row.note ? `${title} — ${row.note}` : title,
       amount: Number(row.amount),
       status: row.status,
       paymentMethod: row.payment_method,

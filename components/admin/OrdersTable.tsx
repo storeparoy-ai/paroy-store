@@ -10,6 +10,7 @@ import type { AdminOrder } from '@/lib/supabase/admin-queries';
 
 const KIND_LABEL: Record<AdminOrder['kind'], string> = {
   buy: 'Beli Akun',
+  rental: 'Sewa Akun',
   topup: 'Top Up',
   rekber: 'Rekber',
 };
@@ -43,7 +44,7 @@ function OrderRow({ order }: { order: AdminOrder }) {
       <td className="py-3 px-4">
         <Badge variant="neutral" size="sm">{KIND_LABEL[order.kind]}</Badge>
       </td>
-      <td className="py-3 px-4 max-w-[220px]">
+      <td className="py-3 px-4 max-w-55">
         <p className="text-xs text-text-main line-clamp-2">{order.itemLabel}</p>
       </td>
       <td className="py-3 px-4">
@@ -103,7 +104,7 @@ export default function OrdersTable({ orders }: { orders: AdminOrder[] }) {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        {(['all', 'buy', 'topup', 'rekber'] as const).map((k) => (
+        {(['all', 'buy', 'rental', 'topup', 'rekber'] as const).map((k) => (
           <button
             key={k}
             onClick={() => setFilter(k)}

@@ -5,8 +5,9 @@ import { createClient } from '@/utils/supabase/server';
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-const ORDER_TABLE: Record<'buy' | 'topup' | 'rekber', string> = {
+const ORDER_TABLE: Record<'buy' | 'rental' | 'topup' | 'rekber', string> = {
   buy: 'orders',
+  rental: 'orders',
   topup: 'topup_orders',
   rekber: 'rekber_orders',
 };
@@ -29,7 +30,7 @@ async function requireAdmin() {
 }
 
 export async function updateOrderStatusAction(
-  kind: 'buy' | 'topup' | 'rekber',
+  kind: 'buy' | 'rental' | 'topup' | 'rekber',
   id: string,
   status: string
 ): Promise<ActionResult> {

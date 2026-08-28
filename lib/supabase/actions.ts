@@ -22,6 +22,12 @@ export async function createBuyOrder(input: {
   buyerName: string;
   buyerWhatsapp: string;
   paymentMethod: string;
+  /** 'rental' for the Rental Akun flow — same `orders` table, distinguished
+   * by this column so Admin Pesanan and future reporting can tell them apart. */
+  mode?: 'buy' | 'rental';
+  /** Free-text detail with no dedicated column yet, e.g. rental duration
+   * ("Sewa 3 jam") — shown to admin in the Pesanan list. */
+  note?: string;
 }): Promise<ActionResult> {
   try {
     const supabase = await createClient();
@@ -37,7 +43,8 @@ export async function createBuyOrder(input: {
         buyer_whatsapp: input.buyerWhatsapp,
         product_id: input.productId,
         amount: input.amount,
-        mode: 'buy',
+        mode: input.mode ?? 'buy',
+        note: input.note ?? null,
         status: 'pending',
         payment_method: input.paymentMethod,
       })

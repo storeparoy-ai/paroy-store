@@ -8,9 +8,17 @@ import { buttonVariants } from '@/components/ui/Button';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 import type { Product } from '@/types';
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({
+  product,
+  mode = 'buy',
+}: {
+  product: Product;
+  /** 'rental' links to the rental flow with a "Sewa Sekarang" CTA instead
+   * of the product detail page — used by the /rental catalog listing. */
+  mode?: 'buy' | 'rental';
+}) {
   const specEntries = Object.entries(product.specs).slice(0, 3);
-  const href = `/products/${product.id}`;
+  const href = mode === 'rental' ? `/rental?product=${product.id}` : `/products/${product.id}`;
 
   return (
     <Card variant="interactive" className="flex flex-col h-full">
@@ -73,8 +81,8 @@ export default function ProductCard({ product }: { product: Product }) {
           <span>{formatNumber(product.viewCount)}</span>
         </div>
         <Link href={href} className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}>
-          <ShieldCheck className="w-3.5 h-3.5" />
-          Lihat Akun
+          {mode === 'rental' ? <Clock className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+          {mode === 'rental' ? 'Sewa Sekarang' : 'Lihat Akun'}
         </Link>
       </CardFooter>
     </Card>

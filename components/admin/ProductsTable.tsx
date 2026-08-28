@@ -61,7 +61,7 @@ export default function ProductsTable({ products }: { products: Product[] }) {
                       <div className="relative w-12 h-9 shrink-0 rounded-lg overflow-hidden bg-bg-card-alt">
                         <Image src={product.images[0]} alt={product.title} fill sizes="48px" className="object-cover" />
                       </div>
-                      <span className="text-xs text-text-main line-clamp-2 max-w-[220px]">{product.title}</span>
+                      <span className="text-xs text-text-main line-clamp-2 max-w-55">{product.title}</span>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-xs text-text-muted whitespace-nowrap">
