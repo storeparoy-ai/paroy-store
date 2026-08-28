@@ -202,6 +202,15 @@ export const PAYMENT_METHODS = [
   { id: 'ovo', label: 'OVO', number: '0812-3456-7890', name: 'Paroy Store' },
 ];
 
+export const MOCK_ACTIVITIES = [
+  { id: 'a1', name: 'Rizky A.', action: 'membeli', item: 'Akun MLBB Mythic Glory', time: '1 mnt lalu' },
+  { id: 'a2', name: 'Dinda P.', action: 'top up', item: '514 Diamond Mobile Legends', time: '2 mnt lalu' },
+  { id: 'a3', name: 'Fajar S.', action: 'menyewa', item: 'Akun Genshin AR55', time: '3 mnt lalu' },
+  { id: 'a4', name: 'Wulan K.', action: 'membeli', item: 'Akun Free Fire Heroic', time: '5 mnt lalu' },
+  { id: 'a5', name: 'Bagas T.', action: 'mengajukan rekber', item: 'Akun PUBG Conqueror', time: '6 mnt lalu' },
+  { id: 'a6', name: 'Sarah M.', action: 'top up', item: '1412 Diamond Mobile Legends', time: '8 mnt lalu' },
+];
+
 export const TOPUP_ITEMS = [
   {
     game: mlbb,

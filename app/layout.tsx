@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Outfit, JetBrains_Mono } from 'next/font/google';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import BottomNav from '@/components/layout/BottomNav';
 import './globals.css';
-import FloatingActionHub from '@/components/layout/FloatingActionHub';
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -25,15 +27,8 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'PAROY STORE — Jual, Beli & Rental Akun Game Premium',
-  description: 'Pusat jual beli dan rental akun game premium terpercaya. MLBB, Free Fire, PUBG, dan game lainnya. Aman, cepat, harga terbaik.',
-  keywords: ['jual beli akun game', 'top up diamond', 'rental akun game', 'MLBB', 'Free Fire', 'PUBG', 'paroy store'],
-  openGraph: {
-    title: 'PAROY STORE — Akun Game Premium',
-    description: 'Pusat jual beli dan rental akun game premium terpercaya.',
-    type: 'website',
-    url: 'https://paroy-store.vercel.app',
-  },
+  title: 'PAROY STORE — Marketplace Gaming & Top Up',
+  description: 'Marketplace jual beli akun game, top up kilat, dan rekber escrow resmi terpercaya.',
 };
 
 export default function RootLayout({
@@ -43,9 +38,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${jakarta.variable} ${outfit.variable} ${jetbrains.variable}`}>
-      <body className="font-sans antialiased min-h-screen overflow-x-hidden bg-bg-deep text-text-main selection:bg-brand-cyan/30 selection:text-brand-cyan">
-        {children}
-        <FloatingActionHub />
+      <body className="font-sans antialiased min-h-screen bg-bg-base text-text-main flex flex-col">
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+        <BottomNav />
       </body>
     </html>
   );
