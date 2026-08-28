@@ -3,10 +3,11 @@ import { PackageSearch } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import ProductCard from '@/components/products/ProductCard';
 import ProductFilters from '@/components/products/ProductFilters';
+import { getActiveProducts } from '@/lib/supabase/queries';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import type { Product } from '@/types';
 
-function filterAndSortProducts(params: {
+function filterAndSortMock(params: {
   game?: string;
   min?: string;
   max?: string;
@@ -51,7 +52,18 @@ export default async function ProductsPage({
   searchParams: Promise<{ game?: string; min?: string; max?: string; rental?: string; sort?: string }>;
 }) {
   const params = await searchParams;
-  const products = filterAndSortProducts(params);
+
+  const dbProducts = await getActiveProducts({
+    game: params.game,
+    min: params.min ? Number(params.min) : undefined,
+    max: params.max ? Number(params.max) : undefined,
+    rentalOnly: params.rental === '1',
+    sort: (params.sort as 'terbaru' | 'termurah' | 'termahal' | 'populer' | undefined) ?? 'terbaru',
+  });
+
+  // Supabase reachable but genuinely empty (fresh project) still falls back
+  // to demo data so the katalog page isn't blank during development.
+  const products = dbProducts !== null && dbProducts.length > 0 ? dbProducts : filterAndSortMock(params);
 
   return (
     <Container className="py-8 sm:py-10 space-y-6">

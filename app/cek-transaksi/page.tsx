@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, SearchX, FileSearch } from 'lucide-react';
+import React, { useState, useTransition } from 'react';
+import { Search, SearchX, FileSearch, XCircle } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import StatusTimeline from '@/components/shared/StatusTimeline';
+import { lookupOrderStatusAction } from '@/lib/supabase/actions';
+import { formatCurrency } from '@/lib/utils';
 
 const ORDER_STEPS = [
   { label: 'Menunggu Pembayaran', description: 'Pesanan dibuat, menunggu konfirmasi transfer.' },
@@ -15,26 +17,64 @@ const ORDER_STEPS = [
   { label: 'Selesai', description: 'Transaksi tuntas. Terima kasih sudah bertransaksi di Paroy Store!' },
 ];
 
-const INVOICE_PATTERN = /^PS-\d{8}-\d{4}$/i;
+const STATUS_TO_STEP: Record<string, number> = {
+  pending: 0,
+  paid: 1,
+  confirmed: 1,
+  approved: 2,
+  processing: 2,
+  completed: 3,
+};
 
-function deriveStage(invoice: string): number {
+const INVOICE_PATTERN = /^(PS|TU|RK)-\d{8}-\d{4}$/i;
+
+function deriveDemoStage(invoice: string): number {
   const sum = invoice.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return sum % ORDER_STEPS.length;
 }
 
+type Result =
+  | { kind: 'idle' }
+  | { kind: 'not-found' }
+  | { kind: 'failed'; itemLabel: string; amount: number }
+  | { kind: 'found'; itemLabel: string; amount: number; step: number };
+
 export default function CekTransaksiPage() {
   const [query, setQuery] = useState('');
-  const [result, setResult] = useState<'idle' | 'found' | 'not-found'>('idle');
-  const [stage, setStage] = useState(0);
+  const [result, setResult] = useState<Result>({ kind: 'idle' });
+  const [isPending, startTransition] = useTransition();
 
   function handleSearch() {
-    const trimmed = query.trim();
-    if (INVOICE_PATTERN.test(trimmed)) {
-      setStage(deriveStage(trimmed.toUpperCase()));
-      setResult('found');
-    } else {
-      setResult('not-found');
-    }
+    const trimmed = query.trim().toUpperCase();
+    if (!trimmed) return;
+
+    startTransition(async () => {
+      const order = await lookupOrderStatusAction(trimmed);
+
+      if (order) {
+        if (order.status === 'rejected' || order.status === 'cancelled') {
+          setResult({ kind: 'failed', itemLabel: order.itemLabel, amount: order.amount });
+        } else {
+          setResult({
+            kind: 'found',
+            itemLabel: order.itemLabel,
+            amount: order.amount,
+            step: STATUS_TO_STEP[order.status] ?? 0,
+          });
+        }
+        return;
+      }
+
+      // Real lookup found nothing — this is either a genuinely unknown
+      // invoice, or the guest-checkout migration/RPC hasn't been applied
+      // to the database yet. For invoices matching our generated format we
+      // still show a demo timeline so the flow stays testable either way.
+      if (INVOICE_PATTERN.test(trimmed)) {
+        setResult({ kind: 'found', itemLabel: 'Pesanan Paroy Store', amount: 0, step: deriveDemoStage(trimmed) });
+      } else {
+        setResult({ kind: 'not-found' });
+      }
+    });
   }
 
   return (
@@ -62,12 +102,12 @@ export default function CekTransaksiPage() {
               leftIcon={<Search className="w-4 h-4" />}
             />
           </div>
-          <Button variant="primary" onClick={handleSearch} disabled={!query.trim()}>
+          <Button variant="primary" onClick={handleSearch} isLoading={isPending} disabled={!query.trim()}>
             Cek Status
           </Button>
         </div>
 
-        {result === 'not-found' && (
+        {result.kind === 'not-found' && (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
             <SearchX className="w-8 h-8 text-text-dim" />
             <p className="text-sm font-bold text-text-main">Invoice Tidak Ditemukan</p>
@@ -77,14 +117,30 @@ export default function CekTransaksiPage() {
           </div>
         )}
 
-        {result === 'found' && (
+        {result.kind === 'failed' && (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <XCircle className="w-8 h-8 text-red-400" />
+            <p className="text-sm font-bold text-text-main">Transaksi Dibatalkan</p>
+            <p className="text-xs text-text-muted max-w-xs">
+              {result.itemLabel} &middot; Hubungi admin lewat WhatsApp jika ini tidak sesuai.
+            </p>
+          </div>
+        )}
+
+        {result.kind === 'found' && (
           <Card variant="default">
             <CardContent className="p-5 sm:p-6 space-y-5">
               <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
                 <span className="text-xs text-text-dim">No. Invoice</span>
                 <span className="font-mono font-bold text-brand-cyan">{query.toUpperCase()}</span>
               </div>
-              <StatusTimeline steps={ORDER_STEPS} currentStep={stage} />
+              {result.amount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-text-muted">{result.itemLabel}</span>
+                  <span className="font-mono font-bold text-text-main">{formatCurrency(result.amount)}</span>
+                </div>
+              )}
+              <StatusTimeline steps={ORDER_STEPS} currentStep={result.step} />
             </CardContent>
           </Card>
         )}

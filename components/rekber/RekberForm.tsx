@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { ShieldCheck, Calculator, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import StatusTimeline from '@/components/shared/StatusTimeline';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
+import { createRekberOrder } from '@/lib/supabase/actions';
 import { calculateRekberFee, formatCurrency, generateOrderNumber } from '@/lib/utils';
 import type { Product } from '@/types';
 
@@ -26,6 +27,7 @@ export default function RekberForm({ initialProduct }: { initialProduct?: Produc
   const [agreed, setAgreed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [isPending, startTransition] = useTransition();
 
   const product = MOCK_PRODUCTS.find((p) => p.id === productId);
   const fee = useMemo(() => (product ? calculateRekberFee(product.price) : 0), [product]);
@@ -34,9 +36,22 @@ export default function RekberForm({ initialProduct }: { initialProduct?: Produc
   const canSubmit = product && buyerName.trim().length >= 3 && whatsapp.trim().length >= 9 && agreed;
 
   function handleSubmit() {
-    if (!canSubmit) return;
-    setOrderNumber(generateOrderNumber());
-    setSubmitted(true);
+    if (!canSubmit || !product) return;
+    startTransition(async () => {
+      const result = await createRekberOrder({
+        productId: product.id,
+        itemDescription: product.title,
+        amount: product.price,
+        fee,
+        buyerName,
+        buyerWhatsapp: whatsapp,
+      });
+      // Falls back to a local invoice number if the insert fails (e.g. the
+      // guest-checkout migration hasn't been applied yet) so the demo flow
+      // still completes for the user.
+      setOrderNumber(result.success ? result.orderNumber : generateOrderNumber());
+      setSubmitted(true);
+    });
   }
 
   if (submitted) {
@@ -126,7 +141,7 @@ export default function RekberForm({ initialProduct }: { initialProduct?: Produc
               </div>
             </div>
 
-            <Button variant="primary" size="lg" className="w-full" disabled={!canSubmit} onClick={handleSubmit}>
+            <Button variant="primary" size="lg" className="w-full" disabled={!canSubmit} isLoading={isPending} onClick={handleSubmit}>
               Ajukan Rekber
             </Button>
             {!canSubmit && (

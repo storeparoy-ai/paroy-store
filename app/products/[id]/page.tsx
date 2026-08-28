@@ -16,6 +16,7 @@ import Badge from '@/components/ui/Badge';
 import { Card, CardContent } from '@/components/ui/Card';
 import { buttonVariants } from '@/components/ui/Button';
 import ProductGallery from '@/components/products/ProductGallery';
+import { getProductById } from '@/lib/supabase/queries';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 
@@ -25,7 +26,9 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = MOCK_PRODUCTS.find((p) => p.id === id);
+  // Try the real database first, fall back to demo data by the same id
+  // (covers both a fresh/empty database and the mock-data-only dev state).
+  const product = (await getProductById(id)) ?? MOCK_PRODUCTS.find((p) => p.id === id);
 
   if (!product) {
     notFound();

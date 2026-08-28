@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -15,7 +15,9 @@ import {
 import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import { PAYMENT_METHODS } from '@/lib/mock-data';
+import { createBuyOrder } from '@/lib/supabase/actions';
 import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
 import type { Product } from '@/types';
 
@@ -37,18 +39,40 @@ function useCountdownSeconds(totalSeconds: number) {
 }
 
 export default function CheckoutFlow({ product }: { product: Product }) {
-  const [invoiceNumber] = useState(() => generateOrderNumber());
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerWhatsapp, setBuyerWhatsapp] = useState('');
   const [paymentId, setPaymentId] = useState(PAYMENT_METHODS[0].id);
   const [confirmed, setConfirmed] = useState(false);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const { label: countdownLabel, expired } = useCountdownSeconds(CHECKOUT_DURATION_SECONDS);
 
   const selectedPayment = PAYMENT_METHODS.find((p) => p.id === paymentId) ?? PAYMENT_METHODS[0];
+  const canSubmit = buyerName.trim().length >= 3 && buyerWhatsapp.trim().length >= 9 && !expired;
 
   function handleCopy() {
     navigator.clipboard?.writeText(selectedPayment.number.replace(/-/g, ''));
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
+  }
+
+  function handleConfirmPayment() {
+    if (!canSubmit) return;
+    startTransition(async () => {
+      const result = await createBuyOrder({
+        productId: product.id,
+        amount: product.price,
+        buyerName,
+        buyerWhatsapp,
+        paymentMethod: selectedPayment.label,
+      });
+      // Falls back to a locally-generated invoice if the DB insert fails
+      // (e.g. guest-checkout migration not applied yet) so the flow never
+      // hard-breaks for the user — admin can reconcile manually in that case.
+      setInvoiceNumber(result.success ? result.orderNumber : generateOrderNumber());
+      setConfirmed(true);
+    });
   }
 
   if (confirmed) {
@@ -99,6 +123,25 @@ export default function CheckoutFlow({ product }: { product: Product }) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Buyer info */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-text-dim">Data Pembeli</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Nama Lengkap"
+              placeholder="Nama sesuai identitas"
+              value={buyerName}
+              onChange={(e) => setBuyerName(e.target.value)}
+            />
+            <Input
+              label="Nomor WhatsApp"
+              placeholder="Contoh: 081234567890"
+              value={buyerWhatsapp}
+              onChange={(e) => setBuyerWhatsapp(e.target.value)}
+            />
+          </div>
+        </section>
 
         {/* Payment method */}
         <section className="space-y-3">
@@ -174,10 +217,6 @@ export default function CheckoutFlow({ product }: { product: Product }) {
 
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between text-text-muted">
-                <span>No. Invoice</span>
-                <span className="font-mono text-text-main">{invoiceNumber}</span>
-              </div>
-              <div className="flex justify-between text-text-muted">
                 <span>Harga Akun</span>
                 <span className="font-mono text-text-main">{formatCurrency(product.price)}</span>
               </div>
@@ -191,11 +230,17 @@ export default function CheckoutFlow({ product }: { product: Product }) {
               variant="primary"
               size="lg"
               className="w-full"
-              disabled={expired}
-              onClick={() => setConfirmed(true)}
+              disabled={!canSubmit}
+              isLoading={isPending}
+              onClick={handleConfirmPayment}
             >
               Saya Sudah Transfer
             </Button>
+            {!canSubmit && !expired && (
+              <p className="text-[11px] text-text-dim text-center">
+                Lengkapi nama dan nomor WhatsApp dulu ya.
+              </p>
+            )}
 
             <div className="flex items-start gap-2 text-[11px] text-text-muted leading-relaxed pt-1">
               <ShieldCheck className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />

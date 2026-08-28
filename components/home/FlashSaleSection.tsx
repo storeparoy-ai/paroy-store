@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { buttonVariants } from '@/components/ui/Button';
 import { cn, formatCurrency } from '@/lib/utils';
-import { MOCK_FLASH_SALES } from '@/lib/mock-data';
+import type { FlashSale } from '@/types';
 
 function useCountdown(endsAt: Date) {
   const [remaining, setRemaining] = useState(() => Math.max(0, endsAt.getTime() - Date.now()));
@@ -28,7 +28,7 @@ function useCountdown(endsAt: Date) {
   return { label: `${h}:${m}:${s}`, isOver: remaining <= 0 };
 }
 
-function FlashSaleCard({ sale }: { sale: (typeof MOCK_FLASH_SALES)[number] }) {
+function FlashSaleCard({ sale }: { sale: FlashSale }) {
   const { label } = useCountdown(sale.endsAt);
   const discount = Math.round((1 - sale.salePrice / sale.product.price) * 100);
   const stockLeft = sale.stock - sale.sold;
@@ -82,7 +82,9 @@ function FlashSaleCard({ sale }: { sale: (typeof MOCK_FLASH_SALES)[number] }) {
   );
 }
 
-export default function FlashSaleSection() {
+export default function FlashSaleSection({ sales }: { sales: FlashSale[] }) {
+  if (sales.length === 0) return null;
+
   return (
     <section className="space-y-5">
       <div className="flex items-center justify-between">
@@ -102,7 +104,7 @@ export default function FlashSaleSection() {
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
-        {MOCK_FLASH_SALES.map((sale) => (
+        {sales.map((sale) => (
           <div key={sale.id} className="snap-start">
             <FlashSaleCard sale={sale} />
           </div>

@@ -2,10 +2,10 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
+import type { Product } from '@/types';
 
-export default function HomeFeaturedProducts() {
-  const featured = MOCK_PRODUCTS.filter((p) => p.isFeatured).slice(0, 8);
+export default function HomeFeaturedProducts({ products }: { products: Product[] }) {
+  const featured = products.slice(0, 8);
 
   return (
     <section className="space-y-5">

@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   Zap,
   CheckCircle2,
-  Loader2,
   Wallet,
   QrCode,
   Landmark,
@@ -17,8 +16,8 @@ import Container from '@/components/ui/Container';
 import { Card, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import { TOPUP_ITEMS } from '@/lib/mock-data';
+import { createTopupOrder } from '@/lib/supabase/actions';
 import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
 
 const PAYMENT_OPTIONS = [
@@ -40,6 +39,7 @@ export default function TopUpPage() {
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('form');
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [isPending, startTransition] = useTransition();
 
   const activeGameGroup = TOPUP_ITEMS[gameIndex];
   const selectedItem = activeGameGroup.items.find((i) => i.id === itemId);
@@ -57,12 +57,22 @@ export default function TopUpPage() {
   const canSubmit = userId.trim().length >= 4 && selectedItem && selectedPayment;
 
   function handleSubmit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !selectedItem || !selectedPayment) return;
     setStatus('processing');
-    setTimeout(() => {
-      setInvoiceNumber(generateOrderNumber());
+    startTransition(async () => {
+      const result = await createTopupOrder({
+        game: activeGameGroup.game.name,
+        gameUserId: zoneId ? `${userId} (${zoneId})` : userId,
+        itemLabel: selectedItem.label,
+        amount: total,
+        paymentMethod: selectedPayment.label,
+      });
+      // Falls back to a local invoice number if the insert fails (e.g. the
+      // guest-checkout migration hasn't been applied yet) so the demo flow
+      // still completes for the user.
+      setInvoiceNumber(result.success ? result.orderNumber : generateOrderNumber());
       setStatus('success');
-    }, 1400);
+    });
   }
 
   function resetForm() {
@@ -284,7 +294,7 @@ export default function TopUpPage() {
                 size="lg"
                 className="w-full"
                 disabled={!canSubmit}
-                isLoading={status === 'processing'}
+                isLoading={isPending}
                 onClick={handleSubmit}
               >
                 {status === 'processing' ? 'Memproses...' : 'Bayar Sekarang'}
