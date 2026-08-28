@@ -1,6 +1,6 @@
 import { Product, GameSlug, ProductStatus } from '@/types';
 
-const GAME_INFO: Record<string, { id: string; name: string; icon: string; color: string; slug: GameSlug }> = {
+export const GAME_INFO: Record<string, { id: string; name: string; icon: string; color: string; slug: GameSlug }> = {
   'MLBB': { id: 'mlbb', name: 'Mobile Legends', icon: '⚡', color: '#3b82f6', slug: 'mlbb' },
   'Free Fire': { id: 'ff', name: 'Free Fire', icon: '🔥', color: '#ef4444', slug: 'ff' },
   'PUBG': { id: 'pubg', name: 'PUBG Mobile', icon: '🎯', color: '#f59e0b', slug: 'pubg' },
