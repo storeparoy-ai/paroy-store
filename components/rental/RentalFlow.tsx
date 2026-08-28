@@ -187,8 +187,8 @@ export default function RentalFlow({ product }: { product: Product }) {
       </div>
 
       <div className="lg:sticky lg:top-24">
-        <Card variant="default">
-          <CardContent className="p-5 sm:p-6 space-y-4">
+        <Card variant="raised" className="rounded-[22px]">
+          <CardContent className="p-6 space-y-4">
             <h2 className="font-heading font-bold text-sm text-text-main">Ringkasan Sewa</h2>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between text-text-muted">
@@ -199,9 +199,9 @@ export default function RentalFlow({ product }: { product: Product }) {
                 <span>Tarif</span>
                 <span className="font-mono text-text-main">{formatCurrency(rate)}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-border-subtle text-text-main font-bold">
-                <span>Total</span>
-                <span className="font-mono text-brand-cyan text-base">{formatCurrency(total)}</span>
+              <div className="flex justify-between items-center pt-3 border-t border-border-subtle text-text-main font-bold">
+                <span className="text-[13.5px]">Total</span>
+                <span className="font-mono text-brand-cyan text-2xl">{formatCurrency(total)}</span>
               </div>
             </div>
 

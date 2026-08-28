@@ -136,7 +136,7 @@ export default function TopUpPage() {
           <Zap className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em]">
             Top Up Kilat
           </h1>
           <p className="text-xs text-text-muted">Diamond & voucher masuk otomatis dalam 1 detik</p>
@@ -250,8 +250,8 @@ export default function TopUpPage() {
 
         {/* Summary */}
         <div className="lg:sticky lg:top-24">
-          <Card variant="default">
-            <CardContent className="p-5 sm:p-6 space-y-4">
+          <Card variant="raised" className="rounded-[22px]">
+            <CardContent className="p-6 space-y-4">
               <h2 className="font-heading font-bold text-sm text-text-main">Ringkasan Pesanan</h2>
 
               <div className="space-y-2 text-xs">
@@ -283,9 +283,9 @@ export default function TopUpPage() {
                   <span>Biaya Admin</span>
                   <span className="font-mono">{formatCurrency(adminFee)}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-border-subtle/50 text-text-main font-bold">
-                  <span>Total</span>
-                  <span className="font-mono text-brand-cyan text-base">{formatCurrency(total)}</span>
+                <div className="flex justify-between items-center pt-3 border-t border-border-subtle/50 text-text-main font-bold">
+                  <span className="text-[13.5px]">Total</span>
+                  <span className="font-mono text-brand-cyan text-2xl">{formatCurrency(total)}</span>
                 </div>
               </div>
 

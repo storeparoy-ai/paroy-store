@@ -84,7 +84,7 @@ export default function CekTransaksiPage() {
           <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-cyan/10 border border-brand-cyan/25 text-brand-cyan flex items-center justify-center">
             <FileSearch className="w-6 h-6" />
           </div>
-          <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em]">
             Cek Status Transaksi
           </h1>
           <p className="text-xs text-text-muted">
@@ -128,8 +128,8 @@ export default function CekTransaksiPage() {
         )}
 
         {result.kind === 'found' && (
-          <Card variant="default">
-            <CardContent className="p-5 sm:p-6 space-y-5">
+          <Card variant="raised" className="rounded-[22px]">
+            <CardContent className="p-6 space-y-5">
               <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
                 <span className="text-xs text-text-dim">No. Invoice</span>
                 <span className="font-mono font-bold text-brand-cyan">{query.toUpperCase()}</span>

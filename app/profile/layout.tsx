@@ -26,7 +26,7 @@ export default async function ProfileLayout({ children }: { children: React.Reac
           <UserCircle2 className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em]">
             {user.fullName || 'Akun Saya'}
           </h1>
           <p className="text-xs text-text-muted">{user.email}</p>

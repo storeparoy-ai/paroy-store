@@ -71,7 +71,7 @@ export default function RekberForm({
           <div className="w-14 h-14 mx-auto rounded-2xl bg-trust-emerald/10 border border-trust-emerald/30 flex items-center justify-center text-trust-emerald">
             <ShieldCheck className="w-6 h-6" />
           </div>
-          <h1 className="font-heading font-extrabold text-xl text-text-main">Pengajuan Rekber Diterima</h1>
+          <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main">Pengajuan Rekber Diterima</h1>
           <p className="text-xs text-text-muted">
             No. Invoice: <span className="font-mono font-bold text-brand-cyan">{orderNumber}</span>
           </p>
@@ -130,8 +130,8 @@ export default function RekberForm({
       </div>
 
       <div className="lg:sticky lg:top-24">
-        <Card variant="default">
-          <CardContent className="p-5 sm:p-6 space-y-4">
+        <Card variant="raised" className="rounded-[22px]">
+          <CardContent className="p-6 space-y-4">
             <h2 className="font-heading font-bold text-sm text-text-main flex items-center gap-2">
               <Calculator className="w-4 h-4 text-brand-cyan" />
               Kalkulator Biaya Rekber
@@ -145,9 +145,9 @@ export default function RekberForm({
                 <span>Biaya Jasa Rekber</span>
                 <span className="font-mono text-text-main">{formatCurrency(fee)}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-border-subtle text-text-main font-bold">
-                <span>Total Ditransfer</span>
-                <span className="font-mono text-brand-cyan text-base">{formatCurrency(total)}</span>
+              <div className="flex justify-between items-center pt-3 border-t border-border-subtle text-text-main font-bold">
+                <span className="text-[13.5px]">Total Ditransfer</span>
+                <span className="font-mono text-brand-cyan text-2xl">{formatCurrency(total)}</span>
               </div>
             </div>
 

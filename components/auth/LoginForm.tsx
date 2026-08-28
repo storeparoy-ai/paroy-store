@@ -25,8 +25,8 @@ export default function LoginForm({ redirectHint }: { redirectHint?: string }) {
 
   return (
     <div className="space-y-3">
-      <Card variant="default">
-        <CardContent className="p-5 sm:p-6">
+      <Card variant="raised" className="rounded-[22px]">
+        <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Email"

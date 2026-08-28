@@ -34,7 +34,7 @@ export default async function LeaderboardPage({
           <div className="w-14 h-14 mx-auto rounded-2xl bg-urgency-orange/10 border border-urgency-orange/25 text-urgency-orange flex items-center justify-center">
             <Trophy className="w-6 h-6" />
           </div>
-          <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em]">
             Leaderboard Top Spender
           </h1>
           <p className="text-xs text-text-muted">
@@ -69,7 +69,7 @@ export default async function LeaderboardPage({
               const rankStyle = RANK_STYLE[idx];
               const Icon = rankStyle?.icon;
               return (
-                <Card key={entry.userId} variant={idx < 3 ? 'default' : 'alt'} className={idx < 3 ? rankStyle.bg : undefined}>
+                <Card key={entry.userId} variant={idx < 3 ? 'raised' : 'alt'} className={idx < 3 ? rankStyle.bg : undefined}>
                   <CardContent className="p-4 flex items-center gap-4">
                     <div
                       className={cn(

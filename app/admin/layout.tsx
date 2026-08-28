@@ -42,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <ShieldAlert className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em]">
             Dashboard Admin
           </h1>
           <p className="text-xs text-text-muted">Masuk sebagai {user.fullName || user.email}</p>
