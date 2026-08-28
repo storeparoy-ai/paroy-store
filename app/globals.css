@@ -34,11 +34,14 @@
   --border-subtle: rgba(255, 255, 255, 0.06);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+/* NOTE: no unlayered `* { margin: 0; padding: 0 }` reset here on purpose —
+   Tailwind's own preflight (@import "tailwindcss") already provides this,
+   correctly scoped inside `@layer base`. A duplicate written outside any
+   @layer would win over EVERY Tailwind spacing utility (mx-auto, p-*, px-*,
+   m-*, ...) site-wide, regardless of specificity — unlayered CSS always
+   beats layered CSS. That silently zeroed out padding/margin utilities
+   everywhere; only `gap` (not covered by this reset) kept working. See git
+   history for the investigation that found this. */
 
 html,
 body {

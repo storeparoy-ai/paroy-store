@@ -50,8 +50,8 @@ export default function Header({ user }: { user: CurrentUser | null }) {
         </nav>
 
         {/* Desktop Search + Actions */}
-        <div className="hidden md:flex items-center gap-3 shrink-0">
-          <div className="w-52 xl:w-64">
+        <div className="hidden md:flex items-center gap-5 shrink-0">
+          <div className="w-44 lg:w-52 xl:w-64">
             <Input
               placeholder="Cari game / akun..."
               value={searchValue}
@@ -61,14 +61,14 @@ export default function Header({ user }: { user: CurrentUser | null }) {
             />
           </div>
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4 pl-4 border-l border-border-subtle">
               {user.role === 'admin' && (
-                <Link href="/admin" className="text-xs font-semibold text-trust-emerald hover:text-emerald-300 flex items-center gap-1">
+                <Link href="/admin" className="text-xs font-semibold text-trust-emerald hover:text-emerald-300 flex items-center gap-1.5 whitespace-nowrap">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Admin
                 </Link>
               )}
-              <Link href="/profile" className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors">
+              <Link href="/profile" className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors whitespace-nowrap">
                 <UserCircle2 className="w-4 h-4" />
                 {user.fullName || 'Akun Saya'}
               </Link>

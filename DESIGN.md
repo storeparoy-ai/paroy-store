@@ -35,9 +35,16 @@
      reference more closely than an unbounded layout (Steam's own content column
      is width-capped and centered, not full-bleed).
    - Responsive horizontal gutter padding:
-     - Mobile: `px-4`
-     - Tablet: `sm:px-6 md:px-8`
-     - Desktop: `lg:px-10 xl:px-12`
+     - Mobile: `px-5`
+     - Tablet: `sm:px-8 md:px-10`
+     - Desktop: `lg:px-14 xl:px-16`
+   - Bumped up from an earlier, slightly tighter scale (`px-4`/`px-6`/`px-8`/
+     `px-10`/`px-12`) after user feedback that content still read as
+     cramped near the edges — the `max-w-360` cap only creates a visible
+     side margin once the viewport CSS width exceeds 1440px, which is
+     rarer than raw monitor resolution suggests (see the padding-scale
+     revision note above); a more generous gutter keeps things comfortable
+     regardless of whether that margin ever kicks in.
    - Revision note: an earlier version of this spec used `w-full` with no
      max-width and custom `1920px`/`2560px` breakpoints for extra padding.
      That approach was dropped — those breakpoints rarely fire in practice

@@ -30,8 +30,8 @@ export default function HeroBanner({ products }: { products: Product[] }) {
             100% Anti Hackback &middot; Rekber Resmi
           </Badge>
 
-          <h1 className="font-heading font-extrabold text-4xl sm:text-6xl lg:text-[70px] text-text-main tracking-[-0.03em] leading-[1.02] mt-6 mb-6">
-            Top Up Kilat, Jual Beli &amp;<br className="hidden sm:block" /> Sewa Akun Game{' '}
+          <h1 className="font-heading font-extrabold text-4xl sm:text-5xl lg:text-[56px] xl:text-[62px] text-text-main tracking-[-0.03em] leading-[1.08] mt-6 mb-6 text-balance">
+            Top Up Kilat, Jual Beli &amp; Sewa Akun Game{' '}
             <span className="bg-gradient-to-r from-white via-white to-brand-cyan bg-clip-text text-transparent">
               Tanpa Ribet
             </span>

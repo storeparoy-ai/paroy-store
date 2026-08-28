@@ -10,14 +10,22 @@ import { cn, formatCurrency } from '@/lib/utils';
 import type { FlashSale } from '@/types';
 
 function useCountdown(endsAt: Date) {
-  const [remaining, setRemaining] = useState(() => Math.max(0, endsAt.getTime() - Date.now()));
+  // Starts `null` (not Date.now()-derived) so the very first client render
+  // matches the server-rendered markup exactly — computing this from
+  // Date.now() in the initializer caused a hydration mismatch whenever the
+  // SSR and hydration timestamps landed in different seconds.
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRemaining(Math.max(0, endsAt.getTime() - Date.now()));
-    }, 1000);
+    const tick = () => setRemaining(Math.max(0, endsAt.getTime() - Date.now()));
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [endsAt]);
+
+  if (remaining === null) {
+    return { label: '--:--:--', isOver: false };
+  }
 
   const totalSeconds = Math.floor(remaining / 1000);
   const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');

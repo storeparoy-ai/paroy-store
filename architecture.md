@@ -63,14 +63,18 @@ paroy-store/
   Di monitor lebar/ultra-wide, sisa ruang jadi margin kiri-kanan alami, bukan
   konten yang melebar mengikuti layar.
 * **Padding Proporsional (gutter):**
-  * Mobile: `px-4`
-  * Tablet: `sm:px-6 md:px-8`
-  * Desktop: `lg:px-10 xl:px-12`
+  * Mobile: `px-5`
+  * Tablet: `sm:px-8 md:px-10`
+  * Desktop: `lg:px-14 xl:px-16`
 * **Catatan revisi:** versi awal pakai `w-full` tanpa `max-width` plus breakpoint
   custom `1920px`/`2560px` untuk padding ekstra. Didrop karena breakpoint itu
   jarang aktif di dunia nyata (display scaling OS membuat CSS viewport yang
   dilaporkan browser lebih sempit dari resolusi fisik monitor), sehingga padding
-  efektif tetap tipis dan konten terasa mepet ke tepi browser.
+  efektif tetap tipis dan konten terasa mepet ke tepi browser. Skala padding
+  dinaikkan sekali lagi (dari `px-4`/`px-6`/`px-8`/`px-10`/`px-12`) setelah
+  user tetap merasa mepet di browser lebar — margin dari `max-w-360` baru
+  kelihatan kalau CSS viewport > 1440px, yang jarang terjadi karena display
+  scaling, jadi gutter dasarnya perlu lebih lega sendiri.
 
 ---
 
