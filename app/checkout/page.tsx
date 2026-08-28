@@ -1,0 +1,45 @@
+import React from 'react';
+import Link from 'next/link';
+import { ShoppingCart } from 'lucide-react';
+import Container from '@/components/ui/Container';
+import { buttonVariants } from '@/components/ui/Button';
+import CheckoutFlow from '@/components/checkout/CheckoutFlow';
+import { MOCK_PRODUCTS } from '@/lib/mock-data';
+import { cn } from '@/lib/utils';
+
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ product?: string }>;
+}) {
+  const { product: productId } = await searchParams;
+  const product = productId ? MOCK_PRODUCTS.find((p) => p.id === productId) : undefined;
+
+  if (!product) {
+    return (
+      <Container className="py-16 sm:py-24">
+        <div className="max-w-sm mx-auto text-center space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-bg-card border border-border-subtle flex items-center justify-center text-text-dim">
+            <ShoppingCart className="w-6 h-6" />
+          </div>
+          <h1 className="font-heading font-bold text-lg text-text-main">Belum Ada Akun Dipilih</h1>
+          <p className="text-xs text-text-muted">
+            Pilih akun dari katalog terlebih dahulu sebelum melanjutkan ke checkout.
+          </p>
+          <Link href="/products" className={cn(buttonVariants({ variant: 'primary' }), 'w-full')}>
+            Lihat Katalog Akun
+          </Link>
+        </div>
+      </Container>
+    );
+  }
+
+  return (
+    <Container className="py-8 sm:py-10">
+      <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight mb-6">
+        Checkout
+      </h1>
+      <CheckoutFlow product={product} />
+    </Container>
+  );
+}

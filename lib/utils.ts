@@ -27,6 +27,19 @@ export function timeAgo(date: Date): string {
   return `${Math.floor(seconds / 86400)} hari lalu`;
 }
 
+const REKBER_FEE_TIERS: { max: number; fee: number }[] = [
+  { max: 100_000, fee: 5_000 },
+  { max: 500_000, fee: 10_000 },
+  { max: 1_000_000, fee: 20_000 },
+  { max: 5_000_000, fee: 35_000 },
+  { max: Infinity, fee: 50_000 },
+];
+
+export function calculateRekberFee(amount: number): number {
+  const tier = REKBER_FEE_TIERS.find((t) => amount <= t.max);
+  return tier?.fee ?? REKBER_FEE_TIERS[REKBER_FEE_TIERS.length - 1].fee;
+}
+
 export function generateOrderNumber(): string {
   const date = new Date();
   const y = date.getFullYear();
