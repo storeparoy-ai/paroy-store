@@ -60,14 +60,14 @@ export default async function ProductDetailPage({
             </span>
           </div>
 
-          <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight leading-snug">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-[34px] text-text-main tracking-[-0.02em] leading-[1.18]">
             {product.title}
           </h1>
 
           {/* Specs */}
-          <Card variant="alt">
-            <CardContent className="p-5 sm:p-6 space-y-4">
-              <h2 className="font-heading font-bold text-sm sm:text-base text-text-main">
+          <Card variant="alt" className="rounded-[20px]">
+            <CardContent className="p-6 space-y-5">
+              <h2 className="font-heading font-bold text-[15px] text-text-main tracking-[-0.01em]">
                 Spesifikasi Akun
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -94,10 +94,10 @@ export default async function ProductDetailPage({
           </Card>
 
           {/* Anti-hackback SOP */}
-          <Card variant="alt" className="border-trust-emerald/25">
-            <CardContent className="p-5 sm:p-6 space-y-3">
-              <h2 className="font-heading font-bold text-sm sm:text-base text-text-main flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-trust-emerald" />
+          <Card variant="alt" className="rounded-[20px] border-trust-emerald/25">
+            <CardContent className="p-6 space-y-3.5">
+              <h2 className="font-heading font-bold text-[15px] text-text-main tracking-[-0.01em] flex items-center gap-2">
+                <ShieldCheck className="w-4.25 h-4.25 text-trust-emerald" />
                 Proteksi Anti Hackback
               </h2>
               <ul className="space-y-2 text-xs text-text-muted leading-relaxed">
@@ -120,8 +120,8 @@ export default async function ProductDetailPage({
 
         {/* Right: sticky purchase box */}
         <div className="lg:sticky lg:top-24 space-y-4">
-          <Card variant="default">
-            <CardContent className="p-5 sm:p-6 space-y-5">
+          <Card variant="raised" className="rounded-[22px]">
+            <CardContent className="p-6 sm:p-7 space-y-5">
               <div className="flex items-center gap-1.5 text-urgency-orange text-xs">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className="w-3.5 h-3.5 fill-urgency-orange" />
@@ -132,7 +132,7 @@ export default async function ProductDetailPage({
               <div>
                 <span className="text-xs text-text-dim block mb-1">Harga Akun</span>
                 <div className="flex items-baseline gap-2">
-                  <span className="font-mono font-extrabold text-2xl sm:text-3xl text-brand-cyan">
+                  <span className="font-mono font-extrabold text-3xl sm:text-4xl text-brand-cyan tracking-[-0.01em]">
                     {formatCurrency(product.price)}
                   </span>
                   {product.originalPrice && (

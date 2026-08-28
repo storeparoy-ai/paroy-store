@@ -44,3 +44,27 @@
      (OS display scaling reports a narrower CSS viewport than the physical
      screen on most high-DPI monitors), so real-world padding stayed thin
      and content read as cramped against the browser edge.
+
+6. **Depth System (Layered Shadows, Not Flat)**:
+   - `.shadow-elevated` (base, applied to every `<Card>` by default) and
+     `.shadow-raised` (sticky purchase boxes, hero floating cards, the
+     Card `variant="raised"`) in `app/globals.css` — each combines a 1px
+     inset top highlight with a soft ambient shadow and a tighter contact
+     shadow, instead of a single flat `box-shadow`. Still 100% matte, no
+     blur/opacity on the surface itself — only the shadow is soft.
+   - `.glow-blob` + `.bg-grain` utilities: sparing radial-gradient accent
+     blobs (cyan/orange/emerald at ~10-15% opacity, heavily blurred)
+     behind hero/section-transition surfaces, and a faint SVG-noise
+     texture on large dark panels. Used a handful of times per page, never
+     as a card background.
+   - CTAs (`Button` primary/urgency) use a subtle top-to-bottom gradient
+     plus an inner top highlight line rather than a flat fill, for a more
+     three-dimensional press-able feel.
+   - Section headers get a small mono-font uppercase "kicker" label above
+     the `<h2>` (e.g. "KATALOG PILIHAN"), colored by the section's accent.
+   - Product card imagery gets a radial highlight overlay (`radial-gradient`
+     white/orange wash, top-left) layered on top of the real photo for
+     depth — this sits over an actual `<Image>`, so it is not a
+     replacement for real product photography, just a framing treatment.
+   - Applied first to Homepage, Product Detail, and Checkout (2026-08-28);
+     other pages get the same treatment as a fast-follow.

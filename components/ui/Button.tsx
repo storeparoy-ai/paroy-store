@@ -9,13 +9,13 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-brand-cyan text-bg-deep font-bold hover:bg-cyan-300 hover:shadow-[0_0_16px_rgba(34,211,238,0.4)] border border-cyan-300/40',
+          'bg-gradient-to-b from-cyan-300 to-brand-cyan text-bg-deep font-bold shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_12px_24px_-8px_rgba(34,211,238,0.55)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_14px_28px_-6px_rgba(34,211,238,0.65)] border border-white/25',
         outline:
           'bg-transparent text-brand-cyan border border-brand-cyan/40 hover:bg-brand-cyan/10 hover:border-brand-cyan',
         secondary:
           'bg-bg-card-alt text-text-main border border-border-subtle hover:border-white/20 hover:bg-white/5',
         urgency:
-          'bg-urgency-orange text-bg-deep font-bold hover:bg-orange-400 hover:shadow-[0_0_16px_rgba(249,115,22,0.4)] border border-orange-400/40',
+          'bg-gradient-to-b from-orange-400 to-urgency-orange text-bg-deep font-bold shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_10px_20px_-8px_rgba(249,115,22,0.55)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_12px_24px_-6px_rgba(249,115,22,0.65)] border border-orange-300/40',
         ghost:
           'bg-transparent text-text-muted hover:text-text-main hover:bg-white/5',
         danger:

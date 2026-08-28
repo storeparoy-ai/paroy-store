@@ -2,7 +2,7 @@ import React, { forwardRef, HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'alt' | 'interactive';
+  variant?: 'default' | 'alt' | 'interactive' | 'raised';
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -11,11 +11,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'rounded-2xl border border-border-subtle overflow-hidden transition-all duration-200',
+          'rounded-2xl border border-border-subtle overflow-hidden transition-all duration-200 shadow-elevated',
           variant === 'default' && 'bg-bg-card',
           variant === 'alt' && 'bg-bg-card-alt',
           variant === 'interactive' &&
-            'bg-bg-card hover:border-brand-cyan/40 hover:shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 cursor-pointer',
+            'bg-bg-card hover:border-brand-cyan/40 hover:shadow-raised hover:-translate-y-0.5 cursor-pointer',
+          variant === 'raised' && 'bg-bg-card shadow-raised',
           className
         )}
         {...props}

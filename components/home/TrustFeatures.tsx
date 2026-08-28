@@ -27,23 +27,34 @@ const FEATURES = [
 
 export default function TrustFeatures() {
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {FEATURES.map((feature) => {
-        const Icon = feature.icon;
-        return (
-          <Card key={feature.title} variant="alt">
-            <CardContent className="p-5 sm:p-6 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-trust-emerald/10 border border-trust-emerald/25 text-trust-emerald flex items-center justify-center">
-                <Icon className="w-5 h-5" />
-              </div>
-              <h3 className="font-heading font-bold text-sm sm:text-base text-text-main">
-                {feature.title}
-              </h3>
-              <p className="text-xs text-text-muted leading-relaxed">{feature.desc}</p>
-            </CardContent>
-          </Card>
-        );
-      })}
+    <section className="space-y-6">
+      <div>
+        <span className="block font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-trust-emerald mb-2.5">
+          Kenapa Paroy Store
+        </span>
+        <h2 className="font-heading font-extrabold text-2xl sm:text-[32px] text-text-main tracking-[-0.02em]">
+          Transaksi Aman, Terbukti Ribuan Kali
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {FEATURES.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <Card key={feature.title} variant="alt">
+              <CardContent className="p-6 space-y-4">
+                <div className="w-12 h-12 rounded-[13px] bg-trust-emerald/10 border border-trust-emerald/25 text-trust-emerald flex items-center justify-center">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <h3 className="font-heading font-bold text-[15px] text-text-main tracking-[-0.01em]">
+                  {feature.title}
+                </h3>
+                <p className="text-xs text-text-muted leading-relaxed">{feature.desc}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </section>
   );
 }

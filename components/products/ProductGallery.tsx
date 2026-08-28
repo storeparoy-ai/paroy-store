@@ -9,7 +9,7 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
 
   return (
     <div className="space-y-3">
-      <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-bg-card-alt border border-border-subtle">
+      <div className="relative aspect-video w-full rounded-[22px] overflow-hidden bg-bg-card-alt border border-border-subtle shadow-raised">
         <Image
           src={images[active]}
           alt={`${title} — screenshot ${active + 1}`}
@@ -18,6 +18,7 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
           className="object-cover"
           priority
         />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_12%_0%,rgba(34,211,238,0.16),transparent_58%)]" />
       </div>
 
       {images.length > 1 && (

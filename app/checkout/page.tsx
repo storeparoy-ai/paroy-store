@@ -36,7 +36,7 @@ export default async function CheckoutPage({
 
   return (
     <Container className="py-8 sm:py-10">
-      <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main tracking-tight mb-6">
+      <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em] mb-8">
         Checkout
       </h1>
       <CheckoutFlow product={product} />

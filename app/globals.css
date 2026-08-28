@@ -90,3 +90,47 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ========================
+   DEPTH SYSTEM
+   Layered ambient + contact shadow, plus a 1px top inner highlight —
+   matte surfaces only (no blur, no translucent white), just more
+   dimensional than a flat drop-shadow. See DESIGN.md.
+======================= */
+.shadow-elevated {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+    0 24px 48px -28px rgba(0, 0, 0, 0.7),
+    0 10px 20px -12px rgba(0, 0, 0, 0.55);
+}
+
+.shadow-raised {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 32px 64px -30px rgba(0, 0, 0, 0.78),
+    0 16px 30px -14px rgba(0, 0, 0, 0.65);
+}
+
+/* Faint full-bleed grain — adds tactile richness to large dark panels
+   (hero, page background) at ~4% opacity, overlay blend. */
+.bg-grain {
+  position: relative;
+}
+.bg-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Soft radial accent blobs — used sparingly (hero, section transitions)
+   behind solid surfaces, never as a card background itself. */
+.glow-blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(90px);
+  pointer-events: none;
+}

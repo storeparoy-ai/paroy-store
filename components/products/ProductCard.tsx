@@ -3,7 +3,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ShieldCheck, Clock, Eye } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import { buttonVariants } from '@/components/ui/Button';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 import type { Product } from '@/types';
@@ -21,7 +20,7 @@ export default function ProductCard({
   const href = mode === 'rental' ? `/rental?product=${product.id}` : `/products/${product.id}`;
 
   return (
-    <Card variant="interactive" className="flex flex-col h-full">
+    <Card variant="interactive" className="flex flex-col h-full rounded-[20px]">
       <Link href={href} className="block">
         <div className="relative aspect-video w-full bg-bg-card-alt overflow-hidden border-b border-border-subtle">
           <Image
@@ -31,17 +30,20 @@ export default function ProductCard({
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
             className="object-cover"
           />
-          <div className="absolute top-3 left-3">
-            <Badge variant="cyan" size="sm">{product.game.icon} {product.game.name}</Badge>
-          </div>
-          {product.canRental && (
-            <div className="absolute top-3 right-3">
-              <Badge variant="trust" size="sm">
+          {/* Subtle top-left highlight for depth — not a card surface, so this
+              isn't the glassmorphism DESIGN.md forbids. */}
+          <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_20%_0%,rgba(255,255,255,0.16),transparent_55%)]" />
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+            <span className="px-2.5 py-1 rounded-full bg-bg-deep/70 text-[10.5px] font-extrabold text-text-main flex items-center gap-1">
+              {product.game.icon} {product.game.name}
+            </span>
+            {product.canRental && (
+              <span className="px-2.5 py-1 rounded-full bg-bg-deep/70 text-[10.5px] font-extrabold text-trust-emerald flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Bisa Sewa
-              </Badge>
-            </div>
-          )}
+              </span>
+            )}
+          </div>
         </div>
       </Link>
 

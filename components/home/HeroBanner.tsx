@@ -1,52 +1,100 @@
 import React from 'react';
 import Link from 'next/link';
-import { Zap, ShieldCheck, ArrowRight, Star } from 'lucide-react';
+import Image from 'next/image';
+import { Zap, ShieldCheck, ArrowRight, Star, CheckCircle2 } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
+import type { Product } from '@/types';
 
-export default function HeroBanner() {
+const CARD_ROTATE = ['rotate-[6deg] opacity-60 saturate-[.85]', '-rotate-4 opacity-95', 'rotate-[2.5deg]'];
+const CARD_POS = [
+  'top-0 right-2 z-10 translate-y-24',
+  'top-0 right-40 z-20 translate-y-10',
+  'top-0 right-0 z-30',
+];
+
+export default function HeroBanner({ products }: { products: Product[] }) {
+  const showcase = products.slice(0, 3);
+
   return (
-    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-cyan-950/30">
-      {/* Decorative glow */}
-      <div className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-brand-cyan/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-urgency-orange/10 blur-3xl" />
+    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border-subtle bg-bg-card bg-grain">
+      {/* Ambient glow blobs — subtle, behind the solid surface */}
+      <div className="pointer-events-none absolute -top-32 -right-20 w-[520px] h-[520px] rounded-full bg-brand-cyan/[0.14] blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-40 -left-24 w-96 h-96 rounded-full bg-urgency-orange/[0.10] blur-[100px]" />
 
-      <div className="relative px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16 flex flex-col gap-6 max-w-3xl">
-        <Badge variant="trust" size="md" className="w-fit">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          100% Anti Hackback &middot; Rekber Resmi
-        </Badge>
+      <div className="relative grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
+        <div>
+          <Badge variant="trust" size="md" className="w-fit">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            100% Anti Hackback &middot; Rekber Resmi
+          </Badge>
 
-        <h1 className="font-heading font-extrabold text-3xl sm:text-4xl lg:text-5xl text-text-main tracking-tight leading-[1.1]">
-          Top Up Kilat, Jual Beli & Sewa Akun Game
-          <span className="text-brand-cyan"> Tanpa Ribet</span>
-        </h1>
+          <h1 className="font-heading font-extrabold text-4xl sm:text-6xl lg:text-[70px] text-text-main tracking-[-0.03em] leading-[1.02] mt-6 mb-6">
+            Top Up Kilat, Jual Beli &amp;<br className="hidden sm:block" /> Sewa Akun Game{' '}
+            <span className="bg-gradient-to-r from-white via-white to-brand-cyan bg-clip-text text-transparent">
+              Tanpa Ribet
+            </span>
+          </h1>
 
-        <p className="text-sm sm:text-base text-text-muted leading-relaxed max-w-xl">
-          Satu platform untuk semua kebutuhan gaming-mu. Diamond masuk 1 detik, akun sultan
-          terverifikasi, dan transaksi aman lewat Rekber Escrow resmi Paroy Store.
-        </p>
+          <p className="text-sm sm:text-base text-text-muted leading-relaxed max-w-lg mb-8">
+            Satu platform untuk semua kebutuhan gaming-mu. Diamond masuk 1 detik, akun sultan
+            terverifikasi, dan transaksi aman lewat Rekber Escrow resmi Paroy Store.
+          </p>
 
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Link href="/topup" className={cn(buttonVariants({ variant: 'primary', size: 'lg' }))}>
-            <Zap className="w-4 h-4" />
-            Top Up Sekarang
-          </Link>
-          <Link href="/products" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>
-            Lihat Katalog Akun
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-3.5 mb-9">
+            <Link href="/topup" className={cn(buttonVariants({ variant: 'primary', size: 'lg' }))}>
+              <Zap className="w-4 h-4" />
+              Top Up Sekarang
+            </Link>
+            <Link href="/products" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>
+              Lihat Katalog Akun
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-text-muted">
+            <div className="flex text-urgency-orange">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-urgency-orange" />
+              ))}
+            </div>
+            <span className="font-bold text-text-main">4.9/5</span>
+            <span>dari 10.400+ transaksi sukses</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5 pt-2 text-xs text-text-muted">
-          <div className="flex text-urgency-orange">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="w-3.5 h-3.5 fill-urgency-orange" />
-            ))}
-          </div>
-          <span className="font-semibold text-text-main">4.9/5</span>
-          <span>dari 10.400+ transaksi sukses</span>
+        {/* Fanned showcase cards */}
+        <div className="relative hidden lg:block h-[380px]">
+          {showcase.map((product, idx) => (
+            <div
+              key={product.id}
+              className={cn(
+                'absolute w-[248px] rounded-[20px] bg-bg-card-alt border border-border-subtle shadow-raised p-4 transition-transform',
+                CARD_POS[idx],
+                CARD_ROTATE[idx]
+              )}
+            >
+              <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-3">
+                <Image src={product.images[0]} alt={product.title} fill sizes="248px" className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-white/10" />
+              </div>
+              <h4 className="font-heading font-bold text-[13px] text-text-main truncate mb-1">{product.title}</h4>
+              <span className="font-mono font-bold text-base text-brand-cyan">{formatCurrency(product.price)}</span>
+            </div>
+          ))}
+
+          {showcase.length > 0 && (
+            <div className="absolute left-0 bottom-6 z-40 flex items-center gap-2.5 bg-bg-card-alt border border-trust-emerald/30 rounded-2xl px-4 py-3 shadow-elevated">
+              <div className="w-8 h-8 rounded-[10px] bg-trust-emerald/15 text-trust-emerald flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-text-main leading-tight">Akun Terverifikasi</p>
+                <p className="text-[11px] text-text-muted leading-tight">Diperiksa admin sebelum tayang</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

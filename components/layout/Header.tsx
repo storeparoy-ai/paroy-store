@@ -25,13 +25,13 @@ export default function Header({ user }: { user: CurrentUser | null }) {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-bg-deep border-b border-border-subtle">
-      <Container className="flex items-center justify-between gap-4 h-16">
+      <Container className="flex items-center justify-between gap-4 h-20 lg:h-[92px]">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0 group">
-          <div className="w-9 h-9 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan group-hover:bg-brand-cyan/20 transition-colors">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <div className="w-10 h-10 rounded-[13px] bg-gradient-to-br from-brand-cyan/15 to-brand-cyan/5 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shadow-[0_0_24px_-6px_rgba(34,211,238,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(34,211,238,0.6)] transition-shadow">
             <Gamepad2 className="w-5 h-5" />
           </div>
-          <span className="font-heading font-extrabold text-lg tracking-tight text-text-main hidden sm:inline">
+          <span className="font-heading font-extrabold text-xl tracking-tight text-text-main hidden sm:inline">
             PAROY<span className="text-brand-cyan">STORE</span>
           </span>
         </Link>

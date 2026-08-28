@@ -107,7 +107,7 @@ export default function CheckoutFlow({ product }: { product: Product }) {
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-10 items-start">
       <div className="space-y-6 min-w-0">
         {/* Order summary */}
-        <Card variant="alt">
+        <Card variant="alt" className="rounded-[20px]">
           <CardContent className="p-5 sm:p-6 flex gap-4">
             <div className="relative w-20 h-16 sm:w-24 sm:h-20 shrink-0 rounded-xl overflow-hidden bg-bg-card-alt border border-border-subtle">
               <Image src={product.images[0]} alt={product.title} fill sizes="96px" className="object-cover" />
@@ -171,7 +171,7 @@ export default function CheckoutFlow({ product }: { product: Product }) {
         </section>
 
         {/* Payment instructions */}
-        <Card variant="default">
+        <Card variant="default" className="rounded-[20px]">
           <CardContent className="p-5 sm:p-6 space-y-4">
             <h2 className="font-heading font-bold text-sm text-text-main">Instruksi Pembayaran</h2>
             <div className="p-4 rounded-xl bg-bg-card-alt border border-border-subtle space-y-3">
@@ -201,28 +201,28 @@ export default function CheckoutFlow({ product }: { product: Product }) {
 
       {/* Summary sidebar */}
       <div className="lg:sticky lg:top-24 space-y-4">
-        <Card variant="default">
-          <CardContent className="p-5 sm:p-6 space-y-4">
+        <Card variant="raised" className="rounded-[22px]">
+          <CardContent className="p-6 space-y-5">
             <div
               className={cn(
-                'flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold font-mono',
+                'flex items-center justify-center gap-2 h-12 rounded-[14px] text-sm font-bold font-mono border',
                 expired
-                  ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                  : 'bg-urgency-orange/10 text-urgency-orange border border-urgency-orange/30'
+                  ? 'bg-red-500/10 text-red-400 border-red-500/30'
+                  : 'bg-urgency-orange/10 text-urgency-orange border-urgency-orange/30'
               )}
             >
               <Timer className="w-4 h-4" />
               {expired ? 'Waktu pembayaran habis' : `Bayar dalam ${countdownLabel}`}
             </div>
 
-            <div className="space-y-1.5 text-xs">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between text-text-muted">
                 <span>Harga Akun</span>
                 <span className="font-mono text-text-main">{formatCurrency(product.price)}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-border-subtle text-text-main font-bold">
-                <span>Total Bayar</span>
-                <span className="font-mono text-brand-cyan text-base">{formatCurrency(product.price)}</span>
+              <div className="flex justify-between items-center pt-3 border-t border-border-subtle text-text-main font-bold">
+                <span className="text-[13.5px]">Total Bayar</span>
+                <span className="font-mono text-brand-cyan text-2xl">{formatCurrency(product.price)}</span>
               </div>
             </div>
 

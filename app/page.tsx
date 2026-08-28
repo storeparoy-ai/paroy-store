@@ -21,7 +21,7 @@ export default async function HomePage() {
   return (
     <div className="pb-8 sm:pb-12">
       <Container className="py-6 sm:py-10 space-y-10 sm:space-y-14">
-        <HeroBanner />
+        <HeroBanner products={featuredProducts} />
         <LiveActivityFeed />
         <GameQuickSelect />
         <FlashSaleSection sales={flashSales} />
