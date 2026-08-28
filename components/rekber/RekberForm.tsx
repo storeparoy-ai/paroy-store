@@ -7,9 +7,8 @@ import { Card, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import StatusTimeline from '@/components/shared/StatusTimeline';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { createRekberOrder } from '@/lib/supabase/actions';
-import { calculateRekberFee, formatCurrency, generateOrderNumber } from '@/lib/utils';
+import { calculateRekberFeeFromTiers, formatCurrency, generateOrderNumber, type RekberFeeTier } from '@/lib/utils';
 import type { Product } from '@/types';
 
 const REKBER_STEPS = [
@@ -20,8 +19,16 @@ const REKBER_STEPS = [
   { label: 'Selesai', description: 'Dana diteruskan ke penjual, transaksi tuntas & aman.' },
 ];
 
-export default function RekberForm({ initialProduct }: { initialProduct?: Product }) {
-  const [productId, setProductId] = useState(initialProduct?.id ?? MOCK_PRODUCTS[0]?.id ?? '');
+export default function RekberForm({
+  initialProduct,
+  products,
+  feeTiers,
+}: {
+  initialProduct?: Product;
+  products: Product[];
+  feeTiers: RekberFeeTier[];
+}) {
+  const [productId, setProductId] = useState(initialProduct?.id ?? products[0]?.id ?? '');
   const [buyerName, setBuyerName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -29,8 +36,11 @@ export default function RekberForm({ initialProduct }: { initialProduct?: Produc
   const [orderNumber, setOrderNumber] = useState('');
   const [isPending, startTransition] = useTransition();
 
-  const product = MOCK_PRODUCTS.find((p) => p.id === productId);
-  const fee = useMemo(() => (product ? calculateRekberFee(product.price) : 0), [product]);
+  const product = products.find((p) => p.id === productId);
+  const fee = useMemo(
+    () => (product ? calculateRekberFeeFromTiers(product.price, feeTiers) : 0),
+    [product, feeTiers]
+  );
   const total = (product?.price ?? 0) + fee;
 
   const canSubmit = product && buyerName.trim().length >= 3 && whatsapp.trim().length >= 9 && agreed;
@@ -92,7 +102,7 @@ export default function RekberForm({ initialProduct }: { initialProduct?: Produc
             onChange={(e) => setProductId(e.target.value)}
             className="w-full bg-bg-card border border-border-subtle rounded-xl text-sm text-text-main px-4 py-3 focus:outline-none focus:border-brand-cyan/50 cursor-pointer"
           >
-            {MOCK_PRODUCTS.map((p) => (
+            {products.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title} — {formatCurrency(p.price)}
               </option>

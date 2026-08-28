@@ -46,7 +46,11 @@ export async function updateOrderStatusAction(
 
 export interface ProductInput {
   title: string;
-  game: string;
+  /** FK into public.games. */
+  gameId: string;
+  /** Denormalized game name, kept in sync into the legacy `game` text
+   * column so old code paths that still read it as text keep working. */
+  gameName: string;
   price: number;
   originalPrice?: number;
   canRental: boolean;
@@ -63,7 +67,8 @@ export interface ProductInput {
 function toRow(input: ProductInput) {
   return {
     title: input.title,
-    game: input.game,
+    game_id: input.gameId,
+    game: input.gameName,
     price: input.price,
     original_price: input.originalPrice ?? null,
     can_rental: input.canRental,

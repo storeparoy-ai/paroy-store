@@ -1,13 +1,19 @@
-export type GameSlug = 'mlbb' | 'ff' | 'pubg' | 'efootball' | 'cod' | 'genshin' | 'valorant' | 'other';
+/** No longer a fixed union — games are admin-managed (see the `games`
+ * table), so the set of valid slugs is open-ended. Kept as an alias for
+ * places that used to import GameSlug specifically. */
+export type GameSlug = string;
 export type ProductStatus = 'pending' | 'active' | 'reserved' | 'sold' | 'inactive';
 export type OrderStatus = 'pending' | 'paid' | 'approved' | 'completed' | 'rejected' | 'cancelled';
 export type UserRole = 'user' | 'admin';
 
 export interface Game {
   id: string;
-  slug: GameSlug;
+  slug: string;
   name: string;
+  /** Emoji fallback, shown when iconUrl isn't set. */
   icon: string;
+  /** Admin-uploaded image URL — takes priority over `icon` when present. */
+  iconUrl?: string | null;
   color: string;
 }
 

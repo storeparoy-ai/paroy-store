@@ -14,7 +14,15 @@ const CARD_POS = [
   'top-0 right-0 z-30',
 ];
 
-export default function HeroBanner({ products }: { products: Product[] }) {
+export default function HeroBanner({
+  products,
+  mascotImageUrl,
+}: {
+  products: Product[];
+  /** Admin-uploaded mascot image (Admin > Pengaturan Situs). Purely
+   * decorative — hero renders identically when this is null. */
+  mascotImageUrl?: string | null;
+}) {
   const showcase = products.slice(0, 3);
 
   return (
@@ -66,6 +74,11 @@ export default function HeroBanner({ products }: { products: Product[] }) {
 
         {/* Fanned showcase cards */}
         <div className="relative hidden lg:block h-[380px]">
+          {mascotImageUrl && (
+            <div className="absolute -left-6 -bottom-10 z-0 w-[220px] h-[320px] pointer-events-none drop-shadow-2xl">
+              <Image src={mascotImageUrl} alt="Maskot Paroy Store" fill sizes="220px" className="object-contain object-bottom" />
+            </div>
+          )}
           {showcase.map((product, idx) => (
             <div
               key={product.id}

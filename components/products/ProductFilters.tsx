@@ -3,8 +3,8 @@
 import React from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Clock, ArrowUpDown } from 'lucide-react';
-import { GAMES } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
+import type { Game } from '@/types';
 
 const PRICE_RANGES = [
   { label: 'Semua Harga', min: undefined, max: undefined },
@@ -21,7 +21,7 @@ const SORT_OPTIONS = [
   { value: 'populer', label: 'Paling Populer' },
 ];
 
-export default function ProductFilters() {
+export default function ProductFilters({ games }: { games: Game[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -61,7 +61,7 @@ export default function ProductFilters() {
           >
             Semua Game
           </button>
-          {GAMES.map((game) => (
+          {games.map((game) => (
             <button
               key={game.id}
               onClick={() => updateParams({ game: activeGame === game.slug ? undefined : game.slug })}

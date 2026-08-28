@@ -4,12 +4,10 @@ import React, { useState, useTransition } from 'react';
 import { Send } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { GAME_INFO } from '@/lib/supabase-helpers';
 import { createCommunityPostAction } from '@/lib/supabase/profile-actions';
+import type { Game } from '@/types';
 
-const GAME_OPTIONS = Object.keys(GAME_INFO);
-
-export default function PostComposer() {
+export default function PostComposer({ games }: { games: Game[] }) {
   const [content, setContent] = useState('');
   const [game, setGame] = useState('');
   const [error, setError] = useState('');
@@ -47,8 +45,8 @@ export default function PostComposer() {
               className="bg-bg-card-alt border border-border-subtle rounded-lg text-xs text-text-muted px-3 py-1.5 focus:outline-none focus:border-brand-cyan/50 cursor-pointer"
             >
               <option value="">Semua Game</option>
-              {GAME_OPTIONS.map((g) => (
-                <option key={g} value={g}>{g}</option>
+              {games.map((g) => (
+                <option key={g.id} value={g.name}>{g.name}</option>
               ))}
             </select>
             <Button type="submit" variant="primary" size="sm" isLoading={isPending} disabled={!content.trim()}>

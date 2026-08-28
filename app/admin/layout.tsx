@@ -1,13 +1,28 @@
 import React from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ClipboardList, Package, Users, ShieldAlert } from 'lucide-react';
+import {
+  ClipboardList,
+  Package,
+  Users,
+  ShieldAlert,
+  Gamepad2,
+  Palette,
+  Flame,
+  Wallet,
+  ShieldCheck,
+} from 'lucide-react';
 import Container from '@/components/ui/Container';
 import { getCurrentUser } from '@/lib/supabase/queries';
 
 const TABS = [
   { href: '/admin/pesanan', label: 'Pesanan', icon: ClipboardList },
   { href: '/admin/produk', label: 'Produk', icon: Package },
+  { href: '/admin/kategori-game', label: 'Kategori Game', icon: Gamepad2 },
+  { href: '/admin/flash-sale', label: 'Flash Sale', icon: Flame },
+  { href: '/admin/metode-pembayaran', label: 'Metode Pembayaran', icon: Wallet },
+  { href: '/admin/tarif-rekber', label: 'Tarif Rekber', icon: ShieldCheck },
+  { href: '/admin/pengaturan', label: 'Pengaturan Situs', icon: Palette },
   { href: '/admin/pengguna', label: 'Pengguna', icon: Users },
 ];
 

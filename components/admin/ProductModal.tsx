@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import { AlertCircle } from 'lucide-react';
+import React, { useRef, useState, useTransition } from 'react';
+import { AlertCircle, Upload, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,18 +11,17 @@ import {
 } from '@/components/ui/Dialog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { GAME_INFO } from '@/lib/supabase-helpers';
 import { createProductAction, updateProductAction, type ProductInput } from '@/lib/supabase/admin-actions';
-import type { Product } from '@/types';
+import { uploadPublicImage } from '@/lib/supabase/storage';
+import type { Game, Product } from '@/types';
 
-const GAME_OPTIONS = Object.keys(GAME_INFO);
 const STATUS_OPTIONS = ['active', 'inactive', 'pending', 'reserved', 'sold'];
 const PLATFORM_OPTIONS = ['Android', 'iOS', 'PC'];
 
-function toFormState(product?: Product) {
+function toFormState(product?: Product, games?: Game[]) {
   return {
     title: product?.title ?? '',
-    game: product?.game.name ?? GAME_OPTIONS[0],
+    gameId: product?.game.id ?? games?.[0]?.id ?? '',
     price: product ? String(product.price) : '',
     originalPrice: product?.originalPrice ? String(product.originalPrice) : '',
     canRental: product?.canRental ?? false,
@@ -44,16 +43,20 @@ function toFormState(product?: Product) {
  */
 function ProductFormFields({
   product,
+  games,
   onOpenChange,
   onSaved,
 }: {
   product?: Product;
+  games: Game[];
   onOpenChange: (open: boolean) => void;
   onSaved?: () => void;
 }) {
-  const [form, setForm] = useState(() => toFormState(product));
+  const [form, setForm] = useState(() => toFormState(product, games));
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   function togglePlatform(p: string) {
     setForm((f) => ({
@@ -71,6 +74,11 @@ function ProductFormFields({
       setError('Judul dan harga wajib diisi dengan benar.');
       return;
     }
+    const selectedGame = games.find((g) => g.id === form.gameId);
+    if (!selectedGame) {
+      setError('Pilih game dulu ya.');
+      return;
+    }
 
     const specs: Record<string, string> = {};
     for (const line of form.specs.split('\n')) {
@@ -80,7 +88,8 @@ function ProductFormFields({
 
     const input: ProductInput = {
       title: form.title.trim(),
-      game: form.game,
+      gameId: selectedGame.id,
+      gameName: selectedGame.name,
       price,
       originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       canRental: form.canRental,
@@ -122,12 +131,13 @@ function ProductFormFields({
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-muted">Game</label>
           <select
-            value={form.game}
-            onChange={(e) => setForm((f) => ({ ...f, game: e.target.value }))}
+            value={form.gameId}
+            onChange={(e) => setForm((f) => ({ ...f, gameId: e.target.value }))}
             className="w-full h-11 bg-bg-card border border-border-subtle rounded-xl text-xs sm:text-sm text-text-main px-4 focus:outline-none focus:border-brand-cyan/50 cursor-pointer"
           >
-            {GAME_OPTIONS.map((g) => (
-              <option key={g} value={g}>{g}</option>
+            {games.length === 0 && <option value="">Belum ada kategori game</option>}
+            {games.map((g) => (
+              <option key={g.id} value={g.id}>{g.icon} {g.name}</option>
             ))}
           </select>
         </div>
@@ -216,9 +226,39 @@ function ProductFormFields({
       />
 
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-text-muted">
-          URL Gambar (satu link per baris)
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold text-text-muted">
+            Gambar Produk (satu link per baris)
+          </label>
+          <button
+            type="button"
+            disabled={isUploadingImage}
+            onClick={() => imageInputRef.current?.click()}
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-brand-cyan hover:text-cyan-300 transition-colors disabled:opacity-50"
+          >
+            {isUploadingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+            Upload Gambar
+          </button>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = '';
+              if (!file) return;
+              setIsUploadingImage(true);
+              const result = await uploadPublicImage(file, 'products');
+              setIsUploadingImage(false);
+              if ('error' in result) {
+                setError(result.error);
+                return;
+              }
+              setForm((f) => ({ ...f, images: f.images ? `${f.images}\n${result.url}` : result.url }));
+            }}
+          />
+        </div>
         <textarea
           value={form.images}
           onChange={(e) => setForm((f) => ({ ...f, images: e.target.value }))}
@@ -274,12 +314,14 @@ export default function ProductModal({
   open,
   onOpenChange,
   product,
+  games,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** undefined = create mode, defined = edit mode */
   product?: Product;
+  games: Game[];
   onSaved?: () => void;
 }) {
   return (
@@ -294,7 +336,9 @@ export default function ProductModal({
 
         {/* Only mounted while open, so its internal state starts fresh
             each time instead of needing an effect to reset it. */}
-        {open && <ProductFormFields product={product} onOpenChange={onOpenChange} onSaved={onSaved} />}
+        {open && (
+          <ProductFormFields product={product} games={games} onOpenChange={onOpenChange} onSaved={onSaved} />
+        )}
       </DialogContent>
     </Dialog>
   );

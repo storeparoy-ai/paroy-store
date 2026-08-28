@@ -16,9 +16,9 @@ import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { PAYMENT_METHODS } from '@/lib/mock-data';
 import { createBuyOrder } from '@/lib/supabase/actions';
 import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
+import type { PaymentMethod } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
 
 const CHECKOUT_DURATION_SECONDS = 15 * 60;
@@ -38,27 +38,35 @@ function useCountdownSeconds(totalSeconds: number) {
   return { label: `${m}:${s}`, expired: remaining <= 0 };
 }
 
-export default function CheckoutFlow({ product }: { product: Product }) {
+export default function CheckoutFlow({
+  product,
+  paymentMethods,
+}: {
+  product: Product;
+  paymentMethods: PaymentMethod[];
+}) {
   const [buyerName, setBuyerName] = useState('');
   const [buyerWhatsapp, setBuyerWhatsapp] = useState('');
-  const [paymentId, setPaymentId] = useState(PAYMENT_METHODS[0].id);
+  const [paymentId, setPaymentId] = useState(paymentMethods[0]?.id ?? '');
   const [confirmed, setConfirmed] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [copied, setCopied] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { label: countdownLabel, expired } = useCountdownSeconds(CHECKOUT_DURATION_SECONDS);
 
-  const selectedPayment = PAYMENT_METHODS.find((p) => p.id === paymentId) ?? PAYMENT_METHODS[0];
-  const canSubmit = buyerName.trim().length >= 3 && buyerWhatsapp.trim().length >= 9 && !expired;
+  const selectedPayment = paymentMethods.find((p) => p.id === paymentId) ?? paymentMethods[0];
+  const canSubmit =
+    buyerName.trim().length >= 3 && buyerWhatsapp.trim().length >= 9 && !expired && !!selectedPayment;
 
   function handleCopy() {
-    navigator.clipboard?.writeText(selectedPayment.number.replace(/-/g, ''));
+    if (!selectedPayment) return;
+    navigator.clipboard?.writeText(selectedPayment.accountNumber.replace(/-/g, ''));
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   }
 
   function handleConfirmPayment() {
-    if (!canSubmit) return;
+    if (!canSubmit || !selectedPayment) return;
     startTransition(async () => {
       const result = await createBuyOrder({
         productId: product.id,
@@ -149,8 +157,8 @@ export default function CheckoutFlow({ product }: { product: Product }) {
             Pilih Metode Pembayaran
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {PAYMENT_METHODS.map((method) => {
-              const Icon = method.id.includes('bca') || method.id.includes('mandiri') ? Landmark : Wallet;
+            {paymentMethods.map((method) => {
+              const Icon = method.code.includes('bca') || method.code.includes('mandiri') ? Landmark : Wallet;
               return (
                 <button
                   key={method.id}
@@ -171,32 +179,34 @@ export default function CheckoutFlow({ product }: { product: Product }) {
         </section>
 
         {/* Payment instructions */}
-        <Card variant="default" className="rounded-[20px]">
-          <CardContent className="p-5 sm:p-6 space-y-4">
-            <h2 className="font-heading font-bold text-sm text-text-main">Instruksi Pembayaran</h2>
-            <div className="p-4 rounded-xl bg-bg-card-alt border border-border-subtle space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-text-dim">{selectedPayment.label}</span>
-                <span className="text-xs text-text-muted">a.n. {selectedPayment.name}</span>
+        {selectedPayment && (
+          <Card variant="default" className="rounded-[20px]">
+            <CardContent className="p-5 sm:p-6 space-y-4">
+              <h2 className="font-heading font-bold text-sm text-text-main">Instruksi Pembayaran</h2>
+              <div className="p-4 rounded-xl bg-bg-card-alt border border-border-subtle space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-text-dim">{selectedPayment.label}</span>
+                  <span className="text-xs text-text-muted">a.n. {selectedPayment.accountName}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-lg text-text-main">{selectedPayment.accountNumber}</span>
+                  <button
+                    onClick={handleCopy}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-brand-cyan hover:text-cyan-300 transition-colors"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? 'Tersalin' : 'Salin'}
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="font-mono font-bold text-lg text-text-main">{selectedPayment.number}</span>
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-brand-cyan hover:text-cyan-300 transition-colors"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? 'Tersalin' : 'Salin'}
-                </button>
-              </div>
-            </div>
-            <ol className="text-xs text-text-muted space-y-1.5 list-decimal list-inside leading-relaxed">
-              <li>Transfer tepat sesuai nominal total di ringkasan pesanan.</li>
-              <li>Klik tombol &ldquo;Saya Sudah Transfer&rdquo; setelah pembayaran berhasil.</li>
-              <li>Admin memverifikasi &amp; mendampingi serah terima akun secara langsung.</li>
-            </ol>
-          </CardContent>
-        </Card>
+              <ol className="text-xs text-text-muted space-y-1.5 list-decimal list-inside leading-relaxed">
+                <li>Transfer tepat sesuai nominal total di ringkasan pesanan.</li>
+                <li>Klik tombol &ldquo;Saya Sudah Transfer&rdquo; setelah pembayaran berhasil.</li>
+                <li>Admin memverifikasi &amp; mendampingi serah terima akun secara langsung.</li>
+              </ol>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Summary sidebar */}

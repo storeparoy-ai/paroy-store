@@ -10,9 +10,9 @@ import ProductModal from '@/components/admin/ProductModal';
 import DeleteConfirmModal from '@/components/admin/DeleteConfirmModal';
 import { deleteProductAction } from '@/lib/supabase/admin-actions';
 import { formatCurrency } from '@/lib/utils';
-import type { Product } from '@/types';
+import type { Game, Product } from '@/types';
 
-export default function ProductsTable({ products }: { products: Product[] }) {
+export default function ProductsTable({ products, games }: { products: Product[]; games: Game[] }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | undefined>(undefined);
@@ -97,6 +97,7 @@ export default function ProductsTable({ products }: { products: Product[] }) {
         open={modalOpen}
         onOpenChange={setModalOpen}
         product={editing}
+        games={games}
         onSaved={() => router.refresh()}
       />
 

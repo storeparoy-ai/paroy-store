@@ -1,6 +1,14 @@
 import { createClient } from '@/utils/supabase/server';
-import { mapSupabaseProduct, resolveGameNameFromSlug, type SupabaseProductRow } from '@/lib/supabase-helpers';
-import type { FlashSale, Product } from '@/types';
+import {
+  mapSupabaseProduct,
+  buildGameLookup,
+  resolveGameNameFromSlug,
+  type SupabaseProductRow,
+  type GameLookup,
+} from '@/lib/supabase-helpers';
+import { GAMES as MOCK_GAMES } from '@/lib/mock-data';
+import type { RekberFeeTier } from '@/lib/utils';
+import type { FlashSale, Game, Product } from '@/types';
 
 export interface ProductFilters {
   game?: string;
@@ -8,6 +16,155 @@ export interface ProductFilters {
   max?: number;
   rentalOnly?: boolean;
   sort?: 'terbaru' | 'termurah' | 'termahal' | 'populer';
+}
+
+/** Admin-managed game list (see migration 00000000000005). Falls back to
+ * the hardcoded mock list if the table is empty/unreachable (e.g. that
+ * migration hasn't been applied yet) so nothing ever renders blank. */
+export async function getGames(): Promise<Game[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('games')
+      .select('id, slug, name, icon, icon_url, color')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    if (!data || data.length === 0) return MOCK_GAMES;
+    return data.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      icon: row.icon || '🎮',
+      iconUrl: row.icon_url,
+      color: row.color,
+    }));
+  } catch (err) {
+    console.error('[getGames] falling back to mock data:', err);
+    return MOCK_GAMES;
+  }
+}
+
+async function getGameLookup(): Promise<GameLookup> {
+  return buildGameLookup(await getGames());
+}
+
+export interface SiteSettings {
+  siteName: string;
+  tagline: string;
+  mascotImageUrl: string | null;
+  whatsappUrl: string | null;
+  discordUrl: string | null;
+}
+
+const DEFAULT_SITE_SETTINGS: SiteSettings = {
+  siteName: 'Paroy Store',
+  tagline: 'Marketplace gaming all-in-one',
+  mascotImageUrl: null,
+  whatsappUrl: null,
+  discordUrl: null,
+};
+
+/** Admin-editable branding (site name, tagline, homepage mascot image,
+ * community links) — see migration 00000000000005. Falls back to sane
+ * defaults if the table/migration isn't there yet. */
+export async function getSiteSettings(): Promise<SiteSettings> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('site_name, tagline, mascot_image_url, whatsapp_url, discord_url')
+      .eq('id', 1)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return DEFAULT_SITE_SETTINGS;
+    return {
+      siteName: data.site_name || DEFAULT_SITE_SETTINGS.siteName,
+      tagline: data.tagline || DEFAULT_SITE_SETTINGS.tagline,
+      mascotImageUrl: data.mascot_image_url,
+      whatsappUrl: data.whatsapp_url,
+      discordUrl: data.discord_url,
+    };
+  } catch (err) {
+    console.error('[getSiteSettings] falling back to defaults:', err);
+    return DEFAULT_SITE_SETTINGS;
+  }
+}
+
+export interface PaymentMethod {
+  id: string;
+  code: string;
+  label: string;
+  accountNumber: string;
+  accountName: string;
+}
+
+const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
+  { id: 'bca', code: 'bca', label: 'Transfer BCA', accountNumber: '1234567890', accountName: 'Paroy Store' },
+  { id: 'mandiri', code: 'mandiri', label: 'Transfer Mandiri', accountNumber: '0987654321', accountName: 'Paroy Store' },
+  { id: 'gopay', code: 'gopay', label: 'GoPay', accountNumber: '0812-3456-7890', accountName: 'Paroy Store' },
+  { id: 'dana', code: 'dana', label: 'DANA', accountNumber: '0812-3456-7890', accountName: 'Paroy Store' },
+  { id: 'ovo', code: 'ovo', label: 'OVO', accountNumber: '0812-3456-7890', accountName: 'Paroy Store' },
+];
+
+/** Admin-editable payment methods (see migration 00000000000005). Falls
+ * back to the previously-hardcoded list if the table is empty/unreachable. */
+export async function getActivePaymentMethods(): Promise<PaymentMethod[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('payment_methods')
+      .select('id, code, label, account_number, account_name')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    if (!data || data.length === 0) return MOCK_PAYMENT_METHODS;
+    return data.map((row) => ({
+      id: row.id,
+      code: row.code,
+      label: row.label,
+      accountNumber: row.account_number,
+      accountName: row.account_name,
+    }));
+  } catch (err) {
+    console.error('[getActivePaymentMethods] falling back to mock data:', err);
+    return MOCK_PAYMENT_METHODS;
+  }
+}
+
+const MOCK_REKBER_FEE_TIERS: RekberFeeTier[] = [
+  { id: 't1', maxAmount: 100_000, fee: 5_000 },
+  { id: 't2', maxAmount: 500_000, fee: 10_000 },
+  { id: 't3', maxAmount: 1_000_000, fee: 20_000 },
+  { id: 't4', maxAmount: 5_000_000, fee: 35_000 },
+  { id: 't5', maxAmount: null, fee: 50_000 },
+];
+
+/** Admin-editable rekber fee tiers (see migration 00000000000005). Falls
+ * back to the previously-hardcoded tiers if the table is empty/unreachable.
+ * The RekberFeeTier type and the pure calculateRekberFeeFromTiers() helper
+ * live in lib/utils.ts, not here — this module imports the server-only
+ * Supabase client, and a 'use client' component importing anything from it
+ * (even a pure helper) would pull the whole module graph into the client
+ * bundle and break the build. */
+export async function getRekberFeeTiers(): Promise<RekberFeeTier[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('rekber_fee_tiers')
+      .select('id, max_amount, fee')
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    if (!data || data.length === 0) return MOCK_REKBER_FEE_TIERS;
+    return data.map((row) => ({
+      id: row.id,
+      maxAmount: row.max_amount === null ? null : Number(row.max_amount),
+      fee: Number(row.fee),
+    }));
+  } catch (err) {
+    console.error('[getRekberFeeTiers] falling back to mock data:', err);
+    return MOCK_REKBER_FEE_TIERS;
+  }
 }
 
 /**
@@ -18,10 +175,11 @@ export interface ProductFilters {
 export async function getActiveProducts(filters: ProductFilters = {}): Promise<Product[] | null> {
   try {
     const supabase = await createClient();
+    const lookup = await getGameLookup();
     let query = supabase.from('products').select('*').eq('status', 'active');
 
     if (filters.game) {
-      const gameName = resolveGameNameFromSlug(filters.game);
+      const gameName = resolveGameNameFromSlug(filters.game, lookup);
       query = gameName ? query.eq('game', gameName) : query.ilike('game', `%${filters.game}%`);
     }
     if (filters.min !== undefined) query = query.gte('price', filters.min);
@@ -44,7 +202,7 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data as SupabaseProductRow[]).map(mapSupabaseProduct);
+    return (data as SupabaseProductRow[]).map((row) => mapSupabaseProduct(row, lookup));
   } catch (err) {
     console.error('[getActiveProducts] falling back to mock data:', err);
     return null;
@@ -54,10 +212,13 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
 export async function getProductById(id: string): Promise<Product | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
+    const [{ data, error }, lookup] = await Promise.all([
+      supabase.from('products').select('*').eq('id', id).maybeSingle(),
+      getGameLookup(),
+    ]);
     if (error) throw error;
     if (!data) return null;
-    return mapSupabaseProduct(data as SupabaseProductRow);
+    return mapSupabaseProduct(data as SupabaseProductRow, lookup);
   } catch (err) {
     console.error('[getProductById] lookup failed:', err);
     return null;
@@ -67,15 +228,18 @@ export async function getProductById(id: string): Promise<Product | null> {
 export async function getFeaturedProducts(limit = 8): Promise<Product[] | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('status', 'active')
-      .eq('is_featured', true)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    const [{ data, error }, lookup] = await Promise.all([
+      supabase
+        .from('products')
+        .select('*')
+        .eq('status', 'active')
+        .eq('is_featured', true)
+        .order('created_at', { ascending: false })
+        .limit(limit),
+      getGameLookup(),
+    ]);
     if (error) throw error;
-    return (data as SupabaseProductRow[]).map(mapSupabaseProduct);
+    return (data as SupabaseProductRow[]).map((row) => mapSupabaseProduct(row, lookup));
   } catch (err) {
     console.error('[getFeaturedProducts] falling back to mock data:', err);
     return null;
@@ -85,19 +249,22 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[] | null> 
 export async function getActiveFlashSales(): Promise<FlashSale[] | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('flash_sales')
-      .select('*, products(*)')
-      .eq('is_active', true)
-      .gt('ends_at', new Date().toISOString())
-      .order('ends_at', { ascending: true });
+    const [{ data, error }, lookup] = await Promise.all([
+      supabase
+        .from('flash_sales')
+        .select('*, products(*)')
+        .eq('is_active', true)
+        .gt('ends_at', new Date().toISOString())
+        .order('ends_at', { ascending: true }),
+      getGameLookup(),
+    ]);
     if (error) throw error;
 
     return (data as Array<Record<string, unknown>>)
       .filter((row) => row.products)
       .map((row) => ({
         id: row.id as string,
-        product: mapSupabaseProduct(row.products as SupabaseProductRow),
+        product: mapSupabaseProduct(row.products as SupabaseProductRow, lookup),
         salePrice: Number(row.sale_price),
         stock: Number(row.stock),
         sold: Number(row.sold ?? 0),
@@ -297,10 +464,10 @@ export async function isProductWishlisted(productId: string): Promise<boolean> {
 
 export async function getUserWishlist(): Promise<Product[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('wishlists')
-    .select('products(*)')
-    .order('created_at', { ascending: false });
+  const [{ data, error }, lookup] = await Promise.all([
+    supabase.from('wishlists').select('products(*)').order('created_at', { ascending: false }),
+    getGameLookup(),
+  ]);
 
   if (error) {
     // Table may not exist yet if migration 00000000000004 hasn't been applied.
@@ -311,7 +478,7 @@ export async function getUserWishlist(): Promise<Product[]> {
   return data
     .map((row) => (Array.isArray(row.products) ? row.products[0] : row.products))
     .filter((p): p is SupabaseProductRow => !!p)
-    .map(mapSupabaseProduct);
+    .map((row) => mapSupabaseProduct(row, lookup));
 }
 
 export interface CurrentUser {

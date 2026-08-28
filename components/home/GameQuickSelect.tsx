@@ -1,8 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
-import { GAMES } from '@/lib/mock-data';
+import Image from 'next/image';
+import type { Game } from '@/types';
 
-export default function GameQuickSelect() {
+export default function GameQuickSelect({ games }: { games: Game[] }) {
   return (
     <section className="space-y-6">
       <div>
@@ -15,20 +16,24 @@ export default function GameQuickSelect() {
       </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3.5 sm:gap-4">
-        {GAMES.map((game) => (
+        {games.map((game) => (
           <Link
             key={game.id}
             href={`/products?game=${game.slug}`}
             className="group flex flex-col items-center gap-3 p-5 rounded-[18px] bg-bg-card border border-border-subtle shadow-elevated hover:border-brand-cyan/40 hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-[28px] group-hover:scale-105 transition-transform"
+              className="relative w-14 h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-[28px] overflow-hidden group-hover:scale-105 transition-transform"
               style={{
                 background: `linear-gradient(155deg, ${game.color}38, ${game.color}08)`,
                 boxShadow: `inset 0 0 0 1px ${game.color}40`,
               }}
             >
-              {game.icon}
+              {game.iconUrl ? (
+                <Image src={game.iconUrl} alt={game.name} fill sizes="56px" className="object-cover" />
+              ) : (
+                game.icon
+              )}
             </div>
             <span className="text-[11px] sm:text-xs font-bold text-text-muted group-hover:text-text-main text-center leading-tight transition-colors">
               {game.name}

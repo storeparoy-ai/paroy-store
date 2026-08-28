@@ -2,6 +2,7 @@ import React from 'react';
 import { ShieldCheck } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import RekberForm from '@/components/rekber/RekberForm';
+import { getActiveProducts, getProductById, getRekberFeeTiers } from '@/lib/supabase/queries';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 
 export default async function RekberPage({
@@ -10,7 +11,16 @@ export default async function RekberPage({
   searchParams: Promise<{ product?: string }>;
 }) {
   const { product: productId } = await searchParams;
-  const initialProduct = productId ? MOCK_PRODUCTS.find((p) => p.id === productId) : undefined;
+
+  const [dbProducts, feeTiers, initialProductFromDb] = await Promise.all([
+    getActiveProducts(),
+    getRekberFeeTiers(),
+    productId ? getProductById(productId) : Promise.resolve(null),
+  ]);
+
+  const products = dbProducts && dbProducts.length > 0 ? dbProducts : MOCK_PRODUCTS;
+  const initialProduct =
+    initialProductFromDb ?? (productId ? MOCK_PRODUCTS.find((p) => p.id === productId) : undefined);
 
   return (
     <Container className="py-8 sm:py-10">
@@ -28,7 +38,7 @@ export default async function RekberPage({
         </div>
       </div>
 
-      <RekberForm initialProduct={initialProduct} />
+      <RekberForm initialProduct={initialProduct} products={products} feeTiers={feeTiers} />
     </Container>
   );
 }

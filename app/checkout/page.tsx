@@ -4,6 +4,7 @@ import { ShoppingCart } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import { buttonVariants } from '@/components/ui/Button';
 import CheckoutFlow from '@/components/checkout/CheckoutFlow';
+import { getActivePaymentMethods, getProductById } from '@/lib/supabase/queries';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 
@@ -13,7 +14,9 @@ export default async function CheckoutPage({
   searchParams: Promise<{ product?: string }>;
 }) {
   const { product: productId } = await searchParams;
-  const product = productId ? MOCK_PRODUCTS.find((p) => p.id === productId) : undefined;
+  const product = productId
+    ? (await getProductById(productId)) ?? MOCK_PRODUCTS.find((p) => p.id === productId)
+    : undefined;
 
   if (!product) {
     return (
@@ -34,12 +37,14 @@ export default async function CheckoutPage({
     );
   }
 
+  const paymentMethods = await getActivePaymentMethods();
+
   return (
     <Container className="py-8 sm:py-10">
       <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em] mb-8">
         Checkout
       </h1>
-      <CheckoutFlow product={product} />
+      <CheckoutFlow product={product} paymentMethods={paymentMethods} />
     </Container>
   );
 }

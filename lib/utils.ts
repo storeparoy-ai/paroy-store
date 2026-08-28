@@ -35,9 +35,27 @@ const REKBER_FEE_TIERS: { max: number; fee: number }[] = [
   { max: Infinity, fee: 50_000 },
 ];
 
+/** @deprecated Superseded by admin-managed tiers (calculateRekberFeeFromTiers
+ * below, backed by public.rekber_fee_tiers). Kept only as the seed values
+ * migration 00000000000005 inserts. */
 export function calculateRekberFee(amount: number): number {
   const tier = REKBER_FEE_TIERS.find((t) => amount <= t.max);
   return tier?.fee ?? REKBER_FEE_TIERS[REKBER_FEE_TIERS.length - 1].fee;
+}
+
+export interface RekberFeeTier {
+  id: string;
+  maxAmount: number | null;
+  fee: number;
+}
+
+/** Pure — deliberately kept out of lib/supabase/queries.ts, which imports
+ * the server-only Supabase client (next/headers). A 'use client' component
+ * importing anything from that module pulls the whole module graph into
+ * the client bundle and breaks the build. */
+export function calculateRekberFeeFromTiers(amount: number, tiers: RekberFeeTier[]): number {
+  const tier = tiers.find((t) => t.maxAmount === null || amount <= t.maxAmount);
+  return tier?.fee ?? tiers[tiers.length - 1]?.fee ?? 0;
 }
 
 export function generateOrderNumber(): string {
