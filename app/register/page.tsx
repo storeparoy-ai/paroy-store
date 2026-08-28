@@ -18,7 +18,7 @@ export default function RegisterPage() {
           </h1>
           <p className="text-xs text-text-muted">
             Sudah punya akun?{' '}
-            <Link href="/login" className="text-brand-cyan font-semibold hover:text-cyan-300">
+            <Link href="/login" className="text-brand-cyan font-semibold hover:opacity-80">
               Masuk di sini
             </Link>
           </p>

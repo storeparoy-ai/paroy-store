@@ -16,7 +16,11 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           variant === 'alt' && 'bg-bg-card-alt',
           variant === 'interactive' &&
             'bg-bg-card hover:border-brand-cyan/40 hover:shadow-raised hover:-translate-y-0.5 cursor-pointer',
-          variant === 'raised' && 'bg-bg-card shadow-raised',
+          // "raised" panels (purchase boxes, key summaries) get the Nexus
+          // holographic ring instead of a flat border — see .holo-ring in
+          // globals.css. border-transparent hides the plain border so the
+          // gradient ring is the only edge treatment.
+          variant === 'raised' && 'bg-bg-card shadow-raised border-0 holo-ring',
           className
         )}
         {...props}

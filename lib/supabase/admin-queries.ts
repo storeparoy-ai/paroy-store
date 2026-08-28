@@ -247,6 +247,159 @@ export async function getAllFlashSalesForAdmin(): Promise<AdminFlashSale[]> {
     });
 }
 
+// ---------------------------------------------------------------------------
+// Sales Dashboard
+//
+// Definitions (documented here since they drive every KPI below):
+//   - "revenue-counted" order = status is 'paid' or 'completed' — money has
+//     actually been received and confirmed by an admin (this is a manual-
+//     transfer marketplace: pending -> paid -> completed, see OrdersTable).
+//     'pending' hasn't been paid yet; 'rejected'/'cancelled' never will be.
+//   - "resolved" order = status is 'paid', 'completed', 'rejected', or
+//     'cancelled' — anything admin has actually acted on, i.e. NOT still
+//     sitting in 'pending'. Used as the denominator for completion rate so
+//     a pile of untouched pending orders doesn't dilute it.
+//   - completionRate = completed / resolved (0 when resolved === 0).
+// All figures are computed in-memory from getAllOrdersForAdmin() rather than
+// with separate SQL aggregations — order volume here is small enough that
+// re-using the already-working, already-RLS-safe fetch is simpler and less
+// risky than hand-rolling new cross-table SQL.
+// ---------------------------------------------------------------------------
+
+const REVENUE_STATUSES = new Set(['paid', 'completed']);
+const RESOLVED_STATUSES = new Set(['paid', 'completed', 'rejected', 'cancelled']);
+
+const KIND_LABEL: Record<AdminOrder['kind'], string> = {
+  buy: 'Jual Beli Akun',
+  topup: 'Top Up Diamond',
+  rekber: 'Rekber Escrow',
+  rental: 'Rental Akun',
+};
+
+function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function addDays(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+
+function summarize(orders: AdminOrder[]) {
+  const revenueOrders = orders.filter((o) => REVENUE_STATUSES.has(o.status));
+  const resolvedOrders = orders.filter((o) => RESOLVED_STATUSES.has(o.status));
+  const completedCount = orders.filter((o) => o.status === 'completed').length;
+  const revenue = revenueOrders.reduce((sum, o) => sum + o.amount, 0);
+  return {
+    revenue,
+    orderCount: revenueOrders.length,
+    aov: revenueOrders.length > 0 ? revenue / revenueOrders.length : 0,
+    completionRate: resolvedOrders.length > 0 ? (completedCount / resolvedOrders.length) * 100 : 0,
+  };
+}
+
+/** Percentage change from `prev` to `curr`, or null when `prev` is 0 (no
+ * meaningful baseline to compare against — UI shows "—" in that case
+ * instead of a nonsensical infinite/undefined percentage). */
+function pctChange(curr: number, prev: number): number | null {
+  if (prev === 0) return null;
+  return ((curr - prev) / prev) * 100;
+}
+
+export interface SalesTrendPoint {
+  date: string; // yyyy-mm-dd
+  label: string; // dd/mm, for chart axis
+  revenue: number;
+  orderCount: number;
+  completedCount: number;
+  resolvedCount: number;
+}
+
+export interface SalesComposition {
+  kind: AdminOrder['kind'];
+  label: string;
+  total: number;
+  pct: number;
+}
+
+export interface SalesDashboardData {
+  revenue: number;
+  revenueDeltaPct: number | null;
+  orderCount: number;
+  orderCountDeltaPct: number | null;
+  aov: number;
+  aovDeltaPct: number | null;
+  completionRate: number;
+  completionRateDeltaPp: number | null; // percentage-point delta, not relative %
+  trend: SalesTrendPoint[];
+  composition: SalesComposition[];
+  recentTransactions: AdminOrder[];
+}
+
+export async function getSalesDashboardData(): Promise<SalesDashboardData> {
+  const orders = await getAllOrdersForAdmin();
+
+  const now = new Date();
+  const thisMonthStart = startOfMonth(now);
+  const lastMonthStart = startOfMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+
+  const thisMonthOrders = orders.filter((o) => o.createdAt >= thisMonthStart);
+  const lastMonthOrders = orders.filter((o) => o.createdAt >= lastMonthStart && o.createdAt < thisMonthStart);
+
+  const curr = summarize(thisMonthOrders);
+  const prev = summarize(lastMonthOrders);
+
+  // 15-day trend, oldest first, local calendar days.
+  const todayStart = startOfDay(now);
+  const trendStart = addDays(todayStart, -14);
+  const trend: SalesTrendPoint[] = Array.from({ length: 15 }, (_, i) => {
+    const dayStart = addDays(trendStart, i);
+    const dayEnd = addDays(dayStart, 1);
+    const dayAllOrders = orders.filter((o) => o.createdAt >= dayStart && o.createdAt < dayEnd);
+    const dayRevenueOrders = dayAllOrders.filter((o) => REVENUE_STATUSES.has(o.status));
+    const dayResolvedOrders = dayAllOrders.filter((o) => RESOLVED_STATUSES.has(o.status));
+    return {
+      date: dayStart.toISOString().slice(0, 10),
+      label: `${String(dayStart.getDate()).padStart(2, '0')}/${String(dayStart.getMonth() + 1).padStart(2, '0')}`,
+      revenue: dayRevenueOrders.reduce((sum, o) => sum + o.amount, 0),
+      orderCount: dayRevenueOrders.length,
+      completedCount: dayAllOrders.filter((o) => o.status === 'completed').length,
+      resolvedCount: dayResolvedOrders.length,
+    };
+  });
+
+  // Composition by order kind, this month, revenue-counted orders only.
+  const revenueOrdersThisMonth = thisMonthOrders.filter((o) => REVENUE_STATUSES.has(o.status));
+  const totalForComposition = revenueOrdersThisMonth.reduce((sum, o) => sum + o.amount, 0);
+  const composition: SalesComposition[] = (['buy', 'topup', 'rekber', 'rental'] as const)
+    .map((kind) => {
+      const total = revenueOrdersThisMonth.filter((o) => o.kind === kind).reduce((sum, o) => sum + o.amount, 0);
+      return {
+        kind,
+        label: KIND_LABEL[kind],
+        total,
+        pct: totalForComposition > 0 ? (total / totalForComposition) * 100 : 0,
+      };
+    })
+    .filter((c) => c.total > 0)
+    .sort((a, b) => b.total - a.total);
+
+  return {
+    revenue: curr.revenue,
+    revenueDeltaPct: pctChange(curr.revenue, prev.revenue),
+    orderCount: curr.orderCount,
+    orderCountDeltaPct: pctChange(curr.orderCount, prev.orderCount),
+    aov: curr.aov,
+    aovDeltaPct: pctChange(curr.aov, prev.aov),
+    completionRate: curr.completionRate,
+    completionRateDeltaPp: prev.completionRate === 0 && curr.completionRate === 0 ? null : curr.completionRate - prev.completionRate,
+    trend,
+    composition,
+    recentTransactions: orders.slice(0, 8),
+  };
+}
+
 export interface AdminRekberFeeTier {
   id: string;
   maxAmount: number | null;

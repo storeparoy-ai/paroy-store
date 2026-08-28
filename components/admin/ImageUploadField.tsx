@@ -70,7 +70,7 @@ export default function ImageUploadField({
             <button
               type="button"
               onClick={() => onChange(null)}
-              className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-text-dim hover:text-red-400 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-text-dim hover:text-urgency-red transition-colors"
             >
               <X className="w-3 h-3" />
               Hapus
@@ -86,7 +86,7 @@ export default function ImageUploadField({
           onChange={(e) => handleFile(e.target.files?.[0])}
         />
       </div>
-      {error && <p className="text-[11px] text-red-400">{error}</p>}
+      {error && <p className="text-[11px] text-urgency-red">{error}</p>}
     </div>
   );
 }

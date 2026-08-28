@@ -38,7 +38,7 @@ export default function ProductCard({
               {product.game.icon} {product.game.name}
             </span>
             {product.canRental && (
-              <span className="px-2.5 py-1 rounded-full bg-bg-deep/70 text-[10.5px] font-extrabold text-trust-emerald flex items-center gap-1">
+              <span className="hex-clip px-3.5 py-1 bg-gradient-to-r from-trust-emerald to-brand-cyan text-[10.5px] font-extrabold text-bg-deep flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Bisa Sewa
               </span>

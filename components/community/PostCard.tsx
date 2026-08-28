@@ -49,11 +49,11 @@ export default function PostCard({ post, canLike }: { post: CommunityPost; canLi
             disabled={!canLike || liked || isPending}
             className={cn(
               'flex items-center gap-1.5 text-xs font-semibold transition-colors',
-              liked ? 'text-red-400' : 'text-text-muted hover:text-red-400',
+              liked ? 'text-urgency-red' : 'text-text-muted hover:text-urgency-red',
               !canLike && 'cursor-not-allowed opacity-60'
             )}
           >
-            <Heart className={cn('w-3.5 h-3.5', liked && 'fill-red-400')} />
+            <Heart className={cn('w-3.5 h-3.5', liked && 'fill-urgency-red')} />
             {likes}
           </button>
           <span className="flex items-center gap-1.5 text-xs text-text-dim">

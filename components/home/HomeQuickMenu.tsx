@@ -3,11 +3,11 @@ import Link from 'next/link';
 import { Zap, ShoppingBag, Clock, ShieldCheck, FileSearch } from 'lucide-react';
 
 const MENU_ITEMS = [
-  { href: '/topup', label: 'Top Up Kilat', icon: Zap, color: '#22d3ee' },
-  { href: '/products', label: 'Katalog Akun', icon: ShoppingBag, color: '#22d3ee' },
-  { href: '/rental', label: 'Rental Akun', icon: Clock, color: '#34d399' },
-  { href: '/rekber', label: 'Rekber', icon: ShieldCheck, color: '#34d399' },
-  { href: '/cek-transaksi', label: 'Cek Transaksi', icon: FileSearch, color: '#f97316' },
+  { href: '/topup', label: 'Top Up Kilat', icon: Zap, color: '#00e5ff' },
+  { href: '/products', label: 'Katalog Akun', icon: ShoppingBag, color: '#ff2e9a' },
+  { href: '/rental', label: 'Rental Akun', icon: Clock, color: '#9d4eff' },
+  { href: '/rekber', label: 'Rekber', icon: ShieldCheck, color: '#c6ff3d' },
+  { href: '/cek-transaksi', label: 'Cek Transaksi', icon: FileSearch, color: '#ffb020' },
 ];
 
 /**

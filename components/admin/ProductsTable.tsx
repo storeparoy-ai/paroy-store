@@ -82,7 +82,7 @@ export default function ProductsTable({ products, games }: { products: Product[]
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setDeleting(product)} aria-label="Hapus">
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-urgency-red" />
                       </Button>
                     </div>
                   </td>

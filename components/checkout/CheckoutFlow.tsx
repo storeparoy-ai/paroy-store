@@ -217,7 +217,7 @@ export default function CheckoutFlow({
               className={cn(
                 'flex items-center justify-center gap-2 h-12 rounded-[14px] text-sm font-bold font-mono border',
                 expired
-                  ? 'bg-red-500/10 text-red-400 border-red-500/30'
+                  ? 'bg-urgency-red/10 text-urgency-red border-urgency-red/30'
                   : 'bg-urgency-orange/10 text-urgency-orange border-urgency-orange/30'
               )}
             >

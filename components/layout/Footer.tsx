@@ -88,7 +88,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Paroy Store. Seluruh hak cipta dilindungi.
           </p>
           <p className="text-[11px] text-text-dim">
-            Dibuat dengan disiplin dark cyberpunk &middot; Next.js
+            Dibuat dengan Paroy Nexus &middot; Next.js
           </p>
         </div>
       </Container>

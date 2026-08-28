@@ -1,82 +1,95 @@
 # PAROY STORE — DESIGN SYSTEM & UI/UX SPECIFICATION
 
-> **Style Standard:** Disciplined Dark Cyberpunk (Steam-Inspired)  
-> **Philosophy:** Pure Solid Surfaces, Tonal Depth, Generous Negative Space, Crisp Typography, Zero Cheap Glassmorphism.
+> **Style Standard:** Paroy Nexus — Neon Holographic Sci-Fi
+> **Philosophy:** Multi-neon accent palette, solid matte surfaces with a holographic
+> gradient edge (never blur/glass), synthwave grid horizon, technical/geometric type.
+
+**History:** superseded the original "Disciplined Dark Cyberpunk" system (single cyan
+accent, navy base, soft-rounded cards, Plus Jakarta Sans/Outfit) on 2026-08-28. The user
+felt that direction still read as generic "AI dark mode" and asked for something more
+futuristic and colorful; two full mockups were explored as published Artifacts —
+"Paroy Arena" (esports HUD: angular cut corners, single gold accent) and "Paroy Nexus"
+(neon holographic) — and the user picked Nexus. Rebuilt via a token-first pass: the
+`@theme` color/font/radius variables in `app/globals.css` were repainted while keeping
+the same variable *names* (`brand-cyan`, `urgency-orange`, `trust-emerald`, ...), so
+nearly every component repainted automatically without a per-file rewrite. Only the
+handful of components that hardcoded literal Tailwind colors (`red-500`, `orange-400`,
+`slate-300`, raw `rgba(34,211,238,...)`, ...) needed direct edits — see git history for
+the full list.
 
 ---
 
 ## 1. Core Principles (Non-Negotiable)
 
-1. **NO Cheap Glassmorphism**:
-   - Do NOT use semi-transparent white borders (`border-white/20`, `border-white/30`) that trap and pinch inner text.
-   - Do NOT use blurry transparent cards (`backdrop-blur-md` inside cards or containers).
-   - ALL cards, panels, and modals must be **100% Solid Matte** surfaces.
+1. **NO Cheap Glassmorphism, still**:
+   - Do NOT use `backdrop-blur` inside cards, or translucent-white fills as a surface.
+   - ALL cards, panels, and modals are **100% Solid Matte** — the one exception is the
+     holographic *edge* (see §6), which is a gradient **border**, not a translucent fill.
 
 2. **Tonal Elevation Hierarchy (Matte Solid Surfaces)**:
-   - **Layer 0 (Base Background)**: `#0A0F1A` (Dark navy base)
-   - **Layer 1 (Card / Bento Section Surface)**: `#111520` (Dark slate card solid)
-   - **Layer 2 (Raised Element / Input Box / Table Header)**: `#141A29` (Deep slate solid)
-   - **Layer 3 (Deep Background)**: `#06080D`
+   - **Layer 0 (Base Background)**: `#0A0714` (near-black, violet-tinted)
+   - **Layer 1 (Card Surface)**: `#140F24`
+   - **Layer 2 (Raised Element / Input Box / Alt Surface)**: `#1C1533`
+   - **Layer 3 (Deep Background)**: `#06040D`
+   - Structural lines/borders are violet-grey, not pure white: `border-subtle` =
+     `rgba(157, 78, 255, 0.16)`.
 
-3. **Strict Color Distribution**:
-   - **Accent Cyan (`#22D3EE`)**: The ONLY color for primary CTAs and interactive highlights.
-   - **Urgency Orange (`#F97316`)**: Reserved exclusively for Flash Sale countdowns and discount urgency.
-   - **Trust Emerald (`#34D399`)**: Reserved exclusively for trust signals (100% anti-hackback, verified ratings, escrow security).
+3. **Multi-Neon Color System** (the actual departure from the old single-accent rule):
+   - **Magenta (`#FF2E9A`, token `brand-magenta`)**: primary CTA, brand wordmark,
+     headline gradient accent. The one color allowed to feel "loud."
+   - **Cyan (`#00E5FF`, token `brand-cyan`)**: secondary accent — prices, links, active
+     states, info. This carries over the most usage from the old single-cyan system.
+   - **Violet (`#9D4EFF`, token `brand-violet`)**: tertiary accent — tags, category
+     labels, gradient midpoints.
+   - **Amber (`#FFB020`, token `urgency-orange`)**: flash sale / pending / urgency —
+     same role as before, warmer hue.
+   - **Danger red (`#FF3B5C`, token `urgency-red`)**: errors, delete, rejected/cancelled
+     status. Never Tailwind's stock `red-*` — always this token.
+   - **Lime (`#C6FF3D`, token `trust-emerald`)**: trust/verified/completed/success.
+   - Semantic color (success/warning/danger above) is kept conceptually separate from
+     the three decorative brand accents (magenta/cyan/violet) even though both draw
+     from the same palette family — a status pill's color always means the same thing;
+     a decorative gradient never doubles as a status indicator.
+   - Never use Tailwind's stock `red-*`/`orange-*`/`slate-*`/`emerald-*` etc. directly —
+     always the named tokens above, so a future repaint stays a one-file token edit.
 
 4. **Typography Hierarchy**:
-   - 1 Font family: `Plus Jakarta Sans`
-   - Max 3 heading scales: H1 (Hero/Title), H2 (Section), H3 (Card/Group)
-   - Monospace: `JetBrains Mono` for currency, timers, and invoice IDs.
+   - Display/headings: `Orbitron` (geometric, sci-fi) — bold, usually uppercase.
+   - Body: `Rajdhani` — condensed technical grotesque, good gaming-UI pedigree.
+   - Monospace: `JetBrains Mono` for currency, timers, invoice IDs — kept from the old
+     system deliberately (the Nexus mockup used Share Tech Mono; JetBrains Mono reads
+     just as "digital" while staying far more legible for real money figures).
 
-5. **Universal Layout Container**:
-   - Centered column capped at `max-w-360` (1440px) via `mx-auto`, not full-bleed —
-     on wide/ultra-wide monitors the excess space becomes a natural side margin
-     instead of stretching content edge-to-edge. This matches the "Steam-inspired"
-     reference more closely than an unbounded layout (Steam's own content column
-     is width-capped and centered, not full-bleed).
-   - Responsive horizontal gutter padding:
-     - Mobile: `px-5`
-     - Tablet: `sm:px-8 md:px-10`
-     - Desktop: `lg:px-14 xl:px-16`
-   - Bumped up from an earlier, slightly tighter scale (`px-4`/`px-6`/`px-8`/
-     `px-10`/`px-12`) after user feedback that content still read as
-     cramped near the edges — the `max-w-360` cap only creates a visible
-     side margin once the viewport CSS width exceeds 1440px, which is
-     rarer than raw monitor resolution suggests (see the padding-scale
-     revision note above); a more generous gutter keeps things comfortable
-     regardless of whether that margin ever kicks in.
-   - Revision note: an earlier version of this spec used `w-full` with no
-     max-width and custom `1920px`/`2560px` breakpoints for extra padding.
-     That approach was dropped — those breakpoints rarely fire in practice
-     (OS display scaling reports a narrower CSS viewport than the physical
-     screen on most high-DPI monitors), so real-world padding stayed thin
-     and content read as cramped against the browser edge.
+5. **Universal Layout Container** (unchanged from the old system):
+   - Centered column capped at `max-w-360` (1440px) via `mx-auto`, not full-bleed.
+   - Responsive horizontal gutter: `px-5` mobile, `sm:px-8 md:px-10` tablet,
+     `lg:px-14 xl:px-16` desktop.
 
-6. **Depth System (Layered Shadows, Not Flat)**:
-   - `.shadow-elevated` (base, applied to every `<Card>` by default) and
-     `.shadow-raised` (sticky purchase boxes, hero floating cards, the
-     Card `variant="raised"`) in `app/globals.css` — each combines a 1px
-     inset top highlight with a soft ambient shadow and a tighter contact
-     shadow, instead of a single flat `box-shadow`. Still 100% matte, no
-     blur/opacity on the surface itself — only the shadow is soft.
-   - `.glow-blob` + `.bg-grain` utilities: sparing radial-gradient accent
-     blobs (cyan/orange/emerald at ~10-15% opacity, heavily blurred)
-     behind hero/section-transition surfaces, and a faint SVG-noise
-     texture on large dark panels. Used a handful of times per page, never
-     as a card background.
-   - CTAs (`Button` primary/urgency) use a subtle top-to-bottom gradient
-     plus an inner top highlight line rather than a flat fill, for a more
-     three-dimensional press-able feel.
-   - Section headers get a small mono-font uppercase "kicker" label above
-     the `<h2>` (e.g. "KATALOG PILIHAN"), colored by the section's accent.
-   - Product card imagery gets a radial highlight overlay (`radial-gradient`
-     white/orange wash, top-left) layered on top of the real photo for
-     depth — this sits over an actual `<Image>`, so it is not a
-     replacement for real product photography, just a framing treatment.
-   - Applied first to Homepage, Product Detail, and Checkout (2026-08-28),
-     then extended to Top Up, Rekber, Cek Transaksi, Rental, Login,
-     Register, Leaderboard, Community, Profile, and Admin as a fast-follow
-     the same day — full site coverage. Admin/Profile/Community keep their
-     data-dense tables and lists flat by design (bigger headline + Card
-     `variant="raised"` on the header/summary panels only); the depth
-     system was never meant to touch every row of a table.
+6. **Signature Nexus Moves** (see `app/globals.css`):
+   - **`.holo-ring`**: a holographic gradient border (magenta → cyan → violet) drawn as
+     a `::before` pseudo-element with a mask, so it needs no extra wrapper `<div>` — add
+     the class to any element that already has a `border-radius`. Used on `Card
+     variant="raised"` (purchase/summary boxes, hero product card, admin dashboard
+     panels) — never as the default for every surface, only the highest-priority ones.
+   - **`.hex-clip`**: an elongated-hexagon `clip-path` for tier/status ribbon badges
+     (MYTHIC, VERIFIED, Bisa Sewa, ...) — the shaped-badge equivalent of the old ribbon.
+   - **`.grid-floor`**: a synthwave perspective floor grid (`repeating-linear-gradient`
+     + `rotateX`), masked to fade toward the horizon. Used once per hero-type section,
+     never more than that.
+   - **Radius scale is shrunk globally** via `@theme`'s `--radius-lg/xl/2xl/3xl`
+     overrides in `globals.css` — every existing `rounded-xl`/`rounded-2xl` usage got
+     tighter automatically (Nexus panels read more technical/less "soft SaaS" than the
+     old system without touching each component).
+   - CTAs (`Button` primary) use a magenta gradient with a soft glow shadow instead of
+     the old cyan gradient; `urgency` stays amber, `danger` uses the `urgency-red` token.
+   - Headline accent words get a magenta→cyan gradient `bg-clip-text` treatment with a
+     faint magenta `drop-shadow` glow (see `HeroBanner`, `Header` wordmark).
+   - Ambient `glow-blob`s behind hero/section-transition surfaces now pair magenta +
+     cyan (was cyan + orange) for the multi-neon feel — still sparing, still blurred,
+     never as a card background.
+
+7. **Rollout status**: full site — every page and the admin dashboard — repainted via
+   the token change (2026-08-28). Structural Nexus signatures (`.holo-ring`, `.hex-clip`,
+   `.grid-floor`) are applied at the highest-impact spots (hero, purchase/summary
+   panels, tier badges, admin Sales Dashboard) rather than everywhere; data-dense admin
+   tables and lists stay flat by design, same reasoning as the old system's §6.

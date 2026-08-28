@@ -54,7 +54,7 @@ export default function PostComposer({ games }: { games: Game[] }) {
               Kirim
             </Button>
           </div>
-          {error && <p className="text-xs text-red-400">{error}</p>}
+          {error && <p className="text-xs text-urgency-red">{error}</p>}
         </form>
       </CardContent>
     </Card>

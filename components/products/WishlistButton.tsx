@@ -48,7 +48,7 @@ export default function WishlistButton({
         'w-full'
       )}
     >
-      <Heart className={cn('w-4 h-4', wishlisted && 'fill-red-400 text-red-400')} />
+      <Heart className={cn('w-4 h-4', wishlisted && 'fill-urgency-red text-urgency-red')} />
       {wishlisted ? 'Di Wishlist' : 'Tambah ke Wishlist'}
     </button>
   );

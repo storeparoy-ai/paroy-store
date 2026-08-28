@@ -119,7 +119,7 @@ export default function CekTransaksiPage() {
 
         {result.kind === 'failed' && (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <XCircle className="w-8 h-8 text-red-400" />
+            <XCircle className="w-8 h-8 text-urgency-red" />
             <p className="text-sm font-bold text-text-main">Transaksi Dibatalkan</p>
             <p className="text-xs text-text-muted max-w-xs">
               {result.itemLabel} &middot; Hubungi admin lewat WhatsApp jika ini tidak sesuai.

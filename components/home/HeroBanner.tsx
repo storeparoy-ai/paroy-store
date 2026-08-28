@@ -28,8 +28,10 @@ export default function HeroBanner({
   return (
     <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border-subtle bg-bg-card bg-grain">
       {/* Ambient glow blobs — subtle, behind the solid surface */}
-      <div className="pointer-events-none absolute -top-32 -right-20 w-[520px] h-[520px] rounded-full bg-brand-cyan/[0.14] blur-[100px]" />
-      <div className="pointer-events-none absolute -bottom-40 -left-24 w-96 h-96 rounded-full bg-urgency-orange/[0.10] blur-[100px]" />
+      <div className="pointer-events-none absolute -top-32 -right-20 w-[520px] h-[520px] rounded-full bg-brand-magenta/[0.14] blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-40 -left-24 w-96 h-96 rounded-full bg-brand-cyan/[0.12] blur-[100px]" />
+      {/* Synthwave floor grid — signature Paroy Nexus move, see DESIGN.md */}
+      <div className="grid-floor -left-[10%] -right-[10%] -bottom-10 h-56" />
 
       <div className="relative grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
         <div>
@@ -40,7 +42,7 @@ export default function HeroBanner({
 
           <h1 className="font-heading font-extrabold text-4xl sm:text-5xl lg:text-[56px] xl:text-[62px] text-text-main tracking-[-0.03em] leading-[1.08] mt-6 mb-6 text-balance">
             Top Up Kilat, Jual Beli &amp; Sewa Akun Game{' '}
-            <span className="bg-gradient-to-r from-white via-white to-brand-cyan bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent drop-shadow-[0_0_22px_rgba(255,46,154,0.25)]">
               Tanpa Ribet
             </span>
           </h1>

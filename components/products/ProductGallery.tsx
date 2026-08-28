@@ -18,7 +18,7 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_12%_0%,rgba(34,211,238,0.16),transparent_58%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_12%_0%,rgba(0,229,255,0.16),transparent_58%)]" />
       </div>
 
       {images.length > 1 && (

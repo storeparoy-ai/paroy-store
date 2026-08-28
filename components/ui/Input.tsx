@@ -30,7 +30,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'w-full h-11 bg-bg-card text-text-main placeholder:text-text-dim text-xs sm:text-sm rounded-xl border border-border-subtle transition-all duration-200 focus:outline-none focus:border-brand-cyan/60 focus:ring-1 focus:ring-brand-cyan/30 disabled:opacity-50 disabled:cursor-not-allowed',
               leftIcon ? 'pl-10' : 'pl-4',
               rightElement ? 'pr-10' : 'pr-4',
-              error && 'border-red-500/50 focus:border-red-500 focus:ring-red-500/30',
+              error && 'border-urgency-red/50 focus:border-urgency-red focus:ring-urgency-red/30',
               className
             )}
             {...props}
@@ -41,7 +41,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && <span className="text-[11px] text-red-400 font-medium">{error}</span>}
+        {error && <span className="text-[11px] text-urgency-red font-medium">{error}</span>}
       </div>
     );
   }

@@ -50,10 +50,10 @@ export default function WishlistGrid({ products }: { products: Product[] }) {
               <button
                 onClick={() => handleRemove(product.id)}
                 disabled={isPending}
-                className="text-red-400 hover:text-red-300 transition-colors"
+                className="text-urgency-red hover:text-urgency-red transition-colors"
                 aria-label="Hapus dari wishlist"
               >
-                <Heart className="w-4 h-4 fill-red-400" />
+                <Heart className="w-4 h-4 fill-urgency-red" />
               </button>
             </div>
           </CardContent>

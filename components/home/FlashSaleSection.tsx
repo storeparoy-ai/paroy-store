@@ -51,10 +51,10 @@ function FlashSaleCard({ sale }: { sale: FlashSale }) {
             sizes="288px"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-[radial-gradient(110%_90%_at_85%_0%,rgba(249,115,22,0.22),transparent_62%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(110%_90%_at_85%_0%,rgba(255,176,32,0.22),transparent_62%)]" />
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-            <span className="px-2.5 py-1 rounded-full bg-bg-deep/75 border border-urgency-orange/30 text-[10.5px] font-extrabold text-orange-300 flex items-center gap-1">
-              <Flame className="w-3 h-3 fill-orange-300" />
+            <span className="px-2.5 py-1 rounded-full bg-bg-deep/75 border border-urgency-orange/30 text-[10.5px] font-extrabold text-urgency-orange flex items-center gap-1">
+              <Flame className="w-3 h-3 fill-urgency-orange" />
               DISKON {discount}%
             </span>
             <span className="px-2.5 py-1 rounded-full bg-bg-deep/75 border border-urgency-orange/30 font-mono text-[10.5px] font-extrabold text-text-main">
@@ -107,7 +107,7 @@ export default function FlashSaleSection({ sales }: { sales: FlashSale[] }) {
         </div>
         <Link
           href="/flash-sales"
-          className="flex items-center gap-1 text-xs sm:text-sm font-bold text-urgency-orange hover:text-orange-400 transition-colors pb-1.5 shrink-0"
+          className="flex items-center gap-1 text-xs sm:text-sm font-bold text-urgency-orange hover:opacity-80 transition-opacity pb-1.5 shrink-0"
         >
           Lihat Semua
           <ArrowRight className="w-3.5 h-3.5" />

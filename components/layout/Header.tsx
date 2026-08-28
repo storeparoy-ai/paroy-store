@@ -28,11 +28,14 @@ export default function Header({ user }: { user: CurrentUser | null }) {
       <Container className="flex items-center justify-between gap-4 h-20 lg:h-[92px]">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="w-10 h-10 rounded-[13px] bg-gradient-to-br from-brand-cyan/15 to-brand-cyan/5 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shadow-[0_0_24px_-6px_rgba(34,211,238,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(34,211,238,0.6)] transition-shadow">
+          <div className="w-10 h-10 rounded-[13px] bg-gradient-to-br from-brand-magenta/15 to-brand-cyan/10 border border-brand-magenta/30 flex items-center justify-center text-brand-cyan shadow-[0_0_24px_-6px_rgba(255,46,154,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(255,46,154,0.6)] transition-shadow">
             <Gamepad2 className="w-5 h-5" />
           </div>
           <span className="font-heading font-extrabold text-xl tracking-tight text-text-main hidden sm:inline">
-            PAROY<span className="text-brand-cyan">STORE</span>
+            PAROY
+            <span className="bg-gradient-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent">
+              STORE
+            </span>
           </span>
         </Link>
 
@@ -63,7 +66,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
           {user ? (
             <div className="flex items-center gap-4 pl-4 border-l border-border-subtle">
               {user.role === 'admin' && (
-                <Link href="/admin" className="text-xs font-semibold text-trust-emerald hover:text-emerald-300 flex items-center gap-1.5 whitespace-nowrap">
+                <Link href="/admin" className="text-xs font-semibold text-trust-emerald hover:opacity-80 flex items-center gap-1.5 whitespace-nowrap">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Admin
                 </Link>

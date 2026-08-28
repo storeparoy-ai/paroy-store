@@ -32,7 +32,7 @@ export default function BottomNav() {
                 active ? 'text-brand-cyan' : 'text-text-dim hover:text-text-muted'
               )}
             >
-              <Icon className={cn('w-5 h-5', active && 'drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]')} />
+              <Icon className={cn('w-5 h-5', active && 'drop-shadow-[0_0_6px_rgba(0,229,255,0.5)]')} />
               {item.label}
             </Link>
           );

@@ -74,7 +74,7 @@ export default function PaymentMethodsTable({ methods }: { methods: AdminPayment
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
                       <Button size="sm" variant="ghost" aria-label="Hapus" onClick={() => setDeleting(method)}>
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-urgency-red" />
                       </Button>
                     </div>
                   </td>

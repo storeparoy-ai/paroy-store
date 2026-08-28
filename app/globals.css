@@ -1,37 +1,58 @@
 @import "tailwindcss";
 
+/* ========================
+   PAROY NEXUS — design tokens
+   Neon-holographic direction (see DESIGN.md). Token NAMES kept stable from
+   the previous "Disciplined Dark Cyberpunk" system so every existing
+   `bg-brand-cyan` / `text-urgency-orange` / `border-trust-emerald` usage
+   site-wide repaints automatically — only two new brand accents
+   (magenta, violet) needed introducing as new tokens.
+======================= */
 @theme {
-  --font-sans: var(--font-sans), 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-heading: var(--font-heading), 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans: var(--font-sans), 'Rajdhani', system-ui, sans-serif;
+  --font-heading: var(--font-heading), 'Orbitron', 'Rajdhani', system-ui, sans-serif;
   --font-mono: var(--font-mono), 'JetBrains Mono', monospace;
-  
-  --color-brand-cyan: #22d3ee;
-  --color-urgency-orange: #f97316;
-  --color-urgency-red: #f87171;
-  --color-trust-emerald: #34d399;
-  
-  --color-bg-deep: #06080d;
-  --color-bg-base: #0a0f1a;
-  --color-bg-card: #111520;
-  --color-bg-card-alt: #141a29;
-  --color-bg-raised: #141a29;
-  
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-border-hover: rgba(34, 211, 238, 0.35);
-  
-  --color-text-main: #f8fafc;
-  --color-text-muted: #94a3b8;
-  --color-text-dim: #64748b;
+
+  --color-brand-magenta: #ff2e9a;
+  --color-brand-cyan: #00e5ff;
+  --color-brand-violet: #9d4eff;
+  --color-urgency-orange: #ffb020;
+  --color-urgency-red: #ff3b5c;
+  --color-trust-emerald: #c6ff3d;
+
+  --color-bg-deep: #06040d;
+  --color-bg-base: #0a0714;
+  --color-bg-card: #140f24;
+  --color-bg-card-alt: #1c1533;
+  --color-bg-raised: #1c1533;
+
+  --color-border-subtle: rgba(157, 78, 255, 0.16);
+  --color-border-hover: rgba(255, 46, 154, 0.4);
+
+  --color-text-main: #f1edff;
+  --color-text-muted: #9089b8;
+  --color-text-dim: #6b6293;
+
+  /* Nexus panels read as tighter/more technical than the old soft-rounded
+     cards — shrinking the shared radius scale (rather than editing every
+     `rounded-2xl`/`rounded-xl` usage individually) repaints every card,
+     button, input and modal at once. */
+  --radius-lg: 6px;
+  --radius-xl: 7px;
+  --radius-2xl: 8px;
+  --radius-3xl: 12px;
 }
 
 :root {
-  --bg-base: #0a0f1a;
-  --bg-card: #111520;
-  --bg-card-alt: #141a29;
-  --brand-cyan: #22d3ee;
-  --urgency-orange: #f97316;
-  --trust-emerald: #34d399;
-  --border-subtle: rgba(255, 255, 255, 0.06);
+  --bg-base: #0a0714;
+  --bg-card: #140f24;
+  --bg-card-alt: #1c1533;
+  --brand-magenta: #ff2e9a;
+  --brand-cyan: #00e5ff;
+  --brand-violet: #9d4eff;
+  --urgency-orange: #ffb020;
+  --trust-emerald: #c6ff3d;
+  --border-subtle: rgba(157, 78, 255, 0.16);
 }
 
 /* NOTE: no unlayered `* { margin: 0; padding: 0 }` reset here on purpose —
@@ -47,9 +68,9 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: #0a0f1a;
-  color: #f8fafc;
-  font-family: var(--font-sans), 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-color: #0a0714;
+  color: #f1edff;
+  font-family: var(--font-sans), 'Rajdhani', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -63,35 +84,41 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0f1a;
+  background: #0a0714;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #2e2350;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #4a3d75;
 }
 
 /* ========================
    MICRO UTILITIES
 ======================= */
 .glow-cyan-sm {
-  box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
 }
 
 .glow-cyan {
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+}
+
+.glow-magenta {
+  box-shadow: 0 0 20px rgba(255, 46, 154, 0.35);
 }
 
 .glow-orange {
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 0 16px rgba(255, 176, 32, 0.35);
 }
 
 .text-gradient-cyan {
-  background: linear-gradient(135deg, #ffffff 30%, #22d3ee 100%);
+  background: linear-gradient(90deg, #ff2e9a, #00e5ff);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(255, 46, 154, 0.3));
 }
 
 /* ========================
@@ -136,4 +163,80 @@ body {
   border-radius: 999px;
   filter: blur(90px);
   pointer-events: none;
+}
+
+/* ========================
+   NEXUS ACCENTS
+   The signature moves from the "Paroy Nexus" direction (see DESIGN.md):
+   a holographic gradient ring instead of a flat border, a synthwave grid
+   horizon for the hero, an elongated-hexagon clip for tier badges, and a
+   faint CRT scanline overlay. Used sparingly — one hero, one badge shape,
+   a handful of "raised" panels — never as the default for every surface.
+======================= */
+
+/* Gradient ring drawn as a pseudo-element mask, so it needs no extra
+   wrapper div and works on any element with a border-radius. Add
+   `relative` (or rely on the host already being positioned) on the host. */
+.holo-ring {
+  position: relative;
+}
+.holo-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(120deg, var(--brand-magenta), var(--brand-cyan) 45%, var(--brand-violet));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Elongated-hexagon clip for tier/status badges (MYTHIC, VERIFIED, ...). */
+.hex-clip {
+  clip-path: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%);
+}
+
+/* Synthwave floor grid — sits behind the hero, faded to transparent
+   toward the horizon via mask. */
+.grid-floor {
+  position: absolute;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 229, 255, 0.22) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(0deg, rgba(157, 78, 255, 0.22) 0 1px, transparent 1px 22px);
+  transform: perspective(280px) rotateX(62deg);
+  mask-image: linear-gradient(0deg, black, transparent 85%);
+  -webkit-mask-image: linear-gradient(0deg, black, transparent 85%);
+}
+
+/* Faint CRT scanlines — whole-page atmosphere, extremely low opacity. */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .scan-sweep {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--brand-cyan), transparent);
+    opacity: 0.7;
+    animation: scan-sweep 3.5s linear infinite;
+  }
+}
+@keyframes scan-sweep {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
 }

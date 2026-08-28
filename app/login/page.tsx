@@ -24,7 +24,7 @@ export default async function LoginPage({
           </h1>
           <p className="text-xs text-text-muted">
             Belum punya akun?{' '}
-            <Link href="/register" className="text-brand-cyan font-semibold hover:text-cyan-300">
+            <Link href="/register" className="text-brand-cyan font-semibold hover:opacity-80">
               Daftar sekarang
             </Link>
           </p>

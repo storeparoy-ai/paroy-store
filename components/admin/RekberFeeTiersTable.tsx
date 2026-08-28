@@ -70,7 +70,7 @@ export default function RekberFeeTiersTable({ tiers }: { tiers: AdminRekberFeeTi
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
                       <Button size="sm" variant="ghost" aria-label="Hapus" onClick={() => setDeleting(tier)}>
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-urgency-red" />
                       </Button>
                     </div>
                   </td>

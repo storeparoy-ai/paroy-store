@@ -37,7 +37,7 @@ function GameFormFields({
   const [slugTouched, setSlugTouched] = useState(!!game);
   const [icon, setIcon] = useState(game?.icon ?? '🎮');
   const [iconUrl, setIconUrl] = useState<string | null>(game?.iconUrl ?? null);
-  const [color, setColor] = useState(game?.color ?? '#22d3ee');
+  const [color, setColor] = useState(game?.color ?? '#00e5ff');
   const [sortOrder, setSortOrder] = useState(String(game?.sortOrder ?? 0));
   const [isActive, setIsActive] = useState(game?.isActive ?? true);
   const [error, setError] = useState('');
@@ -137,7 +137,7 @@ function GameFormFields({
       </label>
 
       {error && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/25 text-xs text-red-400">
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-urgency-red/10 border border-urgency-red/25 text-xs text-urgency-red">
           <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>

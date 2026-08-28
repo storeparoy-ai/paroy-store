@@ -14,8 +14,8 @@ const PERIODS = [
 
 const RANK_STYLE = [
   { icon: Crown, color: 'text-urgency-orange', bg: 'bg-urgency-orange/10 border-urgency-orange/30' },
-  { icon: Medal, color: 'text-slate-300', bg: 'bg-white/10 border-white/20' },
-  { icon: Medal, color: 'text-orange-700', bg: 'bg-orange-700/10 border-orange-700/30' },
+  { icon: Medal, color: 'text-brand-cyan', bg: 'bg-brand-cyan/10 border-brand-cyan/25' },
+  { icon: Medal, color: 'text-[#d99a5c]', bg: 'bg-[#d99a5c]/10 border-[#d99a5c]/30' },
 ];
 
 export default async function LeaderboardPage({

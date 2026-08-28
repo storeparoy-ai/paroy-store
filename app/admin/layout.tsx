@@ -11,11 +11,13 @@ import {
   Flame,
   Wallet,
   ShieldCheck,
+  LayoutDashboard,
 } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import { getCurrentUser } from '@/lib/supabase/queries';
 
 const TABS = [
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/pesanan', label: 'Pesanan', icon: ClipboardList },
   { href: '/admin/produk', label: 'Produk', icon: Package },
   { href: '/admin/kategori-game', label: 'Kategori Game', icon: Gamepad2 },

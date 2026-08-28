@@ -190,7 +190,7 @@ export default function DesignSystemStudioPage() {
               <div className="md:col-span-3 flex flex-wrap items-center gap-4 font-mono">
                 <span className="text-xl font-bold text-brand-cyan">{formatCurrency(450000)}</span>
                 <span className="text-xs text-text-dim line-through">{formatCurrency(750000)}</span>
-                <span className="text-xs px-2 py-0.5 rounded-sm bg-bg-card-alt border border-white/10 text-slate-300">INV-2026-0824</span>
+                <span className="text-xs px-2 py-0.5 rounded-sm bg-bg-card-alt border border-white/10 text-text-muted">INV-2026-0824</span>
               </div>
             </div>
           </div>
@@ -348,7 +348,7 @@ export default function DesignSystemStudioPage() {
                 label="User ID Game (Mobile Legends)"
                 defaultValue="1234567"
                 error="Server ID wajib diisi untuk verifikasi akun game"
-                leftIcon={<AlertCircle className="w-4 h-4 text-red-400" />}
+                leftIcon={<AlertCircle className="w-4 h-4 text-urgency-red" />}
               />
 
               {/* Disabled input */}
@@ -453,7 +453,7 @@ export default function DesignSystemStudioPage() {
               <div>
                 {/* Card Top Media Container */}
                 <div className="relative aspect-video w-full bg-bg-card-alt overflow-hidden border-b border-border-subtle">
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-950/40 text-slate-500 text-xs font-mono">
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-bg-deep via-bg-card to-brand-cyan/10 text-text-dim text-xs font-mono">
                     [Preview Akun Game]
                   </div>
                   <div className="absolute top-3 left-3">
@@ -503,7 +503,7 @@ export default function DesignSystemStudioPage() {
             <Card variant="interactive" className="border-urgency-orange/30 hover:border-urgency-orange flex flex-col justify-between">
               <div>
                 <div className="relative aspect-video w-full bg-bg-card-alt overflow-hidden border-b border-border-subtle">
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-orange-950/20 to-slate-900 text-slate-500 text-xs font-mono">
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-bg-deep via-urgency-orange/10 to-bg-deep text-text-dim text-xs font-mono">
                     [Flash Sale Promo]
                   </div>
                   <div className="absolute top-3 left-3">

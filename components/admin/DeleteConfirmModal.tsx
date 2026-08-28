@@ -43,14 +43,14 @@ export default function DeleteConfirmModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 flex items-center justify-center mb-1">
+          <div className="w-10 h-10 rounded-xl bg-urgency-red/10 border border-urgency-red/25 text-urgency-red flex items-center justify-center mb-1">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && <p className="text-xs text-urgency-red">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>

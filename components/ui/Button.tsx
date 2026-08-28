@@ -9,17 +9,17 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-gradient-to-b from-cyan-300 to-brand-cyan text-bg-deep font-bold shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_12px_24px_-8px_rgba(34,211,238,0.55)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_14px_28px_-6px_rgba(34,211,238,0.65)] border border-white/25',
+          'bg-gradient-to-r from-brand-magenta to-pink-700 text-white font-bold shadow-[inset_0_1px_0_rgba(255,255,255,.25),0_12px_28px_-8px_rgba(255,46,154,0.55)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.25),0_14px_32px_-6px_rgba(255,46,154,0.7)] border border-white/10',
         outline:
           'bg-transparent text-brand-cyan border border-brand-cyan/40 hover:bg-brand-cyan/10 hover:border-brand-cyan',
         secondary:
           'bg-bg-card-alt text-text-main border border-border-subtle hover:border-white/20 hover:bg-white/5',
         urgency:
-          'bg-gradient-to-b from-orange-400 to-urgency-orange text-bg-deep font-bold shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_10px_20px_-8px_rgba(249,115,22,0.55)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_12px_24px_-6px_rgba(249,115,22,0.65)] border border-orange-300/40',
+          'bg-gradient-to-b from-amber-300 to-urgency-orange text-bg-deep font-bold shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_10px_20px_-8px_rgba(255,176,32,0.55)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_12px_24px_-6px_rgba(255,176,32,0.65)] border border-amber-200/40',
         ghost:
           'bg-transparent text-text-muted hover:text-text-main hover:bg-white/5',
         danger:
-          'bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 hover:border-red-500/50',
+          'bg-urgency-red/15 text-urgency-red border border-urgency-red/30 hover:bg-urgency-red/25 hover:border-urgency-red/50',
       },
       size: {
         sm: 'h-8 px-3 text-xs rounded-lg',

@@ -10,7 +10,7 @@ export const badgeVariants = cva(
         cyan: 'bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30',
         trust: 'bg-trust-emerald/15 text-trust-emerald border border-trust-emerald/30',
         urgency: 'bg-urgency-orange/15 text-urgency-orange border border-urgency-orange/30',
-        danger: 'bg-red-500/15 text-red-400 border border-red-500/30',
+        danger: 'bg-urgency-red/15 text-urgency-red border border-urgency-red/30',
         neutral: 'bg-white/5 text-text-muted border border-border-subtle',
         plain: 'bg-white/5 text-text-muted',
       },

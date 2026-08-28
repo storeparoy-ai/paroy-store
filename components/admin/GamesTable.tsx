@@ -95,7 +95,7 @@ export default function GamesTable({ games }: { games: AdminGame[] }) {
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
                       <Button size="sm" variant="ghost" aria-label="Hapus" onClick={() => setDeleting(game)}>
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-urgency-red" />
                       </Button>
                     </div>
                   </td>
