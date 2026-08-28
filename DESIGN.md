@@ -73,5 +73,10 @@
      white/orange wash, top-left) layered on top of the real photo for
      depth — this sits over an actual `<Image>`, so it is not a
      replacement for real product photography, just a framing treatment.
-   - Applied first to Homepage, Product Detail, and Checkout (2026-08-28);
-     other pages get the same treatment as a fast-follow.
+   - Applied first to Homepage, Product Detail, and Checkout (2026-08-28),
+     then extended to Top Up, Rekber, Cek Transaksi, Rental, Login,
+     Register, Leaderboard, Community, Profile, and Admin as a fast-follow
+     the same day — full site coverage. Admin/Profile/Community keep their
+     data-dense tables and lists flat by design (bigger headline + Card
+     `variant="raised"` on the header/summary panels only); the depth
+     system was never meant to touch every row of a table.
