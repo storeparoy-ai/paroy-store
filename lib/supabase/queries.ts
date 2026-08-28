@@ -110,6 +110,41 @@ export async function getActiveFlashSales(): Promise<FlashSale[] | null> {
   }
 }
 
+export interface CurrentUser {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+  role: 'user' | 'admin';
+}
+
+/** Current auth session + profile, for the Header/nav to render logged-in
+ * state. Returns `null` when signed out — never throws. */
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    return {
+      id: user.id,
+      email: user.email ?? null,
+      fullName: profile?.full_name ?? null,
+      role: profile?.role === 'admin' ? 'admin' : 'user',
+    };
+  } catch (err) {
+    console.error('[getCurrentUser] failed:', err);
+    return null;
+  }
+}
+
 /**
  * Public order status lookup, backed by the `get_order_status` SECURITY
  * DEFINER RPC function (see migration 00000000000002). Works for guests —

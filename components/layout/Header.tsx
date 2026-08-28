@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, Zap, LogIn, Menu, X, Gamepad2 } from 'lucide-react';
+import { Search, Zap, LogIn, LogOut, Menu, X, Gamepad2, UserCircle2, ShieldCheck } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { signOutAction } from '@/lib/supabase/auth-actions';
 import { cn } from '@/lib/utils';
+import type { CurrentUser } from '@/lib/supabase/queries';
 
 const NAV_LINKS = [
   { href: '/', label: 'Beranda' },
@@ -17,7 +19,7 @@ const NAV_LINKS = [
   { href: '/cek-transaksi', label: 'Cek Transaksi' },
 ];
 
-export default function Header() {
+export default function Header({ user }: { user: CurrentUser | null }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
@@ -58,12 +60,32 @@ export default function Header() {
               className="h-9 bg-bg-card-alt"
             />
           </div>
-          <Link href="/login">
-            <Button variant="outline" size="sm">
-              <LogIn className="w-3.5 h-3.5" />
-              Masuk
-            </Button>
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-2">
+              {user.role === 'admin' && (
+                <Link href="/admin" className="text-xs font-semibold text-trust-emerald hover:text-emerald-300 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Admin
+                </Link>
+              )}
+              <Link href="/profile" className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors">
+                <UserCircle2 className="w-4 h-4" />
+                {user.fullName || 'Akun Saya'}
+              </Link>
+              <form action={signOutAction}>
+                <Button variant="ghost" size="sm" type="submit" aria-label="Keluar">
+                  <LogOut className="w-3.5 h-3.5" />
+                </Button>
+              </form>
+            </div>
+          ) : (
+            <Link href="/login">
+              <Button variant="outline" size="sm">
+                <LogIn className="w-3.5 h-3.5" />
+                Masuk
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -103,12 +125,37 @@ export default function Header() {
               </Link>
             ))}
           </nav>
-          <Link href="/login" className="block" onClick={() => setMobileOpen(false)}>
-            <Button variant="primary" className="w-full">
-              <LogIn className="w-4 h-4" />
-              Masuk / Daftar
-            </Button>
-          </Link>
+          {user ? (
+            <div className="space-y-2">
+              <Link href="/profile" className="block" onClick={() => setMobileOpen(false)}>
+                <Button variant="secondary" className="w-full">
+                  <UserCircle2 className="w-4 h-4" />
+                  {user.fullName || 'Akun Saya'}
+                </Button>
+              </Link>
+              {user.role === 'admin' && (
+                <Link href="/admin" className="block" onClick={() => setMobileOpen(false)}>
+                  <Button variant="secondary" className="w-full">
+                    <ShieldCheck className="w-4 h-4 text-trust-emerald" />
+                    Dashboard Admin
+                  </Button>
+                </Link>
+              )}
+              <form action={signOutAction}>
+                <Button variant="ghost" className="w-full" type="submit">
+                  <LogOut className="w-4 h-4" />
+                  Keluar
+                </Button>
+              </form>
+            </div>
+          ) : (
+            <Link href="/login" className="block" onClick={() => setMobileOpen(false)}>
+              <Button variant="primary" className="w-full">
+                <LogIn className="w-4 h-4" />
+                Masuk / Daftar
+              </Button>
+            </Link>
+          )}
         </Container>
       </div>
     </header>

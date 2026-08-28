@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Outfit, JetBrains_Mono } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import BottomNav from '@/components/layout/BottomNav';
+import { getCurrentUser } from '@/lib/supabase/queries';
 import './globals.css';
 
 const jakarta = Plus_Jakarta_Sans({
@@ -31,15 +32,17 @@ export const metadata: Metadata = {
   description: 'Marketplace jual beli akun game, top up kilat, dan rekber escrow resmi terpercaya.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
     <html lang="id" className={`${jakarta.variable} ${outfit.variable} ${jetbrains.variable}`}>
       <body className="font-sans antialiased min-h-screen bg-bg-base text-text-main flex flex-col">
-        <Header />
+        <Header user={user} />
         <main className="flex-1">{children}</main>
         <Footer />
         <BottomNav />

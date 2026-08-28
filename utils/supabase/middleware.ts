@@ -33,28 +33,36 @@ export async function updateSession(request: NextRequest) {
 
   // PROTECTED ROUTES
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/profile') || request.nextUrl.pathname.startsWith('/checkout')
+  // NOTE: /checkout, /topup, and /rekber are intentionally NOT protected —
+  // PRD requires guest checkout (no forced login) and a public, no-login
+  // "Cek Transaksi" lookup. Only /profile (personal dashboard) and /admin
+  // require an account.
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/profile')
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
 
   // 1. Redirect if trying to access protected route without being logged in
   if (!user && (isProtectedRoute || isAdminRoute)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
 
   // 2. Redirect logged-in users away from auth pages
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/profile'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
-  // 3. Simple Admin check (for demonstration, ideally check role in database)
-  // Here we just hardcode an admin email for the mock portfolio if needed
+  // 3. Admin check — role is looked up from `profiles`, not just "is logged in".
   if (user && isAdminRoute) {
-    // We will check role properly later, for now we allow any logged in user to see admin
-    // or you can restrict it by email: if (user.email !== 'admin@paroy.store') redirect to /
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    if (profile?.role !== 'admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse
