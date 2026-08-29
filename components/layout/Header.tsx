@@ -25,15 +25,15 @@ export default function Header({ user }: { user: CurrentUser | null }) {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-bg-deep border-b border-border-subtle">
-      <Container className="flex items-center justify-between gap-4 h-20 lg:h-[92px]">
+      <Container className="flex items-center justify-between gap-4 h-20 lg:h-23">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="w-10 h-10 rounded-[13px] bg-gradient-to-br from-brand-magenta/15 to-brand-cyan/10 border border-brand-magenta/30 flex items-center justify-center text-brand-cyan shadow-[0_0_24px_-6px_rgba(255,46,154,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(255,46,154,0.6)] transition-shadow">
+          <div className="w-10 h-10 rounded-[13px] bg-linear-to-br from-brand-magenta/15 to-brand-cyan/10 border border-brand-magenta/30 flex items-center justify-center text-brand-cyan shadow-[0_0_24px_-6px_rgba(255,46,154,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(255,46,154,0.6)] transition-shadow">
             <Gamepad2 className="w-5 h-5" />
           </div>
           <span className="font-heading font-extrabold text-xl tracking-tight text-text-main hidden sm:inline">
             PAROY
-            <span className="bg-gradient-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent">
               STORE
             </span>
           </span>
@@ -105,7 +105,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
       <div
         className={cn(
           'lg:hidden overflow-hidden transition-all duration-300 border-t border-border-subtle bg-bg-deep',
-          mobileOpen ? 'max-h-[26rem]' : 'max-h-0 border-t-0'
+          mobileOpen ? 'max-h-104' : 'max-h-0 border-t-0'
         )}
       >
         <Container className="py-4 space-y-4">
