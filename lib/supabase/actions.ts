@@ -6,14 +6,26 @@ import { getOrderStatus } from '@/lib/supabase/queries';
 type ActionResult = { success: true; orderNumber: string } | { success: false; error: string };
 
 /**
- * All three actions below insert as a GUEST order (buyer_id / user_id /
+ * All three actions below create a GUEST order (buyer_id / user_id /
  * requester_id left null) unless the caller happens to have an active
  * Supabase auth session, in which case it's attached automatically.
  *
- * These will fail with an RLS error until migration
- * `00000000000002_guest_checkout.sql` has been applied to the database —
- * callers should catch `success: false` and fall back to a local/simulated
- * flow rather than surfacing a hard error to the user.
+ * They go through a SECURITY DEFINER RPC (create_guest_order /
+ * create_guest_topup / create_guest_rekber, migration
+ * `00000000000007_guest_order_rpc.sql`) rather than a plain `.insert()`.
+ * Reason: `.insert().select()` asks Postgres to read the new row back
+ * (RETURNING), which requires a matching SELECT policy — and the existing
+ * "view your own order" SELECT policies never match a guest row (owner_id
+ * IS NULL, auth.uid() IS NULL, NULL = NULL is NULL, not true). Broadening
+ * those SELECT policies to also allow owner_id IS NULL would let any
+ * anonymous visitor list every guest order's buyer name/WhatsApp/amount, not
+ * just look up one they already know the invoice number for — so instead
+ * the RPC runs with elevated rights internally and returns ONLY the new
+ * order_number, the same narrow-exposure pattern get_order_status() already
+ * uses for the public "Cek Transaksi" lookup.
+ *
+ * These will fail (caught below, falling back to a local/simulated flow)
+ * until migration `00000000000007_guest_order_rpc.sql` has been applied.
  */
 
 export async function createBuyOrder(input: {
@@ -31,28 +43,18 @@ export async function createBuyOrder(input: {
 }): Promise<ActionResult> {
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const { data, error } = await supabase
-      .from('orders')
-      .insert({
-        buyer_id: user?.id ?? null,
-        buyer_name: input.buyerName,
-        buyer_whatsapp: input.buyerWhatsapp,
-        product_id: input.productId,
-        amount: input.amount,
-        mode: input.mode ?? 'buy',
-        note: input.note ?? null,
-        status: 'pending',
-        payment_method: input.paymentMethod,
-      })
-      .select('order_number')
-      .single();
+    const { data, error } = await supabase.rpc('create_guest_order', {
+      p_buyer_name: input.buyerName,
+      p_buyer_whatsapp: input.buyerWhatsapp,
+      p_product_id: input.productId,
+      p_amount: input.amount,
+      p_payment_method: input.paymentMethod,
+      p_mode: input.mode ?? 'buy',
+      p_note: input.note ?? null,
+    });
 
     if (error) throw error;
-    return { success: true, orderNumber: data.order_number };
+    return { success: true, orderNumber: data as string };
   } catch (err) {
     console.error('[createBuyOrder] failed:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Gagal menyimpan pesanan' };
@@ -69,27 +71,17 @@ export async function createTopupOrder(input: {
 }): Promise<ActionResult> {
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const { data, error } = await supabase
-      .from('topup_orders')
-      .insert({
-        user_id: user?.id ?? null,
-        buyer_whatsapp: input.buyerWhatsapp ?? null,
-        game: input.game,
-        game_user_id: input.gameUserId,
-        item_label: input.itemLabel,
-        amount: input.amount,
-        payment_method: input.paymentMethod,
-        status: 'pending',
-      })
-      .select('order_number')
-      .single();
+    const { data, error } = await supabase.rpc('create_guest_topup', {
+      p_game: input.game,
+      p_game_user_id: input.gameUserId,
+      p_item_label: input.itemLabel,
+      p_amount: input.amount,
+      p_payment_method: input.paymentMethod,
+      p_buyer_whatsapp: input.buyerWhatsapp ?? null,
+    });
 
     if (error) throw error;
-    return { success: true, orderNumber: data.order_number };
+    return { success: true, orderNumber: data as string };
   } catch (err) {
     console.error('[createTopupOrder] failed:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Gagal menyimpan pesanan' };
@@ -112,28 +104,17 @@ export async function createRekberOrder(input: {
 }): Promise<ActionResult> {
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const { data, error } = await supabase
-      .from('rekber_orders')
-      .insert({
-        requester_id: user?.id ?? null,
-        buyer_name: input.buyerName,
-        buyer_whatsapp: input.buyerWhatsapp,
-        product_id: input.productId ?? null,
-        item_description: input.itemDescription,
-        amount: input.amount,
-        fee: input.fee,
-        seller_contact: 'Paroy Store (Official)',
-        status: 'pending',
-      })
-      .select('order_number')
-      .single();
+    const { data, error } = await supabase.rpc('create_guest_rekber', {
+      p_buyer_name: input.buyerName,
+      p_buyer_whatsapp: input.buyerWhatsapp,
+      p_product_id: input.productId ?? null,
+      p_item_description: input.itemDescription,
+      p_amount: input.amount,
+      p_fee: input.fee,
+    });
 
     if (error) throw error;
-    return { success: true, orderNumber: data.order_number };
+    return { success: true, orderNumber: data as string };
   } catch (err) {
     console.error('[createRekberOrder] failed:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Gagal menyimpan pengajuan' };
