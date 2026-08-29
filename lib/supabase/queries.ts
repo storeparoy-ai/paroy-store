@@ -265,9 +265,16 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
   }
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getProductById(id: string): Promise<Product | null> {
   'use cache';
   cacheLife('minutes');
+  // Demo/mock product ids (e.g. "7") aren't real uuids — querying Postgres
+  // with one throws 22P02 and just gets swallowed below anyway, so skip the
+  // wasted round trip and log noise entirely and let the caller's mock-data
+  // fallback (`getProductById(id) ?? MOCK_PRODUCTS.find(...)`) take over.
+  if (!UUID_RE.test(id)) return null;
   try {
     const supabase = createPublicClient();
     const [{ data, error }, lookup] = await Promise.all([
@@ -623,7 +630,14 @@ export async function getCurrentUserForDisplay(): Promise<CurrentUser | null> {
       role: profile?.role === 'admin' ? 'admin' : 'user',
     };
   } catch (err) {
-    console.error('[getCurrentUserForDisplay] failed:', err);
+    // Cache Components intentionally aborts cookies() with this digest once
+    // a route's static shell finishes prerendering — it's how Next detects
+    // this call belongs inside a Suspense boundary (see HeaderWithSession in
+    // app/layout.tsx). Expected build-time noise, not a real failure; only
+    // log anything else.
+    if ((err as { digest?: string })?.digest !== 'HANGING_PROMISE_REJECTION') {
+      console.error('[getCurrentUserForDisplay] failed:', err);
+    }
     return null;
   }
 }

@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { Rajdhani, Orbitron, JetBrains_Mono } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import BottomNav from '@/components/layout/BottomNav';
+import BottomNav, { BottomNavFallback } from '@/components/layout/BottomNav';
 import { getCurrentUserForDisplay } from '@/lib/supabase/queries';
 import './globals.css';
 
@@ -68,7 +68,9 @@ export default function RootLayout({
         </Suspense>
         <main className="flex-1">{children}</main>
         <Footer />
-        <BottomNav />
+        <Suspense fallback={<BottomNavFallback />}>
+          <BottomNav />
+        </Suspense>
       </body>
     </html>
   );

@@ -100,7 +100,7 @@ function ResultsSkeleton() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="aspect-[3/4] rounded-2xl bg-bg-card border border-border-subtle animate-pulse" />
+        <div key={i} className="aspect-3/4 rounded-2xl bg-bg-card border border-border-subtle animate-pulse" />
       ))}
     </div>
   );

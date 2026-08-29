@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -21,9 +21,28 @@ import { getProductById, getCurrentUserForDisplay, isProductWishlisted } from '@
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+// Kept dynamic on purpose: the product `id` param is needed before *any*
+// content can be produced (there's no bounded list of ids to prerender
+// ahead of time, unlike `/` or `/products`), so wrapping just the id-driven
+// parts in Suspense wouldn't leave a meaningful static shell behind it —
+// see https://nextjs.org/docs/messages/blocking-prerender-dynamic. The
+// WishlistSection split below still stands: it's the one piece of this
+// page that's dynamic for a *different* reason (the viewer's session), so
+// it's ready to go the day this route gains generateStaticParams for its
+// top products and becomes worth converting for real.
 export const instant = false;
+
+/** The only genuinely per-request bit of this whole page — whether the
+ * viewer is logged in, and whether they already wishlisted this product.
+ * Isolated in its own Suspense boundary (same pattern as app/layout.tsx's
+ * HeaderWithSession) so the rest of the page — the product data itself,
+ * already cached via getProductById() — can prerender/cache instead of
+ * forcing the entire route dynamic. Fallback matches the logged-out state,
+ * so there's no layout shift while it resolves. */
+async function WishlistSection({ productId }: { productId: string }) {
+  const [user, wishlisted] = await Promise.all([getCurrentUserForDisplay(), isProductWishlisted(productId)]);
+  return <WishlistButton productId={productId} isLoggedIn={!!user} initialWishlisted={wishlisted} />;
+}
 
 export default async function ProductDetailPage({
   params,
@@ -38,8 +57,6 @@ export default async function ProductDetailPage({
   if (!product) {
     notFound();
   }
-
-  const [user, wishlisted] = await Promise.all([getCurrentUserForDisplay(), isProductWishlisted(product.id)]);
 
   const specEntries = Object.entries(product.specs);
 
@@ -161,7 +178,9 @@ export default async function ProductDetailPage({
                   <ShieldCheck className="w-4 h-4" />
                   Ajukan Rekber
                 </Link>
-                <WishlistButton productId={product.id} isLoggedIn={!!user} initialWishlisted={wishlisted} />
+                <Suspense fallback={<WishlistButton productId={product.id} isLoggedIn={false} initialWishlisted={false} />}>
+                  <WishlistSection productId={product.id} />
+                </Suspense>
               </div>
 
               {product.canRental && (product.rentalPriceHourly || product.rentalPriceDaily) && (
