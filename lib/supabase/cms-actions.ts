@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
+import { getTripayPaymentChannels } from '@/lib/tripay/client';
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -356,4 +357,69 @@ export async function deletePriceRangeAction(id: string): Promise<ActionResult> 
 
   revalidatePriceRangeDependents();
   return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Payment Gateway Settings (Tripay) — Phase 1: storage only, see migration
+// 00000000000008_tripay_settings.sql header for the two-phase plan.
+// ---------------------------------------------------------------------------
+
+export interface PaymentGatewaySettingsInput {
+  merchantCode: string;
+  apiKey: string;
+  /** Empty string means "leave the existing private key unchanged" — the
+   * form never round-trips the real secret back into a plain input, so
+   * there's no way for the admin to "clear" it accidentally by re-saving
+   * the form without retyping it. */
+  privateKey: string;
+  mode: 'sandbox' | 'production';
+  isEnabled: boolean;
+}
+
+export async function updatePaymentGatewaySettingsAction(input: PaymentGatewaySettingsInput): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const update: Record<string, unknown> = {
+    merchant_code: input.merchantCode,
+    api_key: input.apiKey,
+    mode: input.mode,
+    is_enabled: input.isEnabled,
+    updated_at: new Date().toISOString(),
+  };
+  if (input.privateKey) update.private_key = input.privateKey;
+
+  const { error } = await guard.supabase.from('payment_gateway_settings').update(update).eq('id', 1);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/admin/gateway-pembayaran');
+  return { success: true };
+}
+
+/** Fetches the merchant's live payment-channel list as a connectivity
+ * check — no transaction is created, so this is safe to call as often as
+ * the admin wants while getting their credentials right. Takes the
+ * credentials directly from the form (not yet-saved values included) so
+ * "Test Koneksi" works before hitting Save. */
+export async function testTripayConnectionAction(input: {
+  merchantCode: string;
+  apiKey: string;
+  privateKey: string;
+  mode: 'sandbox' | 'production';
+}): Promise<{ success: true; channelCount: number } | { success: false; error: string }> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  if (!input.apiKey || !input.privateKey || !input.merchantCode) {
+    return { success: false, error: 'Isi Merchant Code, API Key, dan Private Key dulu.' };
+  }
+
+  const result = await getTripayPaymentChannels({
+    merchantCode: input.merchantCode,
+    apiKey: input.apiKey,
+    privateKey: input.privateKey,
+    mode: input.mode,
+  });
+  if (!result.success) return { success: false, error: result.error };
+  return { success: true, channelCount: result.data.length };
 }

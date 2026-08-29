@@ -443,3 +443,39 @@ export async function getAllPriceRangesForAdmin(): Promise<PriceRange[]> {
     sortOrder: row.sort_order,
   }));
 }
+
+export interface AdminPaymentGatewaySettings {
+  provider: string;
+  merchantCode: string;
+  apiKey: string;
+  /** Never rendered back into a plain text input as-is by the form — see
+   * PaymentGatewaySettingsForm.tsx, which masks it and only sends a new
+   * value to the update action when the admin actually types one. */
+  privateKey: string;
+  mode: 'sandbox' | 'production';
+  isEnabled: boolean;
+}
+
+/** Admin-only — RLS on payment_gateway_settings has no public SELECT policy
+ * at all (unlike every other CMS table), since this holds a private signing
+ * key. Only ever called from an admin-gated page. */
+export async function getPaymentGatewaySettings(): Promise<AdminPaymentGatewaySettings> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('payment_gateway_settings')
+    .select('provider, merchant_code, api_key, private_key, mode, is_enabled')
+    .eq('id', 1)
+    .maybeSingle();
+  if (error || !data) {
+    console.error('[getPaymentGatewaySettings] failed (migration applied? are you admin?):', error);
+    return { provider: 'tripay', merchantCode: '', apiKey: '', privateKey: '', mode: 'sandbox', isEnabled: false };
+  }
+  return {
+    provider: data.provider,
+    merchantCode: data.merchant_code ?? '',
+    apiKey: data.api_key ?? '',
+    privateKey: data.private_key ?? '',
+    mode: data.mode === 'production' ? 'production' : 'sandbox',
+    isEnabled: data.is_enabled,
+  };
+}
