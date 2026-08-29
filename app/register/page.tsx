@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { UserPlus } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import RegisterForm from '@/components/auth/RegisterForm';
 
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
+/** searchParams is only known at request time — isolating it here (same
+ * pattern as ProductResults in app/products/page.tsx) lets the rest of the
+ * page prerender/cache instead of forcing the whole route dynamic just to
+ * read a `next` param that's usually absent anyway. */
+async function RegisterFormSection({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const { next } = await searchParams;
+  return <RegisterForm redirectHint={next} />;
+}
 
-export default function RegisterPage() {
+export default function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   return (
     <Container className="py-12 sm:py-20">
       <div className="max-w-sm mx-auto space-y-6">
@@ -28,7 +37,9 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <RegisterForm />
+        <Suspense fallback={<RegisterForm />}>
+          <RegisterFormSection searchParams={searchParams} />
+        </Suspense>
       </div>
     </Container>
   );

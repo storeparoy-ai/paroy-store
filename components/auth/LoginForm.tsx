@@ -17,7 +17,7 @@ export default function LoginForm({ redirectHint }: { redirectHint?: string }) {
     e.preventDefault();
     setError('');
     startTransition(async () => {
-      const result = await signInAction({ email, password });
+      const result = await signInAction({ email, password, next: redirectHint });
       if (result?.error) setError(result.error);
       // On success, signInAction redirects server-side — nothing else to do here.
     });

@@ -7,7 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { signUpAction } from '@/lib/supabase/auth-actions';
 
-export default function RegisterForm() {
+export default function RegisterForm({ redirectHint }: { redirectHint?: string }) {
   const [fullName, setFullName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
@@ -24,7 +24,7 @@ export default function RegisterForm() {
       return;
     }
     startTransition(async () => {
-      const result = await signUpAction({ email, password, fullName, whatsapp });
+      const result = await signUpAction({ email, password, fullName, whatsapp, next: redirectHint });
       if (result?.error) {
         setError(result.error);
         return;
