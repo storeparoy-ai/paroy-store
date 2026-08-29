@@ -1,7 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
+import { cacheLife } from 'next/cache';
 import { Gamepad2, ShieldCheck, MessageCircle, Globe } from 'lucide-react';
 import Container from '@/components/ui/Container';
+
+/** `new Date()` during prerendering is a Cache Components build error (an
+ * uncached value that can change between renders) — cache it instead of
+ * reading it live; a copyright year is fine going stale for up to a day. */
+async function getCurrentYear() {
+  'use cache';
+  cacheLife('days');
+  return new Date().getFullYear();
+}
 
 const FOOTER_LINKS = [
   {
@@ -24,7 +34,9 @@ const FOOTER_LINKS = [
   },
 ];
 
-export default function Footer() {
+export default async function Footer() {
+  const year = await getCurrentYear();
+
   return (
     <footer className="bg-bg-deep border-t border-border-subtle pb-20 lg:pb-0">
       <Container className="py-12 sm:py-16">
@@ -85,7 +97,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-6 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-[11px] text-text-dim">
-            &copy; {new Date().getFullYear()} Paroy Store. Seluruh hak cipta dilindungi.
+            &copy; {year} Paroy Store. Seluruh hak cipta dilindungi.
           </p>
           <p className="text-[11px] text-text-dim">
             Dibuat dengan Paroy Nexus &middot; Next.js

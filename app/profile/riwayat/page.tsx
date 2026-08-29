@@ -3,6 +3,10 @@ import Badge from '@/components/ui/Badge';
 import { getUserOrderHistory } from '@/lib/supabase/queries';
 import { formatCurrency, timeAgo } from '@/lib/utils';
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const KIND_LABEL: Record<string, string> = {
   buy: 'Beli Akun',
   rental: 'Sewa Akun',

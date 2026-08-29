@@ -4,6 +4,10 @@ import { UserPlus } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import RegisterForm from '@/components/auth/RegisterForm';
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export default function RegisterPage() {
   return (
     <Container className="py-12 sm:py-20">

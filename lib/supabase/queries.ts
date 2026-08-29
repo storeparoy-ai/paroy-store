@@ -1,4 +1,6 @@
+import { cacheLife } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
+import { createPublicClient } from '@/utils/supabase/public';
 import {
   mapSupabaseProduct,
   buildGameLookup,
@@ -20,10 +22,20 @@ export interface ProductFilters {
 
 /** Admin-managed game list (see migration 00000000000005). Falls back to
  * the hardcoded mock list if the table is empty/unreachable (e.g. that
- * migration hasn't been applied yet) so nothing ever renders blank. */
+ * migration hasn't been applied yet) so nothing ever renders blank.
+ *
+ * Cached ('use cache' + cacheLife) — this is a public, same-for-everyone
+ * read with no per-user variation, and it's fetched on nearly every page,
+ * so caching it is one of the highest-leverage moves for overall site
+ * responsiveness. Admin edits (cms-actions.ts) call revalidatePath() on the
+ * pages that read it, which busts this cache same as before. Uses
+ * createPublicClient() (no cookies()) instead of the SSR client — a cached
+ * function's scope can't touch per-request dynamic APIs. */
 export async function getGames(): Promise<Game[]> {
+  'use cache';
+  cacheLife('hours');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('games')
       .select('id, slug, name, icon, icon_url, color')
@@ -67,10 +79,13 @@ const DEFAULT_SITE_SETTINGS: SiteSettings = {
 
 /** Admin-editable branding (site name, tagline, homepage mascot image,
  * community links) — see migration 00000000000005. Falls back to sane
- * defaults if the table/migration isn't there yet. */
+ * defaults if the table/migration isn't there yet. Cached — see getGames()
+ * above for why (same reasoning applies to every public CMS getter below). */
 export async function getSiteSettings(): Promise<SiteSettings> {
+  'use cache';
+  cacheLife('hours');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('site_settings')
       .select('site_name, tagline, mascot_image_url, whatsapp_url, discord_url')
@@ -110,8 +125,10 @@ const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
 /** Admin-editable payment methods (see migration 00000000000005). Falls
  * back to the previously-hardcoded list if the table is empty/unreachable. */
 export async function getActivePaymentMethods(): Promise<PaymentMethod[]> {
+  'use cache';
+  cacheLife('hours');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('payment_methods')
       .select('id, code, label, account_number, account_name')
@@ -148,8 +165,10 @@ const MOCK_REKBER_FEE_TIERS: RekberFeeTier[] = [
  * (even a pure helper) would pull the whole module graph into the client
  * bundle and break the build. */
 export async function getRekberFeeTiers(): Promise<RekberFeeTier[]> {
+  'use cache';
+  cacheLife('hours');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('rekber_fee_tiers')
       .select('id, max_amount, fee')
@@ -180,8 +199,10 @@ const MOCK_PRICE_RANGES: PriceRange[] = [
  * admin table derive them from min/max via formatPriceRangeLabel() in
  * lib/utils.ts, so they can never drift out of sync. */
 export async function getPriceRanges(): Promise<PriceRange[]> {
+  'use cache';
+  cacheLife('hours');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('product_price_ranges')
       .select('id, min_amount, max_amount, sort_order')
@@ -206,8 +227,10 @@ export async function getPriceRanges(): Promise<PriceRange[]> {
  * Supabase error so callers can fall back to mock data gracefully.
  */
 export async function getActiveProducts(filters: ProductFilters = {}): Promise<Product[] | null> {
+  'use cache';
+  cacheLife('minutes');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const lookup = await getGameLookup();
     let query = supabase.from('products').select('*').eq('status', 'active');
 
@@ -243,8 +266,10 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
+  'use cache';
+  cacheLife('minutes');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const [{ data, error }, lookup] = await Promise.all([
       supabase.from('products').select('*').eq('id', id).maybeSingle(),
       getGameLookup(),
@@ -259,8 +284,10 @@ export async function getProductById(id: string): Promise<Product | null> {
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<Product[] | null> {
+  'use cache';
+  cacheLife('minutes');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const [{ data, error }, lookup] = await Promise.all([
       supabase
         .from('products')
@@ -280,8 +307,10 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[] | null> 
 }
 
 export async function getActiveFlashSales(): Promise<FlashSale[] | null> {
+  'use cache';
+  cacheLife('minutes');
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const [{ data, error }, lookup] = await Promise.all([
       supabase
         .from('flash_sales')

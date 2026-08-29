@@ -18,6 +18,10 @@ import {
 import Container from '@/components/ui/Container';
 import { getCurrentUser } from '@/lib/supabase/queries';
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const TABS = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/pesanan', label: 'Pesanan', icon: ClipboardList },

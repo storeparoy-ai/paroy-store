@@ -7,6 +7,8 @@ import { getActiveProducts, getGames, getPriceRanges } from '@/lib/supabase/quer
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import type { Product } from '@/types';
 
+type SearchParams = Promise<{ game?: string; min?: string; max?: string; rental?: string; sort?: string }>;
+
 function filterAndSortMock(params: {
   game?: string;
   min?: string;
@@ -46,14 +48,15 @@ function filterAndSortMock(params: {
   return items;
 }
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ game?: string; min?: string; max?: string; rental?: string; sort?: string }>;
-}) {
+/** searchParams is only known at request time, so it — and everything
+ * downstream of it — has to stay inside this Suspense boundary rather than
+ * being awaited at the top of the page; that's what lets the page's shell
+ * (title, filter chips) prerender/cache while just the results list streams
+ * in per the actual query string. getActiveProducts() itself is cached too
+ * (see queries.ts), keyed automatically off its filters argument, so
+ * repeat visits with the same filters skip the database entirely. */
+async function ProductResults({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const [games, priceRanges] = await Promise.all([getGames(), getPriceRanges()]);
-
   const dbProducts = await getActiveProducts({
     game: params.game,
     min: params.min ? Number(params.min) : undefined,
@@ -67,21 +70,10 @@ export default async function ProductsPage({
   const products = dbProducts !== null && dbProducts.length > 0 ? dbProducts : filterAndSortMock(params);
 
   return (
-    <Container className="py-8 sm:py-10 space-y-6">
-      <div className="space-y-1.5">
-        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-text-main tracking-tight">
-          Katalog Jual Beli Akun
-        </h1>
-        <p className="text-sm text-text-muted">
-          {products.length} akun terverifikasi siap pakai &middot; 100% anti hackback
-        </p>
-      </div>
-
-      <div className="p-4 sm:p-5 rounded-2xl bg-bg-card border border-border-subtle">
-        <Suspense fallback={<div className="h-24 animate-pulse bg-white/5 rounded-xl" />}>
-          <ProductFilters games={games} priceRanges={priceRanges} />
-        </Suspense>
-      </div>
+    <>
+      <p className="text-sm text-text-muted -mt-4 mb-6">
+        {products.length} akun terverifikasi siap pakai &middot; 100% anti hackback
+      </p>
 
       {products.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
@@ -100,6 +92,42 @@ export default async function ProductsPage({
           ))}
         </div>
       )}
+    </>
+  );
+}
+
+function ResultsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="aspect-[3/4] rounded-2xl bg-bg-card border border-border-subtle animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
+  // Cached (see getGames/getPriceRanges in queries.ts) — safe to await
+  // directly at the top of the page, unlike searchParams below.
+  const [games, priceRanges] = await Promise.all([getGames(), getPriceRanges()]);
+
+  return (
+    <Container className="py-8 sm:py-10 space-y-6">
+      <div className="space-y-1.5">
+        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-text-main tracking-tight">
+          Katalog Jual Beli Akun
+        </h1>
+      </div>
+
+      <div className="p-4 sm:p-5 rounded-2xl bg-bg-card border border-border-subtle">
+        <Suspense fallback={<div className="h-24 animate-pulse bg-white/5 rounded-xl" />}>
+          <ProductFilters games={games} priceRanges={priceRanges} />
+        </Suspense>
+      </div>
+
+      <Suspense fallback={<ResultsSkeleton />}>
+        <ProductResults searchParams={searchParams} />
+      </Suspense>
     </Container>
   );
 }
