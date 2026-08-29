@@ -17,7 +17,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { buttonVariants } from '@/components/ui/Button';
 import ProductGallery from '@/components/products/ProductGallery';
 import WishlistButton from '@/components/products/WishlistButton';
-import { getProductById, getCurrentUser, isProductWishlisted } from '@/lib/supabase/queries';
+import { getProductById, getCurrentUserForDisplay, isProductWishlisted } from '@/lib/supabase/queries';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 
@@ -35,7 +35,7 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const [user, wishlisted] = await Promise.all([getCurrentUser(), isProductWishlisted(product.id)]);
+  const [user, wishlisted] = await Promise.all([getCurrentUserForDisplay(), isProductWishlisted(product.id)]);
 
   const specEntries = Object.entries(product.specs);
 

@@ -3,7 +3,7 @@ import { Rajdhani, Orbitron, JetBrains_Mono } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import BottomNav from '@/components/layout/BottomNav';
-import { getCurrentUser } from '@/lib/supabase/queries';
+import { getCurrentUserForDisplay } from '@/lib/supabase/queries';
 import './globals.css';
 
 // Paroy Nexus type system (see DESIGN.md): Rajdhani for body — a technical
@@ -43,7 +43,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUserForDisplay();
 
   return (
     <html lang="id" className={`${rajdhani.variable} ${orbitron.variable} ${jetbrains.variable}`}>

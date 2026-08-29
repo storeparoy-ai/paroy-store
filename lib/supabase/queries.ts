@@ -522,8 +522,17 @@ export interface CurrentUser {
   role: 'user' | 'admin';
 }
 
-/** Current auth session + profile, for the Header/nav to render logged-in
- * state. Returns `null` when signed out — never throws. */
+/** Current auth session + profile — the SECURE variant: `auth.getUser()`
+ * revalidates over the network against Supabase Auth on every call (catches
+ * a revoked/banned session even if the local cookie still looks valid).
+ * Use this specifically where that guarantee matters — admin/profile layout
+ * gating (defense-in-depth alongside proxy.ts's own check), anywhere a
+ * result feeds an authorization decision. For display-only "is someone
+ * logged in" UI (the Header, a wishlist heart's initial state, ...), use
+ * getCurrentUserForDisplay() instead — the network round-trip this makes on
+ * every call is real cost you don't want to pay on every single page view
+ * just to decide whether to show a "Masuk" button. Returns `null` when
+ * signed out — never throws. */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   try {
     const supabase = await createClient();
@@ -547,6 +556,45 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     };
   } catch (err) {
     console.error('[getCurrentUser] failed:', err);
+    return null;
+  }
+}
+
+/** Fast variant for display-only UI (the root layout's Header, wishlist
+ * heart initial state, ...) — reads the session from the local cookie via
+ * `getSession()` instead of `getUser()`, so it's a local JWT check with NO
+ * network round-trip to Supabase. Trade-off: doesn't detect a
+ * revoked/deleted/banned account until the user's next action that goes
+ * through a real auth check (proxy.ts middleware for /admin & /profile,
+ * requireAdmin() for admin mutations, RLS for everything else) — entirely
+ * fine for "should the header show Login or a profile menu", never used
+ * for an actual authorization decision. This runs on every single page via
+ * the root layout, so avoiding the getUser() network cost here is the
+ * highest-leverage place to do it. */
+export async function getCurrentUserForDisplay(): Promise<CurrentUser | null> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, whatsapp, role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    return {
+      id: user.id,
+      email: user.email ?? null,
+      fullName: profile?.full_name ?? null,
+      whatsapp: profile?.whatsapp ?? null,
+      role: profile?.role === 'admin' ? 'admin' : 'user',
+    };
+  } catch (err) {
+    console.error('[getCurrentUserForDisplay] failed:', err);
     return null;
   }
 }

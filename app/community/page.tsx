@@ -5,14 +5,14 @@ import Container from '@/components/ui/Container';
 import { Card, CardContent } from '@/components/ui/Card';
 import PostComposer from '@/components/community/PostComposer';
 import PostCard from '@/components/community/PostCard';
-import { getCommunityPosts, getCurrentUser, getGames, getSiteSettings } from '@/lib/supabase/queries';
+import { getCommunityPosts, getCurrentUserForDisplay, getGames, getSiteSettings } from '@/lib/supabase/queries';
 import { buttonVariants } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
 export default async function CommunityPage() {
   const [posts, user, games, siteSettings] = await Promise.all([
     getCommunityPosts(),
-    getCurrentUser(),
+    getCurrentUserForDisplay(),
     getGames(),
     getSiteSettings(),
   ]);
