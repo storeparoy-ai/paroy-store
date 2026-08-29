@@ -357,8 +357,16 @@ export interface LeaderboardEntry {
  * within the period, across all three order tables. Guest orders
  * (buyer_id/user_id/requester_id IS NULL) are excluded — there's no
  * persistent identity to rank them under. */
+/** Public, same-for-everyone ranking — no per-user variation, so it's safe
+ * to cache like the catalog reads above despite reading from `orders`/
+ * `topup_orders`/`rekber_orders` (tables that are otherwise RLS-scoped per
+ * user): this function itself only ever returns aggregated totals + public
+ * profile fields, never a viewer-specific row. `cacheLife('minutes')` is
+ * plenty fresh for a ranking board. */
 export async function getLeaderboard(period: 'daily' | 'weekly' | 'monthly'): Promise<LeaderboardEntry[]> {
-  const supabase = await createClient();
+  'use cache';
+  cacheLife('minutes');
+  const supabase = createPublicClient();
   const since = new Date();
   if (period === 'daily') since.setHours(0, 0, 0, 0);
   else if (period === 'weekly') since.setDate(since.getDate() - 7);
@@ -411,8 +419,17 @@ export interface CommunityPost {
   createdAt: Date;
 }
 
+/** Public feed, identical for every viewer (no "liked by me" state here —
+ * PostCard tracks that with its own local useState, not server data).
+ * `cacheLife('seconds')`
+ * keeps new posts showing up within moments while still skipping a live DB
+ * hit on every page view; createCommunityPostAction/likePostAction already
+ * call revalidatePath('/community') on every write, so a fresh post or
+ * like never has to wait out the cache window regardless. */
 export async function getCommunityPosts(): Promise<CommunityPost[]> {
-  const supabase = await createClient();
+  'use cache';
+  cacheLife('seconds');
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('community_posts')
     .select('id, content, game, likes, comments, created_at, profiles(full_name, username, avatar_url)')

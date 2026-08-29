@@ -25,7 +25,7 @@ export default function Container({
     <Component
       id={id}
       className={cn(
-        'w-full max-w-360 mx-auto px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16',
+        'w-full max-w-360 mx-auto px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16 page-enter',
         className
       )}
       {...props}

@@ -240,3 +240,29 @@ body {
     top: 100%;
   }
 }
+
+/* Page-enter transition: applied to Container, the outer wrapper every
+ * route's content sits in. Different pages take visibly different amounts
+ * of time to become ready (see the ◐/ƒ split in the Cache Components
+ * writeup) — some pages are cached and appear near-instantly, others still
+ * do a live Supabase round trip. Without this, a fast page "pops" in while
+ * a slow one feels like a dead pause followed by a jarring snap; the fade
+ * makes every arrival read as deliberate motion instead, whichever speed it
+ * lands at. Because Container is mounted fresh only when navigating to a
+ * genuinely different route (not on incidental re-renders within the same
+ * page), this replays exactly once per navigation — never mid-interaction. */
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation: page-enter 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
