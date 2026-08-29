@@ -94,7 +94,7 @@ export default async function ProductDetailPage({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {specEntries.map(([key, value]) => (
                   <div key={key} className="space-y-0.5">
-                    <span className="text-[10px] uppercase tracking-wider text-text-dim capitalize">
+                    <span className="text-[10px] uppercase tracking-wider text-text-dim">
                       {key}
                     </span>
                     <p className="text-sm font-bold text-text-main">{value}</p>
