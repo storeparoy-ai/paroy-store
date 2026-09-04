@@ -7,22 +7,26 @@ import FlashSaleSection from '@/components/home/FlashSaleSection';
 import HomeFeaturedProducts from '@/components/home/HomeFeaturedProducts';
 import TrustFeatures from '@/components/home/TrustFeatures';
 import { getActiveFlashSales, getFeaturedProducts, getGames, getSiteSettings } from '@/lib/supabase/queries';
-import { MOCK_PRODUCTS, MOCK_FLASH_SALES } from '@/lib/mock-data';
 
 export default async function HomePage() {
-  // Real data from Supabase when available; gracefully fall back to demo
-  // data (e.g. database is empty, or a migration hasn't been applied yet)
-  // so the homepage never breaks.
+  // Real Supabase data only — every section below already renders a
+  // sensible empty state (or hides itself entirely) when its array is
+  // empty, so there's no need to paper over a fresh/emptied catalog with
+  // demo placeholders (see the 2026-08-30 removal of the mock-data
+  // fallback across the site, requested so admin-entered test data is
+  // always exactly what shows).
   const [dbFeatured, dbFlashSales, games, siteSettings] = await Promise.all([
     getFeaturedProducts(8),
     getActiveFlashSales(),
     getGames(),
     getSiteSettings(),
   ]);
-
-  const featuredProducts =
-    dbFeatured && dbFeatured.length > 0 ? dbFeatured : MOCK_PRODUCTS.filter((p) => p.isFeatured);
-  const flashSales = dbFlashSales && dbFlashSales.length > 0 ? dbFlashSales : MOCK_FLASH_SALES;
+  // getFeaturedProducts/getActiveFlashSales return null only on a real
+  // fetch error (e.g. Supabase unreachable) — an empty result set is `[]`,
+  // not null. Coalescing here is just satisfying the `T[] | null` return
+  // type, not a demo-data fallback.
+  const featuredProducts = dbFeatured ?? [];
+  const flashSales = dbFlashSales ?? [];
 
   return (
     <div className="pb-8 sm:pb-12">

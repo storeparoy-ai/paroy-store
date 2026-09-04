@@ -5,7 +5,6 @@ import Container from '@/components/ui/Container';
 import { buttonVariants } from '@/components/ui/Button';
 import CheckoutFlow from '@/components/checkout/CheckoutFlow';
 import { getActivePaymentMethods, getProductById } from '@/lib/supabase/queries';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 
 export default async function CheckoutPage({
@@ -14,9 +13,7 @@ export default async function CheckoutPage({
   searchParams: Promise<{ product?: string }>;
 }) {
   const { product: productId } = await searchParams;
-  const product = productId
-    ? (await getProductById(productId)) ?? MOCK_PRODUCTS.find((p) => p.id === productId)
-    : undefined;
+  const product = productId ? await getProductById(productId) : undefined;
 
   if (!product) {
     return (

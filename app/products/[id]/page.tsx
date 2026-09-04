@@ -18,7 +18,6 @@ import { buttonVariants } from '@/components/ui/Button';
 import ProductGallery from '@/components/products/ProductGallery';
 import WishlistButton from '@/components/products/WishlistButton';
 import { getProductById, getCurrentUserForDisplay, isProductWishlisted } from '@/lib/supabase/queries';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 
 // Kept dynamic on purpose: the product `id` param is needed before *any*
@@ -50,9 +49,7 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  // Try the real database first, fall back to demo data by the same id
-  // (covers both a fresh/empty database and the mock-data-only dev state).
-  const product = (await getProductById(id)) ?? MOCK_PRODUCTS.find((p) => p.id === id);
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();

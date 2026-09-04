@@ -4,7 +4,6 @@ import Container from '@/components/ui/Container';
 import ProductCard from '@/components/products/ProductCard';
 import RentalFlow from '@/components/rental/RentalFlow';
 import { getActiveProducts, getProductById } from '@/lib/supabase/queries';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
 
 export default async function RentalPage({
   searchParams,
@@ -28,7 +27,7 @@ export default async function RentalPage({
   );
 
   if (productId) {
-    const product = (await getProductById(productId)) ?? MOCK_PRODUCTS.find((p) => p.id === productId);
+    const product = await getProductById(productId);
     if (product) {
       return (
         <Container className="py-8 sm:py-10">
@@ -41,8 +40,7 @@ export default async function RentalPage({
 
   // No product selected (or not found) — show a catalog of rentable accounts.
   const dbProducts = await getActiveProducts({ rentalOnly: true });
-  const products =
-    dbProducts && dbProducts.length > 0 ? dbProducts : MOCK_PRODUCTS.filter((p) => p.canRental);
+  const products = dbProducts ?? [];
 
   return (
     <Container className="py-8 sm:py-10">

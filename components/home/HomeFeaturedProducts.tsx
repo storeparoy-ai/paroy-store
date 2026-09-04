@@ -1,11 +1,25 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, PackageSearch } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import type { Product } from '@/types';
 
 export default function HomeFeaturedProducts({ products }: { products: Product[] }) {
   const featured = products.slice(0, 8);
+
+  if (featured.length === 0) {
+    return (
+      <section className="flex flex-col items-center justify-center gap-3 py-16 text-center rounded-2xl border border-dashed border-border-subtle">
+        <div className="w-12 h-12 rounded-2xl bg-bg-card border border-border-subtle flex items-center justify-center text-text-dim">
+          <PackageSearch className="w-5 h-5" />
+        </div>
+        <h3 className="font-heading font-bold text-sm text-text-main">Belum Ada Produk Ditampilkan</h3>
+        <p className="text-xs text-text-muted max-w-xs">
+          Tambahkan produk lewat Admin &gt; Produk untuk mulai menampilkan katalog di sini.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-6">

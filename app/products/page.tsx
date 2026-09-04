@@ -4,49 +4,8 @@ import Container from '@/components/ui/Container';
 import ProductCard from '@/components/products/ProductCard';
 import ProductFilters from '@/components/products/ProductFilters';
 import { getActiveProducts, getGames, getPriceRanges } from '@/lib/supabase/queries';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
-import type { Product } from '@/types';
 
 type SearchParams = Promise<{ game?: string; min?: string; max?: string; rental?: string; sort?: string }>;
-
-function filterAndSortMock(params: {
-  game?: string;
-  min?: string;
-  max?: string;
-  rental?: string;
-  sort?: string;
-}): Product[] {
-  let items = MOCK_PRODUCTS.filter((p) => p.status === 'active');
-
-  if (params.game) {
-    items = items.filter((p) => p.game.slug === params.game);
-  }
-  if (params.min) {
-    items = items.filter((p) => p.price >= Number(params.min));
-  }
-  if (params.max) {
-    items = items.filter((p) => p.price <= Number(params.max));
-  }
-  if (params.rental === '1') {
-    items = items.filter((p) => p.canRental);
-  }
-
-  switch (params.sort) {
-    case 'termurah':
-      items = [...items].sort((a, b) => a.price - b.price);
-      break;
-    case 'termahal':
-      items = [...items].sort((a, b) => b.price - a.price);
-      break;
-    case 'populer':
-      items = [...items].sort((a, b) => b.viewCount - a.viewCount);
-      break;
-    default:
-      items = [...items].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }
-
-  return items;
-}
 
 /** searchParams is only known at request time, so it — and everything
  * downstream of it — has to stay inside this Suspense boundary rather than
@@ -65,9 +24,10 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
     sort: (params.sort as 'terbaru' | 'termurah' | 'termahal' | 'populer' | undefined) ?? 'terbaru',
   });
 
-  // Supabase reachable but genuinely empty (fresh project) still falls back
-  // to demo data so the katalog page isn't blank during development.
-  const products = dbProducts !== null && dbProducts.length > 0 ? dbProducts : filterAndSortMock(params);
+  // dbProducts is null only on a real fetch error — a genuinely empty
+  // catalog (no products entered yet, or none match the filter) is `[]`
+  // and renders the empty state below honestly, no demo-data stand-in.
+  const products = dbProducts ?? [];
 
   return (
     <>

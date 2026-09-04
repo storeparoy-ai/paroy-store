@@ -81,6 +81,20 @@ export function calculateRekberFeeFromTiers(amount: number, tiers: RekberFeeTier
   return tier?.fee ?? tiers[tiers.length - 1]?.fee ?? 0;
 }
 
+/** Label for one row of the public "Daftar Biaya Rekber" table (see
+ * RekberFeeTable) — tiers are a ladder, not independent ranges like
+ * PriceRange, so each tier's lower bound is derived from the previous
+ * tier's maxAmount rather than stored directly. `tiers` must already be in
+ * ascending maxAmount order (getRekberFeeTiers() sorts by sort_order,
+ * which the admin table keeps in sync with that). */
+export function formatRekberTierRange(tiers: RekberFeeTier[], index: number): string {
+  const tier = tiers[index];
+  const prevMax = index > 0 ? tiers[index - 1].maxAmount : null;
+  const min = (prevMax ?? -1) + 1;
+  if (tier.maxAmount == null) return `> ${formatCompactCurrency(prevMax ?? 0)}`;
+  return `${formatCompactCurrency(min)} - ${formatCompactCurrency(tier.maxAmount)}`;
+}
+
 export function generateOrderNumber(): string {
   const date = new Date();
   const y = date.getFullYear();

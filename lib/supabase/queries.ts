@@ -270,10 +270,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export async function getProductById(id: string): Promise<Product | null> {
   'use cache';
   cacheLife('minutes');
-  // Demo/mock product ids (e.g. "7") aren't real uuids — querying Postgres
-  // with one throws 22P02 and just gets swallowed below anyway, so skip the
-  // wasted round trip and log noise entirely and let the caller's mock-data
-  // fallback (`getProductById(id) ?? MOCK_PRODUCTS.find(...)`) take over.
+  // Any non-uuid id (stale bookmark, hand-typed URL, ...) would make
+  // Postgres throw 22P02 and get swallowed below anyway — skip the wasted
+  // round trip and log noise and just report "not found" directly.
   if (!UUID_RE.test(id)) return null;
   try {
     const supabase = createPublicClient();
