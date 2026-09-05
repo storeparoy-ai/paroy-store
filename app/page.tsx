@@ -6,7 +6,13 @@ import GameQuickSelect from '@/components/home/GameQuickSelect';
 import FlashSaleSection from '@/components/home/FlashSaleSection';
 import HomeFeaturedProducts from '@/components/home/HomeFeaturedProducts';
 import TrustFeatures from '@/components/home/TrustFeatures';
-import { getActiveFlashSales, getFeaturedProducts, getGames, getSiteSettings } from '@/lib/supabase/queries';
+import {
+  getActiveFlashSales,
+  getFeaturedProducts,
+  getGames,
+  getRecentActivity,
+  getSiteSettings,
+} from '@/lib/supabase/queries';
 
 export default async function HomePage() {
   // Real Supabase data only — every section below already renders a
@@ -15,11 +21,12 @@ export default async function HomePage() {
   // demo placeholders (see the 2026-08-30 removal of the mock-data
   // fallback across the site, requested so admin-entered test data is
   // always exactly what shows).
-  const [dbFeatured, dbFlashSales, games, siteSettings] = await Promise.all([
+  const [dbFeatured, dbFlashSales, games, siteSettings, activities] = await Promise.all([
     getFeaturedProducts(8),
     getActiveFlashSales(),
     getGames(),
     getSiteSettings(),
+    getRecentActivity(8),
   ]);
   // getFeaturedProducts/getActiveFlashSales return null only on a real
   // fetch error (e.g. Supabase unreachable) — an empty result set is `[]`,
@@ -33,7 +40,9 @@ export default async function HomePage() {
       <Container className="py-6 sm:py-10 space-y-10 sm:space-y-14">
         <HeroBanner products={featuredProducts} mascotImageUrl={siteSettings.mascotImageUrl} />
         <HomeQuickMenu />
-        <LiveActivityFeed />
+        {/* Menghilang sendiri selama belum ada transaksi selesai — kartunya
+            dulu memutar nama karangan di bawah label "LIVE". */}
+        <LiveActivityFeed activities={activities} />
         <GameQuickSelect games={games} />
         <FlashSaleSection sales={flashSales} />
         <HomeFeaturedProducts products={featuredProducts} />

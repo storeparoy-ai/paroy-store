@@ -51,12 +51,12 @@ export default async function Footer() {
               </span>
             </Link>
             <p className="text-xs sm:text-sm text-text-muted leading-relaxed max-w-sm">
-              Marketplace gaming all-in-one: top up otomatis 1 detik, jual beli akun terverifikasi,
-              rental akun, dan rekber escrow resmi. Aman, cepat, dan transparan.
+              Marketplace gaming all-in-one: top up harga jelas, jual beli akun terverifikasi,
+              rental akun, dan rekber escrow resmi. Aman dan transparan.
             </p>
             <div className="flex items-center gap-2 text-trust-emerald text-xs font-bold">
               <ShieldCheck className="w-4 h-4" />
-              <span>100% Anti Hackback &middot; Rating 4.9/5</span>
+              <span>100% Anti Hackback &middot; Rekber Resmi</span>
             </div>
             <div className="flex items-center gap-3 pt-2">
               <a

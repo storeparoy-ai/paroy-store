@@ -1,7 +1,21 @@
 import React from 'react';
-import { ShieldCheck, Zap, Lock, Star } from 'lucide-react';
+import { ShieldCheck, UserCheck, Lock, FileSearch } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 
+/**
+ * Empat alasan memilih toko ini — semuanya hal yang benar-benar dilakukan
+ * sistemnya hari ini.
+ *
+ * Dua di antaranya dulu berisi klaim yang tidak berdasar: "Proses 1 Detik
+ * Otomatis" (tidak ada otomatisasi apa pun — pembayarannya transfer manual dan
+ * admin yang mengisikan) dan "Rating 4.9/5 dari 10.400 transaksi" (toko ini
+ * belum punya satu pun transaksi selesai). Yang pertama bukan cuma tidak
+ * jujur, ia menjamin keluhan: pembeli yang top up jam dua pagi akan menunggu
+ * sesuatu yang dijanjikan datang dalam sedetik.
+ *
+ * Penggantinya sengaja dipilih dari hal yang justru jadi kekuatan toko kecil:
+ * ada orangnya, dan pesanan bisa dilacak tanpa mendaftar.
+ */
 const FEATURES = [
   {
     icon: ShieldCheck,
@@ -9,9 +23,9 @@ const FEATURES = [
     desc: 'Setiap akun diverifikasi & didampingi admin saat serah terima demi keamananmu.',
   },
   {
-    icon: Zap,
-    title: 'Proses 1 Detik Otomatis',
-    desc: 'Top up diamond & voucher game langsung masuk otomatis tanpa antre.',
+    icon: UserCheck,
+    title: 'Ditangani Admin Langsung',
+    desc: 'Pesanan diverifikasi orang, bukan bot. Kirim bukti transfer langsung di situs ini.',
   },
   {
     icon: Lock,
@@ -19,9 +33,9 @@ const FEATURES = [
     desc: 'Dana ditahan aman hingga kedua belah pihak menyelesaikan transaksi.',
   },
   {
-    icon: Star,
-    title: 'Rating 4.9/5',
-    desc: 'Dipercaya lebih dari 10.400 transaksi sukses dari gamer se-Indonesia.',
+    icon: FileSearch,
+    title: 'Lacak Tanpa Login',
+    desc: 'Cek status pesanan kapan saja pakai nomor invoice — tidak perlu daftar akun dulu.',
   },
 ];
 
@@ -33,7 +47,7 @@ export default function TrustFeatures() {
           Kenapa Paroy Store
         </span>
         <h2 className="font-heading font-extrabold text-2xl sm:text-[32px] text-text-main tracking-[-0.02em]">
-          Transaksi Aman, Terbukti Ribuan Kali
+          Transaksi Aman, Dari Awal Sampai Akhir
         </h2>
       </div>
 

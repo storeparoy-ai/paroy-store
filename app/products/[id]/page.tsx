@@ -9,7 +9,7 @@ import {
   Smartphone,
   Globe2,
   CheckCircle2,
-  Star,
+  BadgeCheck,
   MessageCircleWarning,
 } from 'lucide-react';
 import Container from '@/components/ui/Container';
@@ -222,11 +222,13 @@ export default async function ProductDetailPage({
         <div className="lg:sticky lg:top-24 space-y-4">
           <Card variant="raised" className="rounded-[22px]">
             <CardContent className="p-6 sm:p-7 space-y-5">
-              <div className="flex items-center gap-1.5 text-urgency-orange text-xs">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-urgency-orange" />
-                ))}
-                <span className="text-text-muted">4.9 &middot; Dijual resmi Paroy Store</span>
+              {/* Dulu lima bintang penuh dan "4.9" di setiap akun — nilai yang
+                  tidak pernah berasal dari siapa pun, karena tidak ada sistem
+                  ulasan sama sekali. Yang tersisa satu-satunya klaim yang
+                  memang benar tentang akun ini: penjualnya toko sendiri. */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <BadgeCheck className="w-4 h-4 text-trust-emerald" />
+                <span className="text-text-muted">Dijual resmi oleh Paroy Store</span>
               </div>
 
               <div>

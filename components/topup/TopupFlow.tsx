@@ -90,7 +90,12 @@ export default function TopupFlow({
         <h1 className="font-heading font-extrabold text-2xl sm:text-[30px] text-text-main tracking-[-0.02em]">
           Top Up Kilat
         </h1>
-        <p className="text-xs text-text-muted">Diamond &amp; voucher masuk otomatis dalam 1 detik</p>
+        {/* Bukan "masuk otomatis dalam 1 detik": tidak ada otomatisasi apa pun
+            di sini, dan janji itu persis yang membuat pembeli menunggu lalu
+            mengeluh. Kalimat penggantinya menjelaskan alurnya yang sebenarnya. */}
+        <p className="text-xs text-text-muted">
+          Harga tetap, tanpa perlu daftar &mdash; diproses admin setelah pembayaran diverifikasi
+        </p>
       </div>
     </div>
   );

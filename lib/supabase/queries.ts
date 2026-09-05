@@ -944,3 +944,42 @@ export async function getOrderStatus(orderNumber: string): Promise<{
     return null;
   }
 }
+
+export interface RecentActivity {
+  /** Nama pembeli yang sudah disamarkan di dalam database ("Rizky A."), atau
+   * null untuk top up — alur itu memang tidak meminta nama. */
+  actor: string | null;
+  action: string;
+  itemLabel: string;
+  createdAt: Date;
+}
+
+/**
+ * Aktivitas terbaru yang BENAR-BENAR terjadi, untuk kartu "Live" di beranda.
+ *
+ * Menggantikan MOCK_ACTIVITIES — daftar nama dan pembelian karangan yang dulu
+ * berputar di bawah label "LIVE". Hanya pesanan berstatus dibayar/selesai yang
+ * ikut; selama belum ada, ini mengembalikan array kosong dan kartunya tidak
+ * dirender sama sekali (lihat app/page.tsx).
+ *
+ * Di-cache singkat: isinya berubah pelan, dan kartu ini muncul di halaman yang
+ * paling sering dibuka.
+ */
+export async function getRecentActivity(limit = 8): Promise<RecentActivity[]> {
+  'use cache';
+  cacheLife('minutes');
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase.rpc('get_recent_activity', { p_limit: limit });
+    if (error) throw error;
+    return (data ?? []).map((row: { actor: string | null; action: string; item_label: string; created_at: string }) => ({
+      actor: row.actor,
+      action: row.action,
+      itemLabel: row.item_label,
+      createdAt: new Date(row.created_at),
+    }));
+  } catch (err) {
+    console.error('[getRecentActivity] failed (migration 17 applied?):', err);
+    return [];
+  }
+}

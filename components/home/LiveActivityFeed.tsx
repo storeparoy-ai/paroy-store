@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, ShoppingBag, Zap, Clock3, ShieldCheck } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { MOCK_ACTIVITIES } from '@/lib/mock-data';
+import { timeAgo } from '@/lib/utils';
+import type { RecentActivity } from '@/lib/supabase/queries';
 
 const ICON_MAP: Record<string, typeof ShoppingBag> = {
   membeli: ShoppingBag,
@@ -13,17 +14,33 @@ const ICON_MAP: Record<string, typeof ShoppingBag> = {
   'mengajukan rekber': ShieldCheck,
 };
 
-export default function LiveActivityFeed() {
+/**
+ * Kartu "Live" di beranda.
+ *
+ * Dulu memutar MOCK_ACTIVITIES — nama dan pembelian karangan di bawah label
+ * yang secara harfiah menyatakan "sedang terjadi". Sekarang isinya pesanan
+ * sungguhan yang sudah dibayar atau selesai (migrasi 17), dengan nama pembeli
+ * yang sudah disamarkan di dalam database.
+ *
+ * Halaman induk tidak merender komponen ini kalau daftarnya kosong, jadi
+ * selama belum ada transaksi tidak ada kartu kosong yang menganggur.
+ */
+export default function LiveActivityFeed({ activities }: { activities: RecentActivity[] }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    // Satu entri tidak perlu diputar — mengganti-ganti satu isi yang sama
+    // hanya membuat halaman berkedip tanpa alasan.
+    if (activities.length < 2) return;
     const interval = setInterval(() => {
-      setIndex((i) => (i + 1) % MOCK_ACTIVITIES.length);
+      setIndex((i) => (i + 1) % activities.length);
     }, 3200);
     return () => clearInterval(interval);
-  }, []);
+  }, [activities.length]);
 
-  const activity = MOCK_ACTIVITIES[index];
+  if (activities.length === 0) return null;
+
+  const activity = activities[index % activities.length];
   const Icon = ICON_MAP[activity.action] ?? ShoppingBag;
 
   return (
@@ -37,7 +54,7 @@ export default function LiveActivityFeed() {
         <div className="relative flex-1 h-5 overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activity.id}
+              key={`${activity.action}-${activity.createdAt.getTime()}`}
               initial={{ y: 16, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -16, opacity: 0 }}
@@ -46,11 +63,14 @@ export default function LiveActivityFeed() {
             >
               <Icon className="w-3.5 h-3.5 text-brand-cyan shrink-0" />
               <span className="truncate">
-                <strong className="text-text-main font-semibold">{activity.name}</strong>{' '}
-                {activity.action}{' '}
-                <span className="text-text-main">{activity.item}</span>
+                <strong className="text-text-main font-semibold">
+                  {activity.actor ?? 'Seseorang'}
+                </strong>{' '}
+                {activity.action} <span className="text-text-main">{activity.itemLabel}</span>
               </span>
-              <span className="text-text-dim shrink-0 hidden sm:inline">&middot; {activity.time}</span>
+              <span className="text-text-dim shrink-0 hidden sm:inline">
+                &middot; {timeAgo(activity.createdAt)}
+              </span>
             </motion.div>
           </AnimatePresence>
         </div>

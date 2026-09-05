@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Zap, ShieldCheck, ArrowRight, Star, CheckCircle2 } from 'lucide-react';
+import { Zap, ShieldCheck, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -48,7 +48,7 @@ export default function HeroBanner({
           </h1>
 
           <p className="text-sm sm:text-base text-text-muted leading-relaxed max-w-lg mb-8">
-            Satu platform untuk semua kebutuhan gaming-mu. Diamond masuk 1 detik, akun sultan
+            Satu platform untuk semua kebutuhan gaming-mu. Top up harga jelas, akun sultan
             terverifikasi, dan transaksi aman lewat Rekber Escrow resmi Paroy Store.
           </p>
 
@@ -63,14 +63,20 @@ export default function HeroBanner({
             </Link>
           </div>
 
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-text-muted">
-            <div className="flex text-urgency-orange">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="w-3.5 h-3.5 fill-urgency-orange" />
-              ))}
-            </div>
-            <span className="font-bold text-text-main">4.9/5</span>
-            <span>dari 10.400+ transaksi sukses</span>
+          {/* Dulu di sini ada bintang lima, "4.9/5", dan "10.400+ transaksi
+              sukses" — tiga angka karangan untuk toko yang belum punya satu
+              pun transaksi selesai. Diganti dengan hal yang memang berlaku
+              sejak hari pertama dan tidak perlu menunggu jumlah pelanggan. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs sm:text-sm text-text-muted">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-trust-emerald" />
+              Serah terima didampingi admin
+            </span>
+            <span className="text-border-subtle">&middot;</span>
+            <span className="flex items-center gap-1.5">
+              <Lock className="w-4 h-4 text-trust-emerald" />
+              Dana aman lewat Rekber
+            </span>
           </div>
         </div>
 
