@@ -18,6 +18,28 @@ export interface ProductFilters {
   max?: number;
   rentalOnly?: boolean;
   sort?: 'terbaru' | 'termurah' | 'termahal' | 'populer';
+  /** Kata kunci dari kotak pencarian di header. */
+  q?: string;
+}
+
+/**
+ * Bersihkan kata kunci sebelum masuk ke filter PostgREST.
+ *
+ * Dua alasan, dan keduanya penting. Pertama keamanan: nilai filter `.or(...)`
+ * punya tata bahasa sendiri di PostgREST — koma memisahkan kondisi, titik
+ * memisahkan kolom/operator/nilai — jadi kata kunci mentah dari pengunjung
+ * bisa menyusup mengubah kondisi pencariannya. Kedua daya tahan:
+ * getActiveProducts() memakai 'use cache' yang kuncinya adalah argumennya,
+ * sehingga kata kunci sembarang panjang berarti entri cache tak terbatas.
+ * Menyisakan huruf, angka, spasi, dan tanda hubung sudah cukup untuk mencari
+ * judul akun, sekaligus menutup dua-duanya.
+ */
+function sanitizeSearchTerm(raw: string): string {
+  return raw
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .slice(0, 60);
 }
 
 /** Admin-managed game list (see migration 00000000000005). Falls back to
@@ -242,6 +264,13 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
     if (filters.max !== undefined) query = query.lte('price', filters.max);
     if (filters.rentalOnly) query = query.eq('can_rental', true);
 
+    // Cari di judul DAN nama game, supaya mengetik "MLBB" atau "Mythic"
+    // sama-sama membuahkan hasil.
+    if (filters.q) {
+      const term = sanitizeSearchTerm(filters.q);
+      if (term) query = query.or(`title.ilike.%${term}%,game.ilike.%${term}%`);
+    }
+
     switch (filters.sort) {
       case 'termurah':
         query = query.order('price', { ascending: true });
@@ -317,7 +346,7 @@ export async function getActiveFlashSales(): Promise<FlashSale[] | null> {
   cacheLife('minutes');
   try {
     const supabase = createPublicClient();
-    const [{ data, error }, lookup] = await Promise.all([
+    const [{ data, error }, lookup, { data: soldCounts }] = await Promise.all([
       supabase
         .from('flash_sales')
         .select('*, products(*)')
@@ -325,17 +354,33 @@ export async function getActiveFlashSales(): Promise<FlashSale[] | null> {
         .gt('ends_at', new Date().toISOString())
         .order('ends_at', { ascending: true }),
       getGameLookup(),
+      // Jumlah terjual yang sebenarnya, dihitung dari tabel pesanan lewat RPC
+      // (migrasi 00000000000011). Kolom flash_sales.sold tidak dipakai lagi:
+      // ia tidak pernah ditulis siapa pun, jadi "Tersisa N Akun" dulu adalah
+      // angka mati yang tidak pernah bergerak walau akunnya sudah laku.
+      supabase.rpc('get_flash_sale_sold_counts'),
     ]);
     if (error) throw error;
 
+    const soldById = new Map<string, number>(
+      ((soldCounts as { flash_sale_id: string; sold_count: number }[] | null) ?? []).map((r) => [
+        r.flash_sale_id,
+        Number(r.sold_count),
+      ])
+    );
+
     return (data as Array<Record<string, unknown>>)
       .filter((row) => row.products)
+      // Akun yang sudah dipesan atau terjual tidak boleh lagi dipajang sebagai
+      // flash sale — dulu ia tetap tampil lengkap dengan hitung mundur, lalu
+      // menolak pembeli berikutnya di halaman checkout.
+      .filter((row) => (row.products as SupabaseProductRow).status === 'active')
       .map((row) => ({
         id: row.id as string,
         product: mapSupabaseProduct(row.products as SupabaseProductRow, lookup),
         salePrice: Number(row.sale_price),
         stock: Number(row.stock),
-        sold: Number(row.sold ?? 0),
+        sold: soldById.get(row.id as string) ?? 0,
         startsAt: new Date(row.starts_at as string),
         endsAt: new Date(row.ends_at as string),
       }));

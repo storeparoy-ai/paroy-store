@@ -17,6 +17,7 @@ export default function ProductsTable({ products, games }: { products: Product[]
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | undefined>(undefined);
   const [deleting, setDeleting] = useState<Product | null>(null);
+  const [notice, setNotice] = useState('');
 
   function openCreate() {
     setEditing(undefined);
@@ -37,6 +38,12 @@ export default function ProductsTable({ products, games }: { products: Product[]
           Tambah Produk
         </Button>
       </div>
+
+      {notice && (
+        <p className="text-xs text-urgency-orange bg-urgency-orange/10 border border-urgency-orange/25 rounded-lg px-3 py-2.5">
+          {notice}
+        </p>
+      )}
 
       {products.length === 0 ? (
         <p className="text-sm text-text-muted py-10 text-center">Belum ada produk.</p>
@@ -106,10 +113,17 @@ export default function ProductsTable({ products, games }: { products: Product[]
           open={!!deleting}
           onOpenChange={(open) => !open && setDeleting(null)}
           title={`Hapus "${deleting.title}"?`}
-          description="Produk yang sudah dihapus tidak bisa dikembalikan. Pastikan tidak ada order aktif untuk produk ini."
+          description="Produk yang belum pernah dipesan akan dihapus permanen. Kalau sudah punya riwayat pesanan, produk hanya dinonaktifkan agar riwayat transaksinya tetap utuh."
           onConfirm={async () => {
             const result = await deleteProductAction(deleting.id);
-            if (result.success) router.refresh();
+            if (result.success) {
+              setNotice(
+                result.deactivated
+                  ? `"${deleting.title}" punya riwayat pesanan, jadi dinonaktifkan (bukan dihapus). Produknya hilang dari katalog, riwayat transaksinya tetap aman.`
+                  : ''
+              );
+              router.refresh();
+            }
             return result;
           }}
         />

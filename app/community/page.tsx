@@ -67,7 +67,14 @@ export default async function CommunityPage() {
               Belum ada obrolan. Jadilah yang pertama!
             </p>
           ) : (
-            posts.map((post) => <PostCard key={post.id} post={post} canLike={!!user} />)
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                canLike={!!user}
+                canModerate={user?.role === 'admin'}
+              />
+            ))
           )}
         </div>
       </div>

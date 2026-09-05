@@ -14,6 +14,39 @@ async function requireUser() {
   return { supabase, ok: true as const, user };
 }
 
+/**
+ * Hapus postingan komunitas — moderasi, khusus admin.
+ *
+ * Sebelum migrasi 00000000000011 tabel community_posts tidak punya kebijakan
+ * DELETE sama sekali, jadi spam atau penipuan di halaman Komunitas hanya bisa
+ * dibersihkan lewat SQL Editor. Kebijakan RLS-lah pengaman sebenarnya; cek
+ * peran di sini hanya supaya non-admin mendapat pesan yang jelas alih-alih
+ * penolakan mentah dari Postgres.
+ *
+ * Catatan: menyunting postingan orang lain tetap tidak mungkin — tidak ada
+ * kebijakan UPDATE, dan itu memang disengaja.
+ */
+export async function deleteCommunityPostAction(postId: string): Promise<ActionResult> {
+  const guard = await requireUser();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { data: profile } = await guard.supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', guard.user.id)
+    .maybeSingle();
+
+  if (profile?.role !== 'admin') {
+    return { success: false, error: 'Hanya admin yang bisa menghapus postingan.' };
+  }
+
+  const { error } = await guard.supabase.from('community_posts').delete().eq('id', postId);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/community');
+  return { success: true };
+}
+
 export async function updateProfileAction(input: { fullName: string; whatsapp: string }): Promise<ActionResult> {
   const guard = await requireUser();
   if (!guard.ok) return { success: false, error: guard.error };

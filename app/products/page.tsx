@@ -5,7 +5,14 @@ import ProductCard from '@/components/products/ProductCard';
 import ProductFilters from '@/components/products/ProductFilters';
 import { getActiveProducts, getGames, getPriceRanges } from '@/lib/supabase/queries';
 
-type SearchParams = Promise<{ game?: string; min?: string; max?: string; rental?: string; sort?: string }>;
+type SearchParams = Promise<{
+  game?: string;
+  min?: string;
+  max?: string;
+  rental?: string;
+  sort?: string;
+  q?: string;
+}>;
 
 /** searchParams is only known at request time, so it — and everything
  * downstream of it — has to stay inside this Suspense boundary rather than
@@ -22,6 +29,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
     max: params.max ? Number(params.max) : undefined,
     rentalOnly: params.rental === '1',
     sort: (params.sort as 'terbaru' | 'termurah' | 'termahal' | 'populer' | undefined) ?? 'terbaru',
+    q: params.q,
   });
 
   // dbProducts is null only on a real fetch error — a genuinely empty
@@ -32,7 +40,14 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
   return (
     <>
       <p className="text-sm text-text-muted -mt-4 mb-6">
-        {products.length} akun terverifikasi siap pakai &middot; 100% anti hackback
+        {params.q ? (
+          <>
+            {products.length} hasil untuk{' '}
+            <span className="text-text-main font-semibold">&ldquo;{params.q}&rdquo;</span>
+          </>
+        ) : (
+          <>{products.length} akun terverifikasi siap pakai &middot; 100% anti hackback</>
+        )}
       </p>
 
       {products.length === 0 ? (
@@ -40,9 +55,13 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
           <div className="w-14 h-14 rounded-2xl bg-bg-card border border-border-subtle flex items-center justify-center text-text-dim">
             <PackageSearch className="w-6 h-6" />
           </div>
-          <h3 className="font-heading font-bold text-text-main">Belum Ada Akun yang Cocok</h3>
+          <h3 className="font-heading font-bold text-text-main">
+            {params.q ? 'Pencarian Tidak Menemukan Apa Pun' : 'Belum Ada Akun yang Cocok'}
+          </h3>
           <p className="text-xs text-text-muted max-w-xs">
-            Coba ubah filter game atau rentang harga untuk melihat pilihan akun lainnya.
+            {params.q
+              ? 'Coba kata kunci lain, atau hapus filter game dan rentang harga yang sedang aktif.'
+              : 'Coba ubah filter game atau rentang harga untuk melihat pilihan akun lainnya.'}
           </p>
         </div>
       ) : (

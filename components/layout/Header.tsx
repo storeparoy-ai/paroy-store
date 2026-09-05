@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link, { useLinkStatus } from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, Zap, LogIn, LogOut, Menu, X, Gamepad2, UserCircle2, ShieldCheck, Loader2 } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
@@ -45,8 +46,19 @@ function LinkPending() {
 }
 
 export default function Header({ user }: { user: CurrentUser | null }) {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+
+  /** Kotak pencarian ini sebelumnya hanya menyimpan ketikan dan tidak
+   * terhubung ke apa pun — diketik lalu Enter, tidak terjadi apa-apa. */
+  function handleSearch(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const term = searchValue.trim();
+    if (!term) return;
+    setMobileOpen(false);
+    router.push(`/products?q=${encodeURIComponent(term)}`);
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full bg-bg-deep border-b border-border-subtle">
@@ -79,15 +91,18 @@ export default function Header({ user }: { user: CurrentUser | null }) {
 
         {/* Desktop Search + Actions */}
         <div className="hidden md:flex items-center gap-5 shrink-0">
-          <div className="w-44 lg:w-52 xl:w-64">
+          <form onSubmit={handleSearch} role="search" className="w-44 lg:w-52 xl:w-64">
             <Input
+              name="q"
+              type="search"
+              aria-label="Cari game atau akun"
               placeholder="Cari game / akun..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               leftIcon={<Search className="w-4 h-4" />}
               className="h-9 bg-bg-card-alt"
             />
-          </div>
+          </form>
           {user ? (
             <div className="flex items-center gap-4 pl-4 border-l border-border-subtle">
               {user.role === 'admin' && (
@@ -141,12 +156,17 @@ export default function Header({ user }: { user: CurrentUser | null }) {
         )}
       >
         <Container className="py-4 space-y-4">
-          <Input
-            placeholder="Cari game / akun..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            leftIcon={<Search className="w-4 h-4" />}
-          />
+          <form onSubmit={handleSearch} role="search">
+            <Input
+              name="q"
+              type="search"
+              aria-label="Cari game atau akun"
+              placeholder="Cari game / akun..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              leftIcon={<Search className="w-4 h-4" />}
+            />
+          </form>
           <nav className="flex flex-col gap-1">
             {NAV_LINKS.map((link) => (
               <Link
