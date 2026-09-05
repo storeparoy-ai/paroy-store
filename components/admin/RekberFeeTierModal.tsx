@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/Dialog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import CurrencyInput from '@/components/ui/CurrencyInput';
 import {
   createRekberFeeTierAction,
   updateRekberFeeTierAction,
@@ -77,16 +78,15 @@ function FormFields({
       </label>
 
       {!isUnlimited && (
-        <Input
-          label="Untuk transaksi hingga (Rp)"
-          type="number"
+        <CurrencyInput
+          label="Untuk transaksi hingga"
           required
           value={maxAmount}
-          onChange={(e) => setMaxAmount(e.target.value)}
-          placeholder="500000"
+          onValueChange={setMaxAmount}
+          placeholder="500.000"
         />
       )}
-      <Input label="Biaya Jasa Rekber (Rp)" type="number" required value={fee} onChange={(e) => setFee(e.target.value)} placeholder="10000" />
+      <CurrencyInput label="Biaya Jasa Rekber" required value={fee} onValueChange={setFee} placeholder="10.000" />
       <Input label="Urutan (kecil ke besar)" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
 
       {error && (

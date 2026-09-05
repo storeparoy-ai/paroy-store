@@ -73,6 +73,7 @@ export default async function CommunityPage() {
                 post={post}
                 canLike={!!user}
                 canModerate={user?.role === 'admin'}
+                currentUserId={user?.id ?? null}
               />
             ))
           )}

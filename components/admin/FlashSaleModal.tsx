@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/Dialog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import CurrencyInput from '@/components/ui/CurrencyInput';
 import { createFlashSaleAction, updateFlashSaleAction, type FlashSaleInput } from '@/lib/supabase/cms-actions';
 import { formatCurrency } from '@/lib/utils';
 import type { AdminFlashSale } from '@/lib/supabase/admin-queries';
@@ -105,7 +106,7 @@ function FlashSaleFormFields({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Harga Flash Sale (Rp)" type="number" required value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
+        <CurrencyInput label="Harga Flash Sale" required value={salePrice} onValueChange={setSalePrice} />
         <Input label="Stok" type="number" required value={stock} onChange={(e) => setStock(e.target.value)} />
       </div>
 

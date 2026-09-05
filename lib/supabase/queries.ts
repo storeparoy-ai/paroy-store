@@ -294,6 +294,55 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
   }
 }
 
+export interface ProductSuggestion {
+  id: string;
+  title: string;
+  price: number;
+  game: string;
+  image: string | null;
+}
+
+/**
+ * Saran akun untuk dropdown pencarian di header — hasilnya muncul sambil
+ * mengetik, tanpa perlu menekan Enter dulu.
+ *
+ * Sengaja mengembalikan bentuk yang ramping (bukan objek Product utuh):
+ * fungsi ini dipanggil hampir setiap ketikan, jadi yang dikirim ke browser
+ * cukup yang benar-benar dipajang di daftar saran.
+ */
+export async function searchProductSuggestions(q: string): Promise<ProductSuggestion[]> {
+  'use cache';
+  cacheLife('minutes');
+  const term = sanitizeSearchTerm(q);
+  // Satu huruf akan mencocokkan hampir seluruh katalog — tidak berguna sebagai
+  // saran, dan hanya membuang kueri.
+  if (term.length < 2) return [];
+
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, title, price, game, images')
+      .eq('status', 'active')
+      .or(`title.ilike.%${term}%,game.ilike.%${term}%`)
+      .order('view_count', { ascending: false })
+      .limit(6);
+
+    if (error) throw error;
+
+    return (data ?? []).map((row) => ({
+      id: row.id as string,
+      title: row.title as string,
+      price: Number(row.price),
+      game: (row.game as string) ?? '',
+      image: Array.isArray(row.images) && row.images.length > 0 ? (row.images[0] as string) : null,
+    }));
+  } catch (err) {
+    console.error('[searchProductSuggestions] failed:', err);
+    return [];
+  }
+}
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -456,6 +505,14 @@ export async function getLeaderboard(period: 'daily' | 'weekly' | 'monthly'): Pr
     .slice(0, 20);
 }
 
+export interface CommunityComment {
+  id: string;
+  authorId: string | null;
+  authorName: string;
+  content: string;
+  createdAt: Date;
+}
+
 export interface CommunityPost {
   id: string;
   authorName: string;
@@ -465,6 +522,8 @@ export interface CommunityPost {
   likes: number;
   comments: number;
   createdAt: Date;
+  /** Balasan pada postingan ini, terlama di atas. */
+  commentList: CommunityComment[];
 }
 
 /** Public feed, identical for every viewer (no "liked by me" state here —
@@ -494,12 +553,48 @@ export async function getCommunityPosts(): Promise<CommunityPost[]> {
   // (migrasi 00000000000010, kebocoran nomor WhatsApp), dan PostgREST tidak
   // bisa meng-embed view lewat relasi FK seperti itu. Satu kueri tambahan,
   // dan seluruh fungsi ini sudah di-cache, jadi biayanya tidak terasa.
+  const postIds = data.map((row) => row.id as string);
+
+  // Balasan untuk seluruh postingan ditarik sekali saja lalu dikelompokkan di
+  // sini — jauh lebih murah daripada satu kueri per postingan, dan membuat
+  // percakapannya langsung terlihat tanpa perlu diklik dulu.
+  const { data: commentRows } = postIds.length
+    ? await supabase
+        .from('community_comments')
+        .select('id, post_id, author_id, content, created_at')
+        .in('post_id', postIds)
+        .order('created_at', { ascending: true })
+    : { data: [] as { id: string; post_id: string; author_id: string | null; content: string; created_at: string }[] };
+
   const authorIds = Array.from(
-    new Set(data.map((row) => row.author_id).filter((id): id is string => Boolean(id)))
+    new Set(
+      [
+        ...data.map((row) => row.author_id),
+        ...(commentRows ?? []).map((row) => row.author_id),
+      ].filter((id): id is string => Boolean(id))
+    )
   );
   const { data: authors } = authorIds.length
     ? await supabase.from('public_profiles').select('id, full_name, username, avatar_url').in('id', authorIds)
     : { data: [] as { id: string; full_name: string | null; username: string | null; avatar_url: string | null }[] };
+
+  const nameOf = (id: string | null) => {
+    const a = authors?.find((x) => x.id === id);
+    return a?.full_name || a?.username || 'Gamer Anonim';
+  };
+
+  const commentsByPost = new Map<string, CommunityComment[]>();
+  for (const row of commentRows ?? []) {
+    const list = commentsByPost.get(row.post_id) ?? [];
+    list.push({
+      id: row.id,
+      authorId: row.author_id,
+      authorName: nameOf(row.author_id),
+      content: row.content,
+      createdAt: new Date(row.created_at),
+    });
+    commentsByPost.set(row.post_id, list);
+  }
 
   return data.map((row) => {
     const author = authors?.find((a) => a.id === row.author_id);
@@ -512,6 +607,7 @@ export async function getCommunityPosts(): Promise<CommunityPost[]> {
       likes: row.likes ?? 0,
       comments: row.comments ?? 0,
       createdAt: new Date(row.created_at),
+      commentList: commentsByPost.get(row.id as string) ?? [],
     };
   });
 }

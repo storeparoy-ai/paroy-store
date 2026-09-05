@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/Dialog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import CurrencyInput from '@/components/ui/CurrencyInput';
 import { createProductAction, updateProductAction, type ProductInput } from '@/lib/supabase/admin-actions';
 import { uploadPublicImage } from '@/lib/supabase/storage';
 import type { Game, Product } from '@/types';
@@ -156,20 +157,18 @@ function ProductFormFields({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Input
-          label="Harga (Rp)"
-          type="number"
+        <CurrencyInput
+          label="Harga"
           required
           value={form.price}
-          onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-          placeholder="450000"
+          onValueChange={(v) => setForm((f) => ({ ...f, price: v }))}
+          placeholder="450.000"
         />
-        <Input
+        <CurrencyInput
           label="Harga Coret (opsional)"
-          type="number"
           value={form.originalPrice}
-          onChange={(e) => setForm((f) => ({ ...f, originalPrice: e.target.value }))}
-          placeholder="600000"
+          onValueChange={(v) => setForm((f) => ({ ...f, originalPrice: v }))}
+          placeholder="600.000"
         />
       </div>
 
@@ -185,19 +184,17 @@ function ProductFormFields({
 
       {form.canRental && (
         <div className="grid grid-cols-2 gap-4">
-          <Input
+          <CurrencyInput
             label="Harga Sewa / Jam"
-            type="number"
             value={form.rentalPriceHourly}
-            onChange={(e) => setForm((f) => ({ ...f, rentalPriceHourly: e.target.value }))}
-            placeholder="15000"
+            onValueChange={(v) => setForm((f) => ({ ...f, rentalPriceHourly: v }))}
+            placeholder="15.000"
           />
-          <Input
+          <CurrencyInput
             label="Harga Sewa / Hari"
-            type="number"
             value={form.rentalPriceDaily}
-            onChange={(e) => setForm((f) => ({ ...f, rentalPriceDaily: e.target.value }))}
-            placeholder="80000"
+            onValueChange={(v) => setForm((f) => ({ ...f, rentalPriceDaily: v }))}
+            placeholder="80.000"
           />
         </div>
       )}

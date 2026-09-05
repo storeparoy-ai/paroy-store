@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
-import { getOrderStatus } from '@/lib/supabase/queries';
+import { getOrderStatus, searchProductSuggestions } from '@/lib/supabase/queries';
 
 type ActionResult = { success: true; orderNumber: string } | { success: false; error: string };
 
@@ -103,6 +103,13 @@ export async function createTopupOrder(input: {
  * the "Cek Transaksi" client component can invoke it as a Server Action. */
 export async function lookupOrderStatusAction(orderNumber: string) {
   return getOrderStatus(orderNumber);
+}
+
+/** Dipanggil kotak pencarian di header sambil mengetik. Perlu jadi Server
+ * Action karena komponen klien tidak bisa mengimpor queries.ts secara
+ * langsung — modul itu menarik klien Supabase sisi server (next/headers). */
+export async function searchProductsAction(q: string) {
+  return searchProductSuggestions(q);
 }
 
 /** `productId` is required now (it used to be optional): the RPC derives both

@@ -14,6 +14,48 @@ async function requireUser() {
   return { supabase, ok: true as const, user };
 }
 
+/** Balas sebuah postingan komunitas. Wajib login — RLS-nya mensyaratkan
+ * author_id sama dengan pemanggil, jadi tidak ada balasan tanpa identitas. */
+export async function addCommunityCommentAction(
+  postId: string,
+  content: string
+): Promise<ActionResult> {
+  const guard = await requireUser();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const trimmed = content.trim();
+  if (!trimmed) return { success: false, error: 'Tulis balasannya dulu ya.' };
+  if (trimmed.length > 1000) return { success: false, error: 'Balasan terlalu panjang (maks. 1000 karakter).' };
+
+  const { error } = await guard.supabase.from('community_comments').insert({
+    post_id: postId,
+    author_id: guard.user.id,
+    content: trimmed,
+  });
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/community');
+  return { success: true };
+}
+
+/** Hapus balasan. Kebijakan RLS mengizinkan penulisnya sendiri atau admin —
+ * pemeriksaan di sini hanya supaya pesannya jelas kalau bukan keduanya. */
+export async function deleteCommunityCommentAction(commentId: string): Promise<ActionResult> {
+  const guard = await requireUser();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error, count } = await guard.supabase
+    .from('community_comments')
+    .delete({ count: 'exact' })
+    .eq('id', commentId);
+
+  if (error) return { success: false, error: error.message };
+  if (!count) return { success: false, error: 'Balasan ini bukan milikmu.' };
+
+  revalidatePath('/community');
+  return { success: true };
+}
+
 /**
  * Hapus postingan komunitas — moderasi, khusus admin.
  *

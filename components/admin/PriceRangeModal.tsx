@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/Dialog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import CurrencyInput from '@/components/ui/CurrencyInput';
 import {
   createPriceRangeAction,
   updatePriceRangeAction,
@@ -78,13 +79,12 @@ function FormFields({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           {!noMin && (
-            <Input
-              label="Batas Bawah (Rp)"
-              type="number"
+            <CurrencyInput
+              label="Batas Bawah"
               required
               value={minAmount}
-              onChange={(e) => setMinAmount(e.target.value)}
-              placeholder="200000"
+              onValueChange={setMinAmount}
+              placeholder="200.000"
             />
           )}
           <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer">
@@ -99,13 +99,12 @@ function FormFields({
         </div>
         <div className="space-y-2">
           {!noMax && (
-            <Input
-              label="Batas Atas (Rp)"
-              type="number"
+            <CurrencyInput
+              label="Batas Atas"
               required
               value={maxAmount}
-              onChange={(e) => setMaxAmount(e.target.value)}
-              placeholder="400000"
+              onValueChange={setMaxAmount}
+              placeholder="400.000"
             />
           )}
           <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer">
