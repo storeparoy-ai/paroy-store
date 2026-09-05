@@ -427,6 +427,12 @@ export interface SalesDashboardData {
   trend: SalesTrendPoint[];
   composition: SalesComposition[];
   recentTransactions: AdminOrder[];
+  /** Pesanan yang masih menunggu verifikasi TAPI buktinya sudah dikirim
+   * pembeli. Ini antrean kerja yang sesungguhnya — pembeli sudah transfer dan
+   * sedang menunggu, jadi ia layak muncul paling atas di dashboard, bukan
+   * cuma tersembunyi di antara pesanan lain di tab Pesanan. Ikut dihitung
+   * dari data yang sudah diambil, tanpa kunjungan tambahan ke database. */
+  awaitingVerification: number;
 }
 
 export async function getSalesDashboardData(): Promise<SalesDashboardData> {
@@ -489,6 +495,7 @@ export async function getSalesDashboardData(): Promise<SalesDashboardData> {
     trend,
     composition,
     recentTransactions: orders.slice(0, 8),
+    awaitingVerification: orders.filter((o) => o.status === 'pending' && !!o.proofUrl).length,
   };
 }
 

@@ -1,5 +1,15 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Calculator, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Receipt,
+  Calculator,
+  CheckCircle2,
+  BellRing,
+  ArrowRight,
+} from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import { formatCurrency, formatCompactCurrency, timeAgo } from '@/lib/utils';
 import type { SalesDashboardData, SalesTrendPoint, AdminOrder } from '@/lib/supabase/admin-queries';
@@ -150,7 +160,7 @@ function TrendChart({ trend }: { trend: SalesTrendPoint[] }) {
 }
 
 export default function SalesDashboard({ data }: { data: SalesDashboardData }) {
-  const { revenue, revenueDeltaPct, orderCount, orderCountDeltaPct, aov, aovDeltaPct, completionRate, completionRateDeltaPp, trend, composition, recentTransactions } = data;
+  const { revenue, revenueDeltaPct, orderCount, orderCountDeltaPct, aov, aovDeltaPct, completionRate, completionRateDeltaPp, trend, composition, recentTransactions, awaitingVerification } = data;
 
   const revenueSpark = trend.map((t) => t.revenue);
   const orderSpark = trend.map((t) => t.orderCount);
@@ -159,6 +169,26 @@ export default function SalesDashboard({ data }: { data: SalesDashboardData }) {
 
   return (
     <div className="space-y-4">
+      {/* Paling atas, sebelum angka apa pun: ada orang yang sudah transfer dan
+          sedang menunggu. Itu selalu lebih mendesak daripada tren omzet. */}
+      {awaitingVerification > 0 && (
+        <Link
+          href="/admin/pesanan"
+          className="flex items-center gap-3 p-4 rounded-2xl bg-urgency-orange/10 border border-urgency-orange/30 hover:border-urgency-orange/60 transition-colors"
+        >
+          <BellRing className="w-5 h-5 text-urgency-orange shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-urgency-orange">
+              {awaitingVerification} pesanan menunggu kamu verifikasi
+            </p>
+            <p className="text-xs text-text-muted">
+              Pembelinya sudah mengirim bukti transfer. Buka tab Pesanan untuk mengeceknya.
+            </p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-urgency-orange shrink-0" />
+        </Link>
+      )}
+
       <p className="text-xs text-text-muted -mt-1">
         Ringkasan penjualan bulan berjalan, dibandingkan bulan lalu. Hanya pesanan berstatus{' '}
         <span className="text-text-main font-semibold">Dibayar</span> atau{' '}
