@@ -570,3 +570,55 @@ export async function getPaymentGatewaySettings(): Promise<AdminPaymentGatewaySe
     isEnabled: data.is_enabled,
   };
 }
+
+export interface AdminNotificationSettings {
+  /** Chat ID bukan rahasia (ia cuma berguna kalau kamu punya token-nya), jadi
+   * ini boleh tampil apa adanya di form. */
+  chatId: string;
+  /** Token TIDAK ikut dikirim ke browser — cukup tahu sudah terisi atau
+   * belum. Beda dengan form gateway Tripay, yang ikut membawa private key ke
+   * klien meski tidak menampilkannya; di sini rahasianya tidak pernah
+   * meninggalkan server sama sekali. */
+  hasBotToken: boolean;
+  isEnabled: boolean;
+  notifyNewOrder: boolean;
+  notifyProofUpload: boolean;
+  /** Notifikasi otomatis dari pesanan tamu perlu SUPABASE_SERVICE_ROLE_KEY —
+   * pembeli tamu adalah `anon`, dan `anon` tidak boleh membaca tabel ini.
+   * Tombol "Kirim Tes" tetap jalan tanpa kunci itu karena admin membacanya
+   * sebagai dirinya sendiri. */
+  serviceKeyConfigured: boolean;
+}
+
+/** Admin-only, sama seperti getPaymentGatewaySettings: tabelnya menyimpan
+ * token bot dan tidak punya SELECT policy publik sama sekali. */
+export async function getNotificationSettings(): Promise<AdminNotificationSettings> {
+  const serviceKeyConfigured = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('notification_settings')
+    .select('bot_token, chat_id, is_enabled, notify_new_order, notify_proof_upload')
+    .eq('id', 1)
+    .maybeSingle();
+
+  if (error || !data) {
+    console.error('[getNotificationSettings] failed (migration applied? are you admin?):', error);
+    return {
+      chatId: '',
+      hasBotToken: false,
+      isEnabled: true,
+      notifyNewOrder: true,
+      notifyProofUpload: true,
+      serviceKeyConfigured,
+    };
+  }
+
+  return {
+    chatId: data.chat_id ?? '',
+    hasBotToken: !!data.bot_token,
+    isEnabled: data.is_enabled !== false,
+    notifyNewOrder: data.notify_new_order !== false,
+    notifyProofUpload: data.notify_proof_upload !== false,
+    serviceKeyConfigured,
+  };
+}

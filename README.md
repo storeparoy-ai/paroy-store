@@ -24,9 +24,9 @@ Simpan di `.env.local` (lokal) dan di Vercel → Settings → Environment Variab
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | ya | Alamat proyek Supabase. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ya | Kunci publik Supabase — memang ikut ke browser, keamanannya dijaga RLS. |
-| `SUPABASE_SERVICE_ROLE_KEY` | belum | Menembus RLS; baru dipakai webhook Tripay (Phase 2). Jangan pernah beri awalan `NEXT_PUBLIC_`. |
-| `TELEGRAM_BOT_TOKEN` | opsional | Token dari [@BotFather](https://t.me/BotFather). Tanpa ini notifikasi pesanan mati diam-diam, sisanya tetap jalan. |
-| `TELEGRAM_CHAT_ID` | opsional | ID chat/grup tujuan notifikasi. Dapatkan dengan mengirim pesan ke bot lalu buka `https://api.telegram.org/bot<TOKEN>/getUpdates`. |
+| `SUPABASE_SERVICE_ROLE_KEY` | ya, untuk notifikasi | Menembus RLS. Pesanan dibuat pengunjung yang belum login (`anon`), sementara `notification_settings` sengaja hanya bisa dibaca admin — server memerlukan kunci ini untuk membacanya. Juga dipakai webhook Tripay (Phase 2). Jangan pernah beri awalan `NEXT_PUBLIC_`. |
+| `TELEGRAM_BOT_TOKEN` | opsional | Cadangan kalau tabel `notification_settings` belum diisi. Pengaturan sehari-hari ada di **Admin → Notifikasi**, tidak perlu redeploy. |
+| `TELEGRAM_CHAT_ID` | opsional | Sama, cadangan untuk yang di atas. |
 | `NEXT_PUBLIC_SITE_URL` | opsional | Hanya kalau memakai domain sendiri; di Vercel alamatnya terdeteksi otomatis. Dipakai untuk tautan ke `/admin/pesanan` di dalam notifikasi. |
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.

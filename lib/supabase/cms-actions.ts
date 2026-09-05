@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 import { getTripayPaymentChannels } from '@/lib/tripay/client';
+import { sendTelegramMessage, buildTestMessage } from '@/lib/notify';
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -496,4 +497,79 @@ export async function testTripayConnectionAction(input: {
   });
   if (!result.success) return { success: false, error: result.error };
   return { success: true, channelCount: result.data.length };
+}
+
+// ---------------------------------------------------------------------------
+// Notifikasi (Telegram) — migrasi 00000000000015_notification_settings.sql
+// ---------------------------------------------------------------------------
+
+export interface NotificationSettingsInput {
+  chatId: string;
+  /** String kosong berarti "biarkan token yang tersimpan apa adanya" — token
+   * tidak pernah dikirim balik ke browser, jadi menyimpan form tanpa
+   * mengetiknya ulang tidak boleh menghapusnya. Pola yang sama dipakai
+   * private key Tripay. */
+  botToken: string;
+  isEnabled: boolean;
+  notifyNewOrder: boolean;
+  notifyProofUpload: boolean;
+}
+
+export async function updateNotificationSettingsAction(
+  input: NotificationSettingsInput
+): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const update: Record<string, unknown> = {
+    chat_id: input.chatId,
+    is_enabled: input.isEnabled,
+    notify_new_order: input.notifyNewOrder,
+    notify_proof_upload: input.notifyProofUpload,
+    updated_at: new Date().toISOString(),
+  };
+  if (input.botToken) update.bot_token = input.botToken;
+
+  const { error } = await guard.supabase.from('notification_settings').update(update).eq('id', 1);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/admin/notifikasi');
+  return { success: true };
+}
+
+/**
+ * Kirim satu pesan uji ke Telegram.
+ *
+ * Token yang dipakai: yang baru diketik admin kalau ada, kalau tidak yang
+ * sudah tersimpan — dibaca di sini, di server, memakai sesi admin sendiri.
+ * Token tidak pernah bolak-balik lewat browser hanya untuk keperluan tes ini.
+ *
+ * Berguna sebelum menyimpan: admin bisa memastikan token dan chat ID-nya
+ * benar dulu, baru menekan Simpan.
+ */
+export async function testNotificationAction(input: {
+  botToken: string;
+  chatId: string;
+}): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  let botToken = input.botToken.trim();
+  if (!botToken) {
+    const { data } = await guard.supabase
+      .from('notification_settings')
+      .select('bot_token')
+      .eq('id', 1)
+      .maybeSingle();
+    botToken = data?.bot_token ?? '';
+  }
+
+  const chatId = input.chatId.trim();
+  if (!botToken || !chatId) {
+    return { success: false, error: 'Isi Bot Token dan Chat ID dulu.' };
+  }
+
+  const result = await sendTelegramMessage({ botToken, chatId }, buildTestMessage());
+  if (!result.ok) return { success: false, error: result.error };
+  return { success: true };
 }

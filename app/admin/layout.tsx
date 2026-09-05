@@ -15,6 +15,7 @@ import {
   Tags,
   Landmark,
   Zap,
+  Bell,
 } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import { getCurrentUser } from '@/lib/supabase/queries';
@@ -34,6 +35,7 @@ const TABS = [
   { href: '/admin/metode-pembayaran', label: 'Metode Pembayaran', icon: Wallet },
   { href: '/admin/gateway-pembayaran', label: 'Gateway Pembayaran', icon: Landmark },
   { href: '/admin/tarif-rekber', label: 'Tarif Rekber', icon: ShieldCheck },
+  { href: '/admin/notifikasi', label: 'Notifikasi', icon: Bell },
   { href: '/admin/pengaturan', label: 'Pengaturan Situs', icon: Palette },
   { href: '/admin/pengguna', label: 'Pengguna', icon: Users },
 ];
