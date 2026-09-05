@@ -4,6 +4,7 @@ import { after } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getOrderStatus, searchProductSuggestions } from '@/lib/supabase/queries';
 import { notifyNewOrder, notifyProofUploaded, type OrderKind } from '@/lib/notify';
+import { guestRateLimitOk, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
 
 type ActionResult = { success: true; orderNumber: string } | { success: false; error: string };
 
@@ -83,6 +84,7 @@ export async function createBuyOrder(input: {
   rentalUnit?: 'hourly' | 'daily';
   rentalQty?: number;
 }): Promise<ActionResult> {
+  if (!(await guestRateLimitOk('order'))) return { success: false, error: RATE_LIMIT_MESSAGE };
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('create_guest_order', {
@@ -121,6 +123,7 @@ export async function createTopupOrder(input: {
   paymentCode: string;
   buyerWhatsapp?: string;
 }): Promise<ActionResult> {
+  if (!(await guestRateLimitOk('order'))) return { success: false, error: RATE_LIMIT_MESSAGE };
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('create_guest_topup', {
@@ -166,6 +169,7 @@ export async function createRekberOrder(input: {
   buyerName: string;
   buyerWhatsapp: string;
 }): Promise<ActionResult> {
+  if (!(await guestRateLimitOk('order'))) return { success: false, error: RATE_LIMIT_MESSAGE };
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('create_guest_rekber', {
@@ -208,6 +212,7 @@ export async function attachPaymentProofAction(
   orderNumber: string,
   path: string
 ): Promise<{ success: true } | { success: false; error: string }> {
+  if (!(await guestRateLimitOk('proof'))) return { success: false, error: RATE_LIMIT_MESSAGE };
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('attach_payment_proof', {
