@@ -16,6 +16,20 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Tes keamanan
+
+```bash
+npm test
+```
+
+Menjalankan `tests/security.test.mjs` dengan test runner bawaan Node — tanpa dependensi tambahan.
+
+Yang diuji **bukan kode aplikasi, melainkan databasenya**: kebijakan RLS, tanda tangan RPC, dan kebijakan Storage, semuanya dari posisi penyerang yang memakai kunci anon. Itu disengaja — kunci anon ada di dalam browser setiap pengunjung, jadi siapa pun bisa memanggil Supabase langsung tanpa melewati situs. Pemeriksaan di sisi aplikasi tidak berarti apa-apa terhadap penyerang seperti itu; batas keamanan yang sebenarnya ada di Postgres.
+
+Setiap pemeriksaan di berkas itu pernah dijalankan dengan tangan lewat `curl` sesudah migrasi 10 sampai 17. Jalankan lagi setelah setiap perubahan migrasi.
+
+Semua tesnya membaca, atau menulis sesuatu yang memang harus ditolak — aman dijalankan terhadap database produksi. Perlu `.env.local` terisi; tanpa itu tesnya dilewati dengan peringatan, bukan gagal.
+
 ## Environment variables
 
 Simpan di `.env.local` (lokal) dan di Vercel → Settings → Environment Variables (produksi).
