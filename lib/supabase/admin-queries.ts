@@ -172,13 +172,15 @@ export interface AdminPaymentMethod {
   accountName: string;
   isActive: boolean;
   sortOrder: number;
+  feePercent: number;
+  feeFlat: number;
 }
 
 export async function getAllPaymentMethodsForAdmin(): Promise<AdminPaymentMethod[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('payment_methods')
-    .select('id, code, label, account_number, account_name, is_active, sort_order')
+    .select('id, code, label, account_number, account_name, is_active, sort_order, fee_percent, fee_flat')
     .order('sort_order', { ascending: true });
   if (error) {
     console.error('[getAllPaymentMethodsForAdmin] failed (migration applied?):', error);
@@ -192,7 +194,46 @@ export async function getAllPaymentMethodsForAdmin(): Promise<AdminPaymentMethod
     accountName: row.account_name,
     isActive: row.is_active,
     sortOrder: row.sort_order,
+    feePercent: Number(row.fee_percent ?? 0),
+    feeFlat: Number(row.fee_flat ?? 0),
   }));
+}
+
+export interface AdminTopupItem {
+  id: string;
+  gameId: string;
+  gameName: string;
+  label: string;
+  amount: number | null;
+  price: number;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+/** Semua item top up, termasuk yang nonaktif (migrasi 00000000000013). */
+export async function getAllTopupItemsForAdmin(): Promise<AdminTopupItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('topup_items')
+    .select('id, game_id, label, amount, price, is_active, sort_order, games(name)')
+    .order('sort_order', { ascending: true });
+  if (error) {
+    console.error('[getAllTopupItemsForAdmin] failed (migration applied?):', error);
+    return [];
+  }
+  return (data as Array<Record<string, unknown>>).map((row) => {
+    const game = (Array.isArray(row.games) ? row.games[0] : row.games) as { name: string } | null;
+    return {
+      id: row.id as string,
+      gameId: row.game_id as string,
+      gameName: game?.name ?? '—',
+      label: row.label as string,
+      amount: row.amount === null ? null : Number(row.amount),
+      price: Number(row.price),
+      isActive: Boolean(row.is_active),
+      sortOrder: Number(row.sort_order ?? 0),
+    };
+  });
 }
 
 export interface AdminFlashSale {

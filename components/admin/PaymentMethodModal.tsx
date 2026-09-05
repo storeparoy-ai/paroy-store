@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/Dialog';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import CurrencyInput from '@/components/ui/CurrencyInput';
 import {
   createPaymentMethodAction,
   updatePaymentMethodAction,
@@ -33,6 +34,8 @@ function FormFields({
   const [accountName, setAccountName] = useState(method?.accountName ?? 'Paroy Store');
   const [sortOrder, setSortOrder] = useState(String(method?.sortOrder ?? 0));
   const [isActive, setIsActive] = useState(method?.isActive ?? true);
+  const [feePercent, setFeePercent] = useState(String(method?.feePercent ?? 0));
+  const [feeFlat, setFeeFlat] = useState(method?.feeFlat ? String(method.feeFlat) : '');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
 
@@ -51,6 +54,8 @@ function FormFields({
       accountName: accountName.trim() || 'Paroy Store',
       isActive,
       sortOrder: Number(sortOrder) || 0,
+      feePercent: Number(feePercent) || 0,
+      feeFlat: Number(feeFlat) || 0,
     };
 
     startTransition(async () => {
@@ -81,6 +86,29 @@ function FormFields({
       />
       <Input label="Atas Nama" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
       <Input label="Urutan Tampil" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
+
+      {/* Biaya layanan khusus alur Top Up. Database yang menghitungnya saat
+          invoice dibuat, jadi angka ini benar-benar menentukan tagihan —
+          bukan sekadar tulisan di layar. Biarkan 0 kalau tidak memungut. */}
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          label="Biaya Layanan (%)"
+          type="number"
+          step="0.01"
+          value={feePercent}
+          onChange={(e) => setFeePercent(e.target.value)}
+          placeholder="0"
+        />
+        <CurrencyInput
+          label="Biaya Layanan Tetap"
+          value={feeFlat}
+          onValueChange={setFeeFlat}
+          placeholder="0"
+        />
+      </div>
+      <p className="text-[11px] text-text-dim -mt-2">
+        Ditambahkan ke total Top Up. Isi 0 kalau metode ini tanpa biaya tambahan.
+      </p>
 
       <label className="flex items-center gap-2.5 text-xs text-text-main cursor-pointer w-fit">
         <input

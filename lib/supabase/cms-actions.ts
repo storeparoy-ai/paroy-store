@@ -198,6 +198,11 @@ export interface PaymentMethodInput {
   accountName: string;
   isActive: boolean;
   sortOrder: number;
+  /** Biaya layanan yang ditambahkan ke nominal Top Up (migrasi
+   * 00000000000013). Dipakai database saat menghitung invoice, bukan sekadar
+   * ditampilkan. */
+  feePercent: number;
+  feeFlat: number;
 }
 
 function paymentMethodToRow(input: PaymentMethodInput) {
@@ -208,12 +213,15 @@ function paymentMethodToRow(input: PaymentMethodInput) {
     account_name: input.accountName,
     is_active: input.isActive,
     sort_order: input.sortOrder,
+    fee_percent: input.feePercent,
+    fee_flat: input.feeFlat,
   };
 }
 
 function revalidatePaymentDependents() {
   revalidatePath('/admin/metode-pembayaran');
   revalidatePath('/checkout');
+  revalidatePath('/topup');
 }
 
 export async function createPaymentMethodAction(input: PaymentMethodInput): Promise<ActionResult> {
@@ -356,6 +364,72 @@ export async function deletePriceRangeAction(id: string): Promise<ActionResult> 
   if (error) return { success: false, error: error.message };
 
   revalidatePriceRangeDependents();
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Item Top Up (migrasi 00000000000013).
+//
+// Sebelumnya daftar ini ditulis keras di lib/mock-data.ts — mengubah satu
+// harga diamond berarti mengubah kode dan menunggu rilis, padahal justru ini
+// yang paling sering berubah di toko top up.
+// ---------------------------------------------------------------------------
+
+export interface TopupItemInput {
+  gameId: string;
+  label: string;
+  amount: number | null;
+  price: number;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+function toTopupRow(input: TopupItemInput) {
+  return {
+    game_id: input.gameId,
+    label: input.label,
+    amount: input.amount,
+    price: input.price,
+    is_active: input.isActive,
+    sort_order: input.sortOrder,
+  };
+}
+
+function revalidateTopupDependents() {
+  revalidatePath('/admin/topup');
+  revalidatePath('/topup');
+}
+
+export async function createTopupItemAction(input: TopupItemInput): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error } = await guard.supabase.from('topup_items').insert(toTopupRow(input));
+  if (error) return { success: false, error: error.message };
+
+  revalidateTopupDependents();
+  return { success: true };
+}
+
+export async function updateTopupItemAction(id: string, input: TopupItemInput): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error } = await guard.supabase.from('topup_items').update(toTopupRow(input)).eq('id', id);
+  if (error) return { success: false, error: error.message };
+
+  revalidateTopupDependents();
+  return { success: true };
+}
+
+export async function deleteTopupItemAction(id: string): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error } = await guard.supabase.from('topup_items').delete().eq('id', id);
+  if (error) return { success: false, error: error.message };
+
+  revalidateTopupDependents();
   return { success: true };
 }
 

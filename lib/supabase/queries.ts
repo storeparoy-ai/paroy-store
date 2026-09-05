@@ -134,14 +134,19 @@ export interface PaymentMethod {
   label: string;
   accountNumber: string;
   accountName: string;
+  /** Biaya layanan, dikelola admin (migrasi 00000000000013). Ditampilkan ke
+   * pembeli di halaman Top Up; nominal akhirnya tetap dihitung ulang di
+   * database saat pesanan dibuat, bukan dipercaya dari browser. */
+  feePercent: number;
+  feeFlat: number;
 }
 
 const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'bca', code: 'bca', label: 'Transfer BCA', accountNumber: '1234567890', accountName: 'Paroy Store' },
-  { id: 'mandiri', code: 'mandiri', label: 'Transfer Mandiri', accountNumber: '0987654321', accountName: 'Paroy Store' },
-  { id: 'gopay', code: 'gopay', label: 'GoPay', accountNumber: '0812-3456-7890', accountName: 'Paroy Store' },
-  { id: 'dana', code: 'dana', label: 'DANA', accountNumber: '0812-3456-7890', accountName: 'Paroy Store' },
-  { id: 'ovo', code: 'ovo', label: 'OVO', accountNumber: '0812-3456-7890', accountName: 'Paroy Store' },
+  { id: 'bca', code: 'bca', label: 'Transfer BCA', accountNumber: '1234567890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
+  { id: 'mandiri', code: 'mandiri', label: 'Transfer Mandiri', accountNumber: '0987654321', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
+  { id: 'gopay', code: 'gopay', label: 'GoPay', accountNumber: '0812-3456-7890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
+  { id: 'dana', code: 'dana', label: 'DANA', accountNumber: '0812-3456-7890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
+  { id: 'ovo', code: 'ovo', label: 'OVO', accountNumber: '0812-3456-7890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
 ];
 
 /** Admin-editable payment methods (see migration 00000000000005). Falls
@@ -153,7 +158,7 @@ export async function getActivePaymentMethods(): Promise<PaymentMethod[]> {
     const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('payment_methods')
-      .select('id, code, label, account_number, account_name')
+      .select('id, code, label, account_number, account_name, fee_percent, fee_flat')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
     if (error) throw error;
@@ -164,6 +169,8 @@ export async function getActivePaymentMethods(): Promise<PaymentMethod[]> {
       label: row.label,
       accountNumber: row.account_number,
       accountName: row.account_name,
+      feePercent: Number(row.fee_percent ?? 0),
+      feeFlat: Number(row.fee_flat ?? 0),
     }));
   } catch (err) {
     console.error('[getActivePaymentMethods] falling back to mock data:', err);
@@ -291,6 +298,83 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
   } catch (err) {
     console.error('[getActiveProducts] falling back to mock data:', err);
     return null;
+  }
+}
+
+export interface TopupItem {
+  id: string;
+  label: string;
+  amount: number | null;
+  price: number;
+}
+
+export interface TopupGameGroup {
+  gameId: string;
+  gameName: string;
+  gameSlug: string;
+  gameIcon: string | null;
+  items: TopupItem[];
+}
+
+/**
+ * Katalog top up, dikelompokkan per game (migrasi 00000000000013).
+ *
+ * Sebelumnya daftar ini ditulis keras di lib/mock-data.ts — satu-satunya
+ * bagian toko yang belum ikut CMS, padahal harga diamond justru yang paling
+ * sering berubah. Game tanpa item aktif sengaja tidak ikut ditampilkan,
+ * supaya tidak ada tab game yang dibuka lalu kosong melompong.
+ */
+export async function getTopupCatalog(): Promise<TopupGameGroup[]> {
+  'use cache';
+  cacheLife('minutes');
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from('topup_items')
+      .select('id, label, amount, price, sort_order, games(id, name, slug, icon, sort_order)')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+
+    const groups = new Map<string, TopupGameGroup>();
+    // Urutan game disimpan terpisah, bukan ditempelkan ke objek grupnya,
+    // supaya bentuk yang dikirim ke komponen tetap persis TopupGameGroup.
+    const gameOrder = new Map<string, number>();
+
+    for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+      const game = (Array.isArray(row.games) ? row.games[0] : row.games) as
+        | { id: string; name: string; slug: string; icon: string | null; sort_order: number }
+        | null;
+      if (!game) continue;
+
+      const existing = groups.get(game.id);
+      const item: TopupItem = {
+        id: row.id as string,
+        label: row.label as string,
+        amount: row.amount === null ? null : Number(row.amount),
+        price: Number(row.price),
+      };
+
+      if (existing) {
+        existing.items.push(item);
+      } else {
+        gameOrder.set(game.id, game.sort_order ?? 0);
+        groups.set(game.id, {
+          gameId: game.id,
+          gameName: game.name,
+          gameSlug: game.slug,
+          gameIcon: game.icon,
+          items: [item],
+        });
+      }
+    }
+
+    return Array.from(groups.values()).sort(
+      (a, b) => (gameOrder.get(a.gameId) ?? 0) - (gameOrder.get(b.gameId) ?? 0)
+    );
+  } catch (err) {
+    console.error('[getTopupCatalog] failed:', err);
+    return [];
   }
 }
 

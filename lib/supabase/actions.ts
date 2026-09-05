@@ -72,22 +72,22 @@ export async function createBuyOrder(input: {
   }
 }
 
+/** Seperti createBuyOrder: tidak ada parameter `amount`. Sejak migrasi
+ * 00000000000013 harga item dan biaya layanan metode pembayaran dua-duanya
+ * diambil server dari database — ini penutup terakhir celah harga yang
+ * ditemukan pada audit. */
 export async function createTopupOrder(input: {
-  game: string;
+  topupItemId: string;
   gameUserId: string;
-  itemLabel: string;
-  amount: number;
-  paymentMethod: string;
+  paymentCode: string;
   buyerWhatsapp?: string;
 }): Promise<ActionResult> {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('create_guest_topup', {
-      p_game: input.game,
+      p_topup_item_id: input.topupItemId,
       p_game_user_id: input.gameUserId,
-      p_item_label: input.itemLabel,
-      p_amount: input.amount,
-      p_payment_method: input.paymentMethod,
+      p_payment_code: input.paymentCode,
       p_buyer_whatsapp: input.buyerWhatsapp ?? null,
     });
 
