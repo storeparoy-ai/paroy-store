@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import StatusTimeline from '@/components/shared/StatusTimeline';
+import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
 import { lookupOrderStatusAction } from '@/lib/supabase/actions';
 import { formatCurrency } from '@/lib/utils';
 
@@ -26,18 +27,19 @@ const STATUS_TO_STEP: Record<string, number> = {
   completed: 3,
 };
 
-const INVOICE_PATTERN = /^(PS|TU|RK)-\d{8}-\d{4}$/i;
-
-function deriveDemoStage(invoice: string): number {
-  const sum = invoice.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  return sum % ORDER_STEPS.length;
-}
-
 type Result =
   | { kind: 'idle' }
   | { kind: 'not-found' }
   | { kind: 'failed'; itemLabel: string; amount: number }
-  | { kind: 'found'; itemLabel: string; amount: number; step: number };
+  | {
+      kind: 'found';
+      orderNumber: string;
+      itemLabel: string;
+      amount: number;
+      step: number;
+      pending: boolean;
+      hasProof: boolean;
+    };
 
 export default function CekTransaksiPage() {
   const [query, setQuery] = useState('');
@@ -51,29 +53,31 @@ export default function CekTransaksiPage() {
     startTransition(async () => {
       const order = await lookupOrderStatusAction(trimmed);
 
-      if (order) {
-        if (order.status === 'rejected' || order.status === 'cancelled') {
-          setResult({ kind: 'failed', itemLabel: order.itemLabel, amount: order.amount });
-        } else {
-          setResult({
-            kind: 'found',
-            itemLabel: order.itemLabel,
-            amount: order.amount,
-            step: STATUS_TO_STEP[order.status] ?? 0,
-          });
-        }
+      // Tidak ketemu berarti tidak ketemu. Sebelumnya, invoice yang cuma
+      // cocok polanya ditampilkan dengan linimasa palsu hasil hitungan dari
+      // huruf-huruf nomornya sendiri — jadi salah ketik satu digit bisa
+      // menampilkan "Selesai" untuk pesanan yang tidak pernah ada. Itu
+      // penyakit yang sama dengan nomor invoice palsu yang sudah dibuang di
+      // audit: menenangkan pembeli dengan kabar yang tidak berdasar.
+      if (!order) {
+        setResult({ kind: 'not-found' });
         return;
       }
 
-      // Real lookup found nothing — this is either a genuinely unknown
-      // invoice, or the guest-checkout migration/RPC hasn't been applied
-      // to the database yet. For invoices matching our generated format we
-      // still show a demo timeline so the flow stays testable either way.
-      if (INVOICE_PATTERN.test(trimmed)) {
-        setResult({ kind: 'found', itemLabel: 'Pesanan Paroy Store', amount: 0, step: deriveDemoStage(trimmed) });
-      } else {
-        setResult({ kind: 'not-found' });
+      if (order.status === 'rejected' || order.status === 'cancelled') {
+        setResult({ kind: 'failed', itemLabel: order.itemLabel, amount: order.amount });
+        return;
       }
+
+      setResult({
+        kind: 'found',
+        orderNumber: order.orderNumber,
+        itemLabel: order.itemLabel,
+        amount: order.amount,
+        step: STATUS_TO_STEP[order.status] ?? 0,
+        pending: order.status === 'pending',
+        hasProof: order.hasProof,
+      });
     });
   }
 
@@ -95,7 +99,7 @@ export default function CekTransaksiPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <Input
-              placeholder="Contoh: PS-20260827-1234"
+              placeholder="Contoh: PS-20260905-A3F91C"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -112,7 +116,7 @@ export default function CekTransaksiPage() {
             <SearchX className="w-8 h-8 text-text-dim" />
             <p className="text-sm font-bold text-text-main">Invoice Tidak Ditemukan</p>
             <p className="text-xs text-text-muted max-w-xs">
-              Pastikan format Invoice ID benar, contoh: PS-20260827-1234
+              Pastikan format Invoice ID benar, contoh: PS-20260905-A3F91C
             </p>
           </div>
         )}
@@ -132,7 +136,7 @@ export default function CekTransaksiPage() {
             <CardContent className="p-6 space-y-5">
               <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
                 <span className="text-xs text-text-dim">No. Invoice</span>
-                <span className="font-mono font-bold text-brand-cyan">{query.toUpperCase()}</span>
+                <span className="font-mono font-bold text-brand-cyan">{result.orderNumber}</span>
               </div>
               {result.amount > 0 && (
                 <div className="flex items-center justify-between text-xs">
@@ -141,6 +145,15 @@ export default function CekTransaksiPage() {
                 </div>
               )}
               <StatusTimeline steps={ORDER_STEPS} currentStep={result.step} />
+
+              {/* Hanya selama pesanan masih menunggu verifikasi — setelah itu
+                  RPC-nya menolak lampiran baru, jadi kotak ini akan bohong. */}
+              {result.pending && (
+                <PaymentProofUpload
+                  orderNumber={result.orderNumber}
+                  alreadyUploaded={result.hasProof}
+                />
+              )}
             </CardContent>
           </Card>
         )}

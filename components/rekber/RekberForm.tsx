@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import StatusTimeline from '@/components/shared/StatusTimeline';
 import SubmitError from '@/components/shared/SubmitError';
+import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
 import { createRekberOrder } from '@/lib/supabase/actions';
 import { calculateRekberFeeFromTiers, formatCurrency, type RekberFeeTier } from '@/lib/utils';
 import type { Product } from '@/types';
@@ -88,6 +89,8 @@ export default function RekberForm({
             <StatusTimeline steps={REKBER_STEPS} currentStep={0} />
           </CardContent>
         </Card>
+
+        <PaymentProofUpload orderNumber={orderNumber} />
 
         <Link href="/cek-transaksi">
           <Button variant="primary" className="w-full">

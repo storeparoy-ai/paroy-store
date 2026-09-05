@@ -14,8 +14,15 @@ export interface AdminOrder {
   amount: number;
   status: string;
   paymentMethod: string | null;
+  /** Signed URL bukti transfer, atau null kalau pembeli belum mengirim.
+   * Bucket-nya privat (migrasi 14), jadi ini URL bertanda tangan yang
+   * kedaluwarsa — bukan tautan permanen yang bisa dibagikan orang lain. */
+  proofUrl: string | null;
   createdAt: Date;
 }
+
+const PROOF_BUCKET = 'payment-proofs';
+const PROOF_URL_TTL_SECONDS = 60 * 60; // 1 jam, cukup untuk satu sesi verifikasi
 
 /** All orders across the three order tables, newest first. Relies on RLS
  * (`role = 'admin'` policies) to actually return cross-user rows — if the
@@ -27,19 +34,24 @@ export async function getAllOrdersForAdmin(): Promise<AdminOrder[]> {
   const [buyRes, topupRes, rekberRes] = await Promise.all([
     supabase
       .from('orders')
-      .select('id, order_number, buyer_name, buyer_whatsapp, amount, status, payment_method, mode, note, created_at, products(title)')
+      .select('id, order_number, buyer_name, buyer_whatsapp, amount, status, payment_method, mode, note, proof_url, created_at, products(title)')
       .order('created_at', { ascending: false }),
     supabase
       .from('topup_orders')
-      .select('id, order_number, buyer_whatsapp, game, game_user_id, item_label, amount, status, payment_method, created_at')
+      .select('id, order_number, buyer_whatsapp, game, game_user_id, item_label, amount, status, payment_method, payment_proof_url, created_at')
       .order('created_at', { ascending: false }),
     supabase
       .from('rekber_orders')
-      .select('id, order_number, buyer_name, buyer_whatsapp, item_description, amount, fee, status, created_at')
+      .select('id, order_number, buyer_name, buyer_whatsapp, item_description, amount, fee, status, proof_url, created_at')
       .order('created_at', { ascending: false }),
   ]);
 
-  const buyOrders: AdminOrder[] = (buyRes.data ?? []).map((row) => {
+  // `proofUrl` diisi belakangan: kolomnya menyimpan PATH di dalam bucket
+  // privat, dan menandatanganinya satu per satu di dalam map() berarti satu
+  // permintaan jaringan per pesanan. Dikumpulkan dulu, ditandatangani sekali.
+  type Draft = Omit<AdminOrder, 'proofUrl'> & { proofPath: string | null };
+
+  const buyOrders: Draft[] = (buyRes.data ?? []).map((row) => {
     const product = Array.isArray(row.products) ? row.products[0] : row.products;
     const isRental = row.mode === 'rental';
     const title = product?.title ?? 'Pembelian Akun';
@@ -53,11 +65,12 @@ export async function getAllOrdersForAdmin(): Promise<AdminOrder[]> {
       amount: Number(row.amount),
       status: row.status,
       paymentMethod: row.payment_method,
+      proofPath: row.proof_url,
       createdAt: new Date(row.created_at),
     };
   });
 
-  const topupOrders: AdminOrder[] = (topupRes.data ?? []).map((row) => ({
+  const topupOrders: Draft[] = (topupRes.data ?? []).map((row) => ({
     id: row.id,
     kind: 'topup',
     orderNumber: row.order_number,
@@ -67,10 +80,11 @@ export async function getAllOrdersForAdmin(): Promise<AdminOrder[]> {
     amount: Number(row.amount),
     status: row.status,
     paymentMethod: row.payment_method,
+    proofPath: row.payment_proof_url,
     createdAt: new Date(row.created_at),
   }));
 
-  const rekberOrders: AdminOrder[] = (rekberRes.data ?? []).map((row) => ({
+  const rekberOrders: Draft[] = (rekberRes.data ?? []).map((row) => ({
     id: row.id,
     kind: 'rekber',
     orderNumber: row.order_number,
@@ -80,12 +94,48 @@ export async function getAllOrdersForAdmin(): Promise<AdminOrder[]> {
     amount: Number(row.amount) + Number(row.fee ?? 0),
     status: row.status,
     paymentMethod: null,
+    proofPath: row.proof_url,
     createdAt: new Date(row.created_at),
   }));
 
-  return [...buyOrders, ...topupOrders, ...rekberOrders].sort(
+  const drafts = [...buyOrders, ...topupOrders, ...rekberOrders].sort(
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
   );
+
+  const signed = await signProofPaths(
+    supabase,
+    drafts.map((d) => d.proofPath).filter((p): p is string => !!p)
+  );
+
+  return drafts.map(({ proofPath, ...order }) => ({
+    ...order,
+    proofUrl: proofPath ? (signed.get(proofPath) ?? null) : null,
+  }));
+}
+
+/** Tanda tangani seluruh path bukti sekaligus. Gagal menandatangani bukan
+ * alasan untuk menggagalkan halaman pesanan — pesanannya tetap tampil, hanya
+ * tautan buktinya yang hilang. */
+async function signProofPaths(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  paths: string[]
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  if (paths.length === 0) return result;
+
+  const { data, error } = await supabase.storage
+    .from(PROOF_BUCKET)
+    .createSignedUrls(paths, PROOF_URL_TTL_SECONDS);
+
+  if (error) {
+    console.error('[signProofPaths] gagal (bucket payment-proofs sudah dibuat?):', error);
+    return result;
+  }
+
+  for (const item of data ?? []) {
+    if (item.signedUrl && item.path) result.set(item.path, item.signedUrl);
+  }
+  return result;
 }
 
 export async function getAllProductsForAdmin(): Promise<Product[]> {

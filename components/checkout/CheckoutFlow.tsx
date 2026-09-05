@@ -17,6 +17,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import SubmitError from '@/components/shared/SubmitError';
+import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
 import { createBuyOrder } from '@/lib/supabase/actions';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { PaymentMethod } from '@/lib/supabase/queries';
@@ -111,6 +112,8 @@ export default function CheckoutFlow({
             <span className="font-mono font-bold text-brand-cyan">{invoiceNumber}</span>
           </CardContent>
         </Card>
+        <PaymentProofUpload orderNumber={invoiceNumber} />
+
         <Link href="/cek-transaksi">
           <Button variant="primary" className="w-full">
             Lacak Status Transaksi

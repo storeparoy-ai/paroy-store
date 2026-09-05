@@ -914,10 +914,14 @@ export async function getCurrentUserForDisplay(): Promise<CurrentUser | null> {
  */
 export async function getOrderStatus(orderNumber: string): Promise<{
   orderNumber: string;
-  kind: 'buy' | 'topup' | 'rekber';
+  kind: 'buy' | 'rental' | 'topup' | 'rekber';
   status: string;
   amount: number;
   itemLabel: string;
+  /** Sudah ada bukti transfer terlampir? Dipakai halaman Cek Transaksi supaya
+   * pembeli tahu buktinya sudah masuk dan berhenti mengunggah ulang.
+   * Ditambahkan di migrasi 14 — bernilai `false` pada database lama. */
+  hasProof: boolean;
   createdAt: Date;
 } | null> {
   try {
@@ -932,6 +936,7 @@ export async function getOrderStatus(orderNumber: string): Promise<{
       status: row.status,
       amount: Number(row.amount),
       itemLabel: row.item_label,
+      hasProof: row.has_proof === true,
       createdAt: new Date(row.created_at),
     };
   } catch (err) {

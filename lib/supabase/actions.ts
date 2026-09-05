@@ -1,9 +1,41 @@
 'use server';
 
+import { after } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getOrderStatus, searchProductSuggestions } from '@/lib/supabase/queries';
+import { notifyNewOrder, notifyProofUploaded, type OrderKind } from '@/lib/notify';
 
 type ActionResult = { success: true; orderNumber: string } | { success: false; error: string };
+
+/**
+ * Kirim notifikasi pesanan baru SETELAH respons dikirim ke pembeli.
+ *
+ * `after()` (next/server) memakai waitUntil-nya Vercel, jadi pembeli melihat
+ * nomor invoice-nya tanpa menunggu perjalanan ke server Telegram. Nominal dan
+ * nama item sengaja dibaca ulang dari database, bukan dari input browser —
+ * harga memang dihitung server sejak migrasi 10/13, jadi angka yang sampai ke
+ * HP admin adalah angka yang benar-benar tersimpan, bukan angka yang dikirim
+ * pemesan.
+ */
+function scheduleOrderNotification(
+  orderNumber: string,
+  kind: OrderKind,
+  buyer: { name?: string | null; whatsapp?: string | null; paymentMethod?: string | null; note?: string | null }
+) {
+  after(async () => {
+    const order = await getOrderStatus(orderNumber);
+    await notifyNewOrder({
+      kind,
+      orderNumber,
+      itemLabel: order?.itemLabel ?? 'Pesanan Paroy Store',
+      amount: order?.amount ?? 0,
+      buyerName: buyer.name,
+      buyerWhatsapp: buyer.whatsapp,
+      paymentMethod: buyer.paymentMethod,
+      note: buyer.note,
+    });
+  });
+}
 
 /**
  * All three actions below create a GUEST order (buyer_id / user_id /
@@ -65,7 +97,14 @@ export async function createBuyOrder(input: {
     });
 
     if (error) throw error;
-    return { success: true, orderNumber: data as string };
+    const orderNumber = data as string;
+    scheduleOrderNotification(orderNumber, input.mode === 'rental' ? 'rental' : 'buy', {
+      name: input.buyerName,
+      whatsapp: input.buyerWhatsapp,
+      paymentMethod: input.paymentMethod,
+      note: input.note,
+    });
+    return { success: true, orderNumber };
   } catch (err) {
     console.error('[createBuyOrder] failed:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Gagal menyimpan pesanan' };
@@ -92,7 +131,13 @@ export async function createTopupOrder(input: {
     });
 
     if (error) throw error;
-    return { success: true, orderNumber: data as string };
+    const orderNumber = data as string;
+    scheduleOrderNotification(orderNumber, 'topup', {
+      whatsapp: input.buyerWhatsapp,
+      paymentMethod: input.paymentCode,
+      note: `ID game: ${input.gameUserId}`,
+    });
+    return { success: true, orderNumber };
   } catch (err) {
     console.error('[createTopupOrder] failed:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Gagal menyimpan pesanan' };
@@ -131,9 +176,57 @@ export async function createRekberOrder(input: {
     });
 
     if (error) throw error;
-    return { success: true, orderNumber: data as string };
+    const orderNumber = data as string;
+    scheduleOrderNotification(orderNumber, 'rekber', {
+      name: input.buyerName,
+      whatsapp: input.buyerWhatsapp,
+      note: input.itemDescription,
+    });
+    return { success: true, orderNumber };
   } catch (err) {
     console.error('[createRekberOrder] failed:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Gagal menyimpan pengajuan' };
+  }
+}
+
+/**
+ * Kaitkan berkas bukti transfer yang sudah diunggah ke sebuah pesanan.
+ *
+ * Berkasnya sendiri diunggah langsung dari browser ke Supabase Storage
+ * (lihat `uploadPaymentProof` di lib/supabase/storage.ts), bukan lewat Server
+ * Action ini — Server Action punya batas ukuran body sekitar 1MB, sementara
+ * foto dari kamera HP rutin 3-5MB, jadi mengirimkannya lewat sini akan gagal
+ * persis untuk berkas yang paling sering dipakai orang.
+ *
+ * Yang menjaga keamanannya bukan action ini, melainkan kebijakan RLS di
+ * Storage dan RPC `attach_payment_proof` (migrasi 14): keduanya menolak nomor
+ * invoice yang tidak ada atau yang sudah tidak berstatus pending. Anggapannya
+ * memang siapa pun bisa memanggil Supabase langsung dengan kunci anon dari
+ * browser tanpa melewati situs ini sama sekali.
+ */
+export async function attachPaymentProofAction(
+  orderNumber: string,
+  path: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('attach_payment_proof', {
+      p_order_number: orderNumber,
+      p_path: path,
+    });
+
+    if (error) throw error;
+    if (data !== true) {
+      return {
+        success: false,
+        error: 'Pesanan tidak ditemukan atau sudah diverifikasi admin, jadi bukti ini tidak dilampirkan.',
+      };
+    }
+
+    after(() => notifyProofUploaded(orderNumber));
+    return { success: true };
+  } catch (err) {
+    console.error('[attachPaymentProofAction] failed:', err);
+    return { success: false, error: 'Bukti gagal dilampirkan. Coba lagi atau hubungi admin lewat WhatsApp.' };
   }
 }

@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import SubmitError from '@/components/shared/SubmitError';
+import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
 import { createTopupOrder } from '@/lib/supabase/actions';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { PaymentMethod, TopupGameGroup } from '@/lib/supabase/queries';
@@ -119,11 +120,15 @@ export default function TopupFlow({
             <PartyPopper className="w-8 h-8" />
           </div>
           <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-text-main">
-            Top Up Berhasil Diproses!
+            Pesanan Top Up Diterima!
           </h1>
+          {/* Dulu tertulis "sedang dikirim otomatis" — tidak ada otomatisasi
+              apa pun: pembayarannya transfer manual dan admin yang mengisikan
+              diamond-nya. Menjanjikan otomatis membuat pembeli tidak mengirim
+              bukti transfer, lalu bertanya-tanya kenapa tidak masuk-masuk. */}
           <p className="text-sm text-text-muted leading-relaxed">
-            {selectedItem?.label} untuk ID <strong className="text-text-main">{userId}</strong>{' '}
-            sedang dikirim otomatis. Simpan nomor invoice ini untuk pelacakan.
+            {selectedItem?.label} untuk ID <strong className="text-text-main">{userId}</strong> akan
+            diproses admin setelah pembayaranmu diverifikasi. Simpan nomor invoice ini untuk pelacakan.
           </p>
 
           <Card variant="alt">
@@ -141,6 +146,8 @@ export default function TopupFlow({
               </div>
             </CardContent>
           </Card>
+
+          <PaymentProofUpload orderNumber={invoiceNumber} />
 
           <div className="flex flex-col gap-2.5 pt-2">
             <Link href="/cek-transaksi" className={cn('inline-flex')}>

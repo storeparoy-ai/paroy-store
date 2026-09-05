@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { Check, X, RotateCcw, Loader2 } from 'lucide-react';
+import { Check, X, RotateCcw, Loader2, Receipt } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { updateOrderStatusAction } from '@/lib/supabase/admin-actions';
@@ -53,6 +53,24 @@ function OrderRow({ order }: { order: AdminOrder }) {
       </td>
       <td className="py-3 px-4 font-mono text-xs text-text-main whitespace-nowrap">
         {formatCurrency(order.amount)}
+      </td>
+      <td className="py-3 px-4">
+        {/* Tautan bertanda tangan yang kedaluwarsa dalam sejam — bukti transfer
+            memuat nama dan nomor rekening orang, jadi bucket-nya privat dan
+            tautan ini tidak untuk diteruskan ke siapa pun. */}
+        {order.proofUrl ? (
+          <a
+            href={order.proofUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-brand-cyan hover:underline whitespace-nowrap"
+          >
+            <Receipt className="w-3.5 h-3.5" />
+            Lihat
+          </a>
+        ) : (
+          <span className="text-[10px] text-text-dim">belum ada</span>
+        )}
       </td>
       <td className="py-3 px-4">
         <Badge variant={badge.variant} size="sm">{badge.label}</Badge>
@@ -129,6 +147,7 @@ export default function OrdersTable({ orders }: { orders: AdminOrder[] }) {
               <th className="py-3 px-4 font-semibold">Item</th>
               <th className="py-3 px-4 font-semibold">Pembeli</th>
               <th className="py-3 px-4 font-semibold">Total</th>
+              <th className="py-3 px-4 font-semibold">Bukti</th>
               <th className="py-3 px-4 font-semibold">Status</th>
               <th className="py-3 px-4 font-semibold">Aksi</th>
             </tr>
