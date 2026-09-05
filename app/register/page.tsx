@@ -1,8 +1,15 @@
 import React, { Suspense } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { UserPlus } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import RegisterForm from '@/components/auth/RegisterForm';
+
+export const metadata: Metadata = {
+  title: 'Daftar',
+  description: 'Buat akun Paroy Store — gratis, dan pesanan tamu tetap bisa dilacak tanpa daftar.',
+  alternates: { canonical: '/register' },
+};
 
 /** searchParams is only known at request time — isolating it here (same
  * pattern as ProductResults in app/products/page.tsx) lets the rest of the

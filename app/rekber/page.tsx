@@ -1,9 +1,17 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { PackageSearch, ShieldCheck } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import RekberForm from '@/components/rekber/RekberForm';
 import RekberFeeTable from '@/components/rekber/RekberFeeTable';
 import { getActiveProducts, getProductById, getRekberFeeTiers } from '@/lib/supabase/queries';
+
+export const metadata: Metadata = {
+  title: 'Rekber — Rekening Bersama',
+  description:
+    'Transaksi akun game dengan orang lain lewat rekening bersama Paroy Store. Dana pembeli ditahan sampai akun terbukti aman.',
+  alternates: { canonical: '/rekber' },
+};
 
 export default async function RekberPage({
   searchParams,

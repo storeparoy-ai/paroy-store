@@ -1,9 +1,17 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { Clock } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import ProductCard from '@/components/products/ProductCard';
 import RentalFlow from '@/components/rental/RentalFlow';
 import { getActiveProducts, getProductById } from '@/lib/supabase/queries';
+
+export const metadata: Metadata = {
+  title: 'Sewa Akun Game',
+  description:
+    'Sewa akun sultan per jam atau per hari untuk push rank atau coba hero. Dipakai sebentar, tidak perlu beli.',
+  alternates: { canonical: '/rental' },
+};
 
 export default async function RentalPage({
   searchParams,

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { History, Heart, Settings, UserCircle2 } from 'lucide-react';
@@ -8,6 +9,13 @@ import { getCurrentUser } from '@/lib/supabase/queries';
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
+
+/** Halaman pribadi — sudah dijaga proxy.ts dan pemeriksaan di bawah, tapi
+ * mesin pencari tetap perlu diberi tahu supaya tidak menyimpan cuplikannya. */
+export const metadata: Metadata = {
+  title: 'Profil',
+  robots: { index: false, follow: false },
+};
 
 const TABS = [
   { href: '/profile/riwayat', label: 'Riwayat Pesanan', icon: History },

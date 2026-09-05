@@ -1,10 +1,17 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Trophy, Crown, Medal } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import { Card, CardContent } from '@/components/ui/Card';
 import { getLeaderboard } from '@/lib/supabase/queries';
 import { cn, formatCurrency } from '@/lib/utils';
+
+export const metadata: Metadata = {
+  title: 'Leaderboard',
+  description: 'Peringkat pembeli paling aktif di Paroy Store — harian, mingguan, dan bulanan.',
+  alternates: { canonical: '/leaderboard' },
+};
 
 const PERIODS = [
   { value: 'daily', label: 'Harian' },

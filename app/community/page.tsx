@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Users, MessageCircle, Send as DiscordIcon } from 'lucide-react';
 import Container from '@/components/ui/Container';
@@ -8,6 +9,13 @@ import PostCard from '@/components/community/PostCard';
 import { getCommunityPosts, getCurrentUserForDisplay, getGames, getSiteSettings } from '@/lib/supabase/queries';
 import { buttonVariants } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+
+export const metadata: Metadata = {
+  title: 'Komunitas',
+  description:
+    'Tempat pemain berbagi info, mencari teman main, dan bertanya sebelum membeli akun di Paroy Store.',
+  alternates: { canonical: '/community' },
+};
 
 export default async function CommunityPage() {
   const [posts, user, games, siteSettings] = await Promise.all([

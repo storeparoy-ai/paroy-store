@@ -1,8 +1,15 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LogIn } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import LoginForm from '@/components/auth/LoginForm';
+
+export const metadata: Metadata = {
+  title: 'Masuk',
+  description: 'Masuk ke akun Paroy Store untuk melihat riwayat transaksi dan wishlist.',
+  alternates: { canonical: '/login' },
+};
 
 export default async function LoginPage({
   searchParams,

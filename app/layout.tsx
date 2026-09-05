@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { cacheLife } from 'next/cache';
 import { Suspense } from 'react';
 import { Rajdhani, Orbitron, JetBrains_Mono } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import BottomNav, { BottomNavFallback } from '@/components/layout/BottomNav';
-import { getCurrentUserForDisplay } from '@/lib/supabase/queries';
+import { getCurrentUserForDisplay, getSiteSettings } from '@/lib/supabase/queries';
+import { siteUrl } from '@/lib/site';
 import './globals.css';
 
 // Paroy Nexus type system (see DESIGN.md): Rajdhani for body — a technical
@@ -34,10 +36,68 @@ const jetbrains = JetBrains_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'PAROY STORE — Marketplace Gaming & Top Up',
-  description: 'Marketplace jual beli akun game, top up kilat, dan rekber escrow resmi terpercaya.',
-};
+/**
+ * Metadata dasar seluruh situs.
+ *
+ * `generateMetadata` (bukan objek `metadata` statis) supaya nama toko dan
+ * tagline ikut Pengaturan Situs di dashboard — kalau admin mengganti nama
+ * toko, judul tab dan pratinjau link ikut berubah tanpa deploy ulang.
+ *
+ * `'use cache'` di dalamnya bukan optimasi belaka: dengan Cache Components,
+ * generateMetadata yang mengambil data tanpa cache memaksa Next.js mengeluh
+ * bahwa halaman yang seharusnya bisa di-prerender jadi menunggu request.
+ *
+ * `metadataBase` wajib: pratinjau di WhatsApp/Telegram butuh URL gambar yang
+ * absolut — path relatif tidak bisa ditebak dari luar. Tanpa ini, setiap
+ * gambar Open Graph relatif akan menggagalkan build.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  'use cache';
+  // Wajib disebutkan, jangan dibiarkan memakai profil bawaan. Ini metadata
+  // layout ROOT, jadi umur cache-nya jadi batas terketat bagi SETIAP halaman
+  // di situs — profil bawaan (15 menit) diam-diam memperpendek jendela
+  // revalidasi semua rute dari sehari jadi seperempat jam. 'hours' menyamakan
+  // umurnya dengan getSiteSettings() yang jadi sumber datanya.
+  cacheLife('hours');
+  const settings = await getSiteSettings();
+  const description =
+    'Jual beli akun game, top up diamond, sewa akun, dan rekber (rekening bersama) resmi. ' +
+    'Setiap serah terima akun didampingi admin dengan proteksi anti-hackback.';
+
+  return {
+    metadataBase: new URL(siteUrl()),
+    title: {
+      default: `${settings.siteName} — ${settings.tagline}`,
+      // Halaman lain cukup menulis judulnya sendiri, nama toko menyusul.
+      template: `%s · ${settings.siteName}`,
+    },
+    description,
+    applicationName: settings.siteName,
+    keywords: [
+      'jual beli akun game',
+      'top up murah',
+      'sewa akun game',
+      'rekber',
+      'rekening bersama',
+      'akun mobile legends',
+      'akun free fire',
+    ],
+    alternates: { canonical: '/' },
+    openGraph: {
+      type: 'website',
+      locale: 'id_ID',
+      siteName: settings.siteName,
+      title: `${settings.siteName} — ${settings.tagline}`,
+      description,
+      url: siteUrl(),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${settings.siteName} — ${settings.tagline}`,
+      description,
+    },
+  };
+}
 
 /** Isolates the one genuinely per-request bit of the whole layout (the
  * session cookie, read via getCurrentUserForDisplay()) inside its own

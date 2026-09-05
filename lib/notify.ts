@@ -22,6 +22,7 @@
  */
 
 import { createServiceRoleClient } from '@/utils/supabase/service';
+import { absoluteUrl } from '@/lib/site';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 const SEND_TIMEOUT_MS = 6000;
@@ -114,16 +115,6 @@ function formatRupiah(amount: number): string {
   return `Rp${new Intl.NumberFormat('id-ID').format(Math.round(amount))}`;
 }
 
-/** URL situs untuk tautan langsung ke pesanan. Vercel menyediakan
- * VERCEL_PROJECT_PRODUCTION_URL sendiri (tanpa protokol), jadi tidak ada yang
- * perlu diatur manual kecuali kalau nanti pakai domain lain. */
-function siteUrl(): string | null {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
-  if (explicit) return explicit.replace(/\/$/, '');
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  return vercel ? `https://${vercel}` : null;
-}
-
 /**
  * Kirim satu pesan. Mengembalikan pesan kesalahan dari Telegram apa adanya
  * supaya tombol "Kirim Tes" di dashboard bisa menampilkannya — tanpa itu,
@@ -181,7 +172,6 @@ async function dispatch(text: string, channel: 'newOrder' | 'proofUpload'): Prom
 /** Pesanan baru masuk. Dipanggil dari dalam `after()` supaya pembeli tidak
  * menunggu jaringan Telegram sebelum melihat nomor invoice-nya. */
 export async function notifyNewOrder(order: OrderNotification): Promise<void> {
-  const base = siteUrl();
   const lines = [
     `<b>${KIND_LABEL[order.kind]}</b>`,
     '',
@@ -199,7 +189,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   if (order.note) lines.push(`Catatan  : ${esc(order.note)}`);
 
   lines.push('', '⏳ Menunggu bukti transfer dari pembeli.');
-  if (base) lines.push(`${base}/admin/pesanan`);
+  lines.push(absoluteUrl('/admin/pesanan'));
 
   await dispatch(lines.join('\n'), 'newOrder');
 }
@@ -207,7 +197,6 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
 /** Bukti transfer diunggah — ini momen admin benar-benar perlu bertindak,
  * jadi ia dapat notifikasi sendiri, bukan cuma numpang di pesan pesanan. */
 export async function notifyProofUploaded(orderNumber: string): Promise<void> {
-  const base = siteUrl();
   const lines = [
     '<b>💸 Bukti transfer masuk</b>',
     '',
@@ -215,7 +204,7 @@ export async function notifyProofUploaded(orderNumber: string): Promise<void> {
     '',
     'Cek buktinya lalu ubah status pesanan.',
   ];
-  if (base) lines.push(`${base}/admin/pesanan`);
+  lines.push(absoluteUrl('/admin/pesanan'));
 
   await dispatch(lines.join('\n'), 'proofUpload');
 }

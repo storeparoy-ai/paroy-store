@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -18,6 +19,7 @@ import { buttonVariants } from '@/components/ui/Button';
 import ProductGallery from '@/components/products/ProductGallery';
 import WishlistButton from '@/components/products/WishlistButton';
 import { getProductById, getCurrentUserForDisplay, isProductWishlisted } from '@/lib/supabase/queries';
+import { absoluteUrl } from '@/lib/site';
 import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 
 // Kept dynamic on purpose: the product `id` param is needed before *any*
@@ -30,6 +32,86 @@ import { cn, formatCurrency, formatNumber } from '@/lib/utils';
 // it's ready to go the day this route gains generateStaticParams for its
 // top products and becomes worth converting for real.
 export const instant = false;
+
+/**
+ * Judul, deskripsi, dan gambar untuk pratinjau link.
+ *
+ * Ini yang tampil saat seseorang menempelkan tautan produk ke grup WhatsApp
+ * atau Telegram. Sebelumnya semua link produk memunculkan judul dan deskripsi
+ * situs yang sama persis — pembeli tidak bisa membedakan akun yang dibagikan
+ * temannya dari halaman muka.
+ *
+ * getProductById() memakai `'use cache'`, jadi pemanggilan kedua dari
+ * komponen halaman di bawah tidak menambah kunjungan ke database.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProductById(id);
+
+  if (!product) {
+    return {
+      title: 'Akun tidak ditemukan',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  // Spesifikasi teratas ikut masuk deskripsi: itu yang benar-benar dilihat
+  // pembeli sebelum memutuskan membuka tautannya ("120 skin, Mythic Glory"
+  // jauh lebih menjual daripada kalimat umum tentang toko).
+  const highlights = Object.entries(product.specs)
+    .slice(0, 3)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(' · ');
+
+  const description = [
+    `Akun ${product.game.name} — ${formatCurrency(product.price)}.`,
+    highlights,
+    product.canRental ? 'Bisa dibeli atau disewa.' : null,
+    'Serah terima didampingi admin, dengan proteksi anti-hackback.',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const title = `${product.title} — ${product.game.name}`;
+  const url = `/products/${product.id}`;
+
+  // Produk tanpa foto mendapat gambar isian abu-abu dari mapSupabaseProduct.
+  // Itu wajar di dalam katalog, tapi sebagai pratinjau link ia lebih buruk
+  // daripada tidak ada gambar sama sekali — kotak abu bertuliskan "No Image"
+  // di tengah percakapan grup. Jatuhkan ke kartu bermerek situs.
+  //
+  // Ditunjuk eksplisit, bukan dibiarkan kosong: `openGraph` di halaman anak
+  // MENIMPA milik induk seutuhnya, bukan menggabungkannya — menghilangkan
+  // `images` di sini justru membuat halaman produk tidak punya gambar sama
+  // sekali (diuji, bukan dikira-kira).
+  const hasPhoto = !product.images[0]?.includes('placehold.co');
+  const image = hasPhoto ? product.images[0] : absoluteUrl('/opengraph-image');
+  const imageAlt = hasPhoto ? product.title : 'Paroy Store';
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'website',
+      locale: 'id_ID',
+      title,
+      description,
+      url,
+      images: [{ url: image, alt: imageAlt }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 /** The only genuinely per-request bit of this whole page — whether the
  * viewer is logged in, and whether they already wishlisted this product.

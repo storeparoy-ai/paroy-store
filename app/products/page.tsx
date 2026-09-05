@@ -1,9 +1,17 @@
 import React, { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { PackageSearch } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import ProductCard from '@/components/products/ProductCard';
 import ProductFilters from '@/components/products/ProductFilters';
 import { getActiveProducts, getGames, getPriceRanges } from '@/lib/supabase/queries';
+
+export const metadata: Metadata = {
+  title: 'Katalog Akun Game',
+  description:
+    'Daftar akun game siap pakai — Mobile Legends, Free Fire, PUBG, dan lainnya. Harga tertera jelas, serah terima didampingi admin.',
+  alternates: { canonical: '/products' },
+};
 
 type SearchParams = Promise<{
   game?: string;
