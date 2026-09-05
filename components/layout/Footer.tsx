@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { cacheLife } from 'next/cache';
 import { Gamepad2, ShieldCheck, MessageCircle, Globe } from 'lucide-react';
 import Container from '@/components/ui/Container';
+import { getSiteSettings } from '@/lib/supabase/queries';
 
 /** `new Date()` during prerendering is a Cache Components build error (an
  * uncached value that can change between renders) — cache it instead of
@@ -35,7 +36,7 @@ const FOOTER_LINKS = [
 ];
 
 export default async function Footer() {
-  const year = await getCurrentYear();
+  const [year, settings] = await Promise.all([getCurrentYear(), getSiteSettings()]);
 
   return (
     <footer className="bg-bg-deep border-t border-border-subtle pb-20 lg:pb-0">
@@ -58,22 +59,37 @@ export default async function Footer() {
               <ShieldCheck className="w-4 h-4" />
               <span>100% Anti Hackback &middot; Rekber Resmi</span>
             </div>
-            <div className="flex items-center gap-3 pt-2">
-              <a
-                href="#"
-                className="w-9 h-9 rounded-lg bg-bg-card border border-border-subtle flex items-center justify-center text-text-muted hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
-                aria-label="WhatsApp"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </a>
-              <a
-                href="#"
-                className="w-9 h-9 rounded-lg bg-bg-card border border-border-subtle flex items-center justify-center text-text-muted hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
-                aria-label="Website Resmi"
-              >
-                <Globe className="w-4 h-4" />
-              </a>
-            </div>
+            {/* Dulu dua-duanya href="#" — pembeli yang butuh bantuan menekan
+                ikon WhatsApp dan tidak terjadi apa-apa, padahal tautannya sudah
+                ada di Pengaturan Situs sejak lama. Ikon yang belum diisi
+                disembunyikan saja: tombol mati lebih buruk daripada tidak ada
+                tombol, karena ia terlihat seperti bantuan yang tersedia. */}
+            {(settings.whatsappUrl || settings.discordUrl) && (
+              <div className="flex items-center gap-3 pt-2">
+                {settings.whatsappUrl && (
+                  <a
+                    href={settings.whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-bg-card border border-border-subtle flex items-center justify-center text-text-muted hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
+                    aria-label="Hubungi admin lewat WhatsApp"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </a>
+                )}
+                {settings.discordUrl && (
+                  <a
+                    href={settings.discordUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-bg-card border border-border-subtle flex items-center justify-center text-text-muted hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
+                    aria-label="Gabung Discord Paroy Store"
+                  >
+                    <Globe className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {FOOTER_LINKS.map((col) => (

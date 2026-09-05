@@ -4,7 +4,12 @@ import { PackageSearch, ShieldCheck } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import RekberForm from '@/components/rekber/RekberForm';
 import RekberFeeTable from '@/components/rekber/RekberFeeTable';
-import { getActiveProducts, getProductById, getRekberFeeTiers } from '@/lib/supabase/queries';
+import {
+  getActiveProducts,
+  getActivePaymentMethods,
+  getProductById,
+  getRekberFeeTiers,
+} from '@/lib/supabase/queries';
 
 export const metadata: Metadata = {
   title: 'Rekber — Rekening Bersama',
@@ -20,9 +25,10 @@ export default async function RekberPage({
 }) {
   const { product: productId } = await searchParams;
 
-  const [dbProducts, feeTiers, initialProduct] = await Promise.all([
+  const [dbProducts, feeTiers, paymentMethods, initialProduct] = await Promise.all([
     getActiveProducts(),
     getRekberFeeTiers(),
+    getActivePaymentMethods(),
     productId ? getProductById(productId) : Promise.resolve(null),
   ]);
 
@@ -57,7 +63,12 @@ export default async function RekberPage({
           </p>
         </div>
       ) : (
-        <RekberForm initialProduct={initialProduct ?? undefined} products={products} feeTiers={feeTiers} />
+        <RekberForm
+          initialProduct={initialProduct ?? undefined}
+          products={products}
+          feeTiers={feeTiers}
+          paymentMethods={paymentMethods}
+        />
       )}
     </Container>
   );

@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import SubmitError from '@/components/shared/SubmitError';
 import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
+import PaymentDestination from '@/components/shared/PaymentDestination';
 import { createTopupOrder } from '@/lib/supabase/actions';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { PaymentMethod, TopupGameGroup } from '@/lib/supabase/queries';
@@ -145,12 +146,13 @@ export default function TopupFlow({
                   <Copy className="w-3.5 h-3.5 text-text-dim" />
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-text-dim">Total Bayar</span>
-                <span className="font-mono font-bold text-text-main">{formatCurrency(total)}</span>
-              </div>
             </CardContent>
           </Card>
+
+          {/* Sebelumnya layar ini berhenti di nomor invoice dan total — pembeli
+              tidak pernah diberi tahu rekening tujuannya, lalu diminta
+              mengunggah bukti transfer yang mustahil ia lakukan. */}
+          <PaymentDestination methods={selectedPayment ? [selectedPayment] : paymentMethods} total={total} />
 
           <PaymentProofUpload orderNumber={invoiceNumber} />
 

@@ -40,19 +40,39 @@ export default async function CommunityPage() {
           </div>
         </div>
 
-        <Card variant="alt">
-          <CardContent className="p-4 flex flex-wrap items-center gap-3">
-            <span className="text-xs text-text-muted flex-1">Gabung juga di grup resmi kami:</span>
-            <a href={siteSettings.whatsappUrl || '#'} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-              <MessageCircle className="w-3.5 h-3.5" />
-              WhatsApp
-            </a>
-            <a href={siteSettings.discordUrl || '#'} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-              <DiscordIcon className="w-3.5 h-3.5" />
-              Discord
-            </a>
-          </CardContent>
-        </Card>
+        {/* Tombol yang belum diisi URL-nya disembunyikan, tidak diarahkan ke
+            "#". Discord memang belum diatur di Pengaturan Situs, dan tombol
+            mati lebih buruk daripada tidak ada tombol — ia terlihat seperti
+            grup yang ada, sampai seseorang menekannya. */}
+        {(siteSettings.whatsappUrl || siteSettings.discordUrl) && (
+          <Card variant="alt">
+            <CardContent className="p-4 flex flex-wrap items-center gap-3">
+              <span className="text-xs text-text-muted flex-1">Gabung juga di grup resmi kami:</span>
+              {siteSettings.whatsappUrl && (
+                <a
+                  href={siteSettings.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  WhatsApp
+                </a>
+              )}
+              {siteSettings.discordUrl && (
+                <a
+                  href={siteSettings.discordUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                >
+                  <DiscordIcon className="w-3.5 h-3.5" />
+                  Discord
+                </a>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {user ? (
           <PostComposer games={games} />

@@ -9,8 +9,10 @@ import Button from '@/components/ui/Button';
 import StatusTimeline from '@/components/shared/StatusTimeline';
 import SubmitError from '@/components/shared/SubmitError';
 import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
+import PaymentDestination from '@/components/shared/PaymentDestination';
 import { createRekberOrder } from '@/lib/supabase/actions';
 import { calculateRekberFeeFromTiers, formatCurrency, type RekberFeeTier } from '@/lib/utils';
+import type { PaymentMethod } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
 
 const REKBER_STEPS = [
@@ -25,10 +27,12 @@ export default function RekberForm({
   initialProduct,
   products,
   feeTiers,
+  paymentMethods,
 }: {
   initialProduct?: Product;
   products: Product[];
   feeTiers: RekberFeeTier[];
+  paymentMethods: PaymentMethod[];
 }) {
   const [productId, setProductId] = useState(initialProduct?.id ?? products[0]?.id ?? '');
   const [buyerName, setBuyerName] = useState('');
@@ -89,6 +93,10 @@ export default function RekberForm({
             <StatusTimeline steps={REKBER_STEPS} currentStep={0} />
           </CardContent>
         </Card>
+
+        {/* Linimasa di atas menyebut "transfer ke rekening penampung" tanpa
+            pernah menunjukkan rekeningnya. Sekarang rekeningnya ada di sini. */}
+        <PaymentDestination methods={paymentMethods} total={total} />
 
         <PaymentProofUpload orderNumber={orderNumber} />
 
