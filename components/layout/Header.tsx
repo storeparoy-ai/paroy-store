@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { Search, Zap, LogIn, LogOut, Menu, X, Gamepad2, UserCircle2, ShieldCheck } from 'lucide-react';
+import Link, { useLinkStatus } from 'next/link';
+import { Search, Zap, LogIn, LogOut, Menu, X, Gamepad2, UserCircle2, ShieldCheck, Loader2 } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -18,6 +18,31 @@ const NAV_LINKS = [
   { href: '/rekber', label: 'Rekber' },
   { href: '/cek-transaksi', label: 'Cek Transaksi' },
 ];
+
+/**
+ * Penanda "sedang membuka" untuk tautan menuju halaman yang dirender penuh di
+ * server (Admin dan Profil). Keduanya harus memverifikasi sesi login ke
+ * Supabase lebih dulu, jadi pada jaringan seluler yang lambat bisa ada jeda
+ * beberapa detik sebelum halaman berganti — dan tanpa penanda apa pun, jeda
+ * itu terbaca sebagai "tombolnya rusak". Persis kasus yang disebut dokumentasi
+ * Next.js: prefetch belum selesai saat tautan diklik, sehingga kerangka
+ * loading.tsx pun belum sempat tampil.
+ *
+ * Ukurannya tetap dan elemennya selalu ada — hanya opasitasnya yang berubah —
+ * supaya tata letak tidak bergeser saat muncul.
+ */
+function LinkPending() {
+  const { pending } = useLinkStatus();
+  return (
+    <Loader2
+      aria-hidden="true"
+      className={cn(
+        'w-3.5 h-3.5 shrink-0 transition-opacity motion-safe:animate-spin',
+        pending ? 'opacity-100' : 'opacity-0'
+      )}
+    />
+  );
+}
 
 export default function Header({ user }: { user: CurrentUser | null }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -66,14 +91,21 @@ export default function Header({ user }: { user: CurrentUser | null }) {
           {user ? (
             <div className="flex items-center gap-4 pl-4 border-l border-border-subtle">
               {user.role === 'admin' && (
-                <Link href="/admin" className="text-xs font-semibold text-trust-emerald hover:opacity-80 flex items-center gap-1.5 whitespace-nowrap">
+                /* Langsung ke /admin/dashboard, bukan /admin: halaman /admin
+                   isinya cuma redirect ke sini, dan lewat navigasi sisi klien
+                   redirect itu berarti seluruh rantai pemeriksaan admin
+                   (middleware + layout, masing-masing memanggil Supabase Auth)
+                   dijalankan DUA KALI sebelum apa pun tampil. */
+                <Link href="/admin/dashboard" className="text-xs font-semibold text-trust-emerald hover:opacity-80 flex items-center gap-1.5 whitespace-nowrap">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Admin
+                  <LinkPending />
                 </Link>
               )}
               <Link href="/profile" className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors whitespace-nowrap">
                 <UserCircle2 className="w-4 h-4" />
                 {user.fullName || 'Akun Saya'}
+                <LinkPending />
               </Link>
               <form action={signOutAction}>
                 <Button variant="ghost" size="sm" type="submit" aria-label="Keluar">
@@ -137,10 +169,11 @@ export default function Header({ user }: { user: CurrentUser | null }) {
                 </Button>
               </Link>
               {user.role === 'admin' && (
-                <Link href="/admin" className="block" onClick={() => setMobileOpen(false)}>
+                <Link href="/admin/dashboard" className="block" onClick={() => setMobileOpen(false)}>
                   <Button variant="secondary" className="w-full">
                     <ShieldCheck className="w-4 h-4 text-trust-emerald" />
                     Dashboard Admin
+                    <LinkPending />
                   </Button>
                 </Link>
               )}

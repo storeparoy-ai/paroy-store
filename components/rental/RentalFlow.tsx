@@ -8,8 +8,9 @@ import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import SubmitError from '@/components/shared/SubmitError';
 import { createBuyOrder } from '@/lib/supabase/actions';
-import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import type { Product } from '@/types';
 
 type Unit = 'hourly' | 'daily';
@@ -26,6 +27,7 @@ export default function RentalFlow({ product }: { product: Product }) {
   const [buyerWhatsapp, setBuyerWhatsapp] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isPending, startTransition] = useTransition();
 
   const rate = availableUnits.find((u) => u.value === unit)?.rate ?? 0;
@@ -40,17 +42,26 @@ export default function RentalFlow({ product }: { product: Product }) {
 
   function handleSubmit() {
     if (!canSubmit) return;
+    setSubmitError('');
     startTransition(async () => {
+      // Durasi dikirim mentah (satuan + jumlah); tarifnya diambil server dari
+      // kolom rental_price_* milik produk, jadi total tidak bisa dikarang dari
+      // sisi browser — lihat migrasi 00000000000010.
       const result = await createBuyOrder({
         productId: product.id,
-        amount: total,
         buyerName,
         buyerWhatsapp,
         paymentMethod: 'Transfer (dikonfirmasi admin)',
         mode: 'rental',
         note: `Sewa ${durationLabel}`,
+        rentalUnit: unit,
+        rentalQty: qty,
       });
-      setInvoiceNumber(result.success ? result.orderNumber : generateOrderNumber());
+      if (!result.success) {
+        setSubmitError(result.error);
+        return;
+      }
+      setInvoiceNumber(result.orderNumber);
       setConfirmed(true);
     });
   }
@@ -221,6 +232,7 @@ export default function RentalFlow({ product }: { product: Product }) {
                 Lengkapi nama dan nomor WhatsApp dulu ya.
               </p>
             )}
+            <SubmitError message={submitError} />
           </CardContent>
         </Card>
       </div>

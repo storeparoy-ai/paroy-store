@@ -388,8 +388,12 @@ export async function getLeaderboard(period: 'daily' | 'weekly' | 'monthly'): Pr
 
   if (totals.size === 0) return [];
 
+  // public_profiles, bukan profiles — lihat migrasi 00000000000010: tabel
+  // profiles sekarang hanya bisa dibaca pemiliknya sendiri dan admin, karena
+  // kolom `whatsapp` di dalamnya sempat terbuka untuk siapa saja. View ini
+  // memuat persis empat kolom yang memang aman dipajang publik.
   const { data: profiles } = await supabase
-    .from('profiles')
+    .from('public_profiles')
     .select('id, full_name, username, avatar_url')
     .in('id', Array.from(totals.keys()));
 
@@ -431,7 +435,7 @@ export async function getCommunityPosts(): Promise<CommunityPost[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('community_posts')
-    .select('id, content, game, likes, comments, created_at, profiles(full_name, username, avatar_url)')
+    .select('id, content, game, likes, comments, created_at, author_id')
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -440,8 +444,20 @@ export async function getCommunityPosts(): Promise<CommunityPost[]> {
     return [];
   }
 
+  // Penulisnya diambil terpisah lewat public_profiles, bukan lagi sebagai
+  // embed `profiles(...)` — tabel profiles sudah ditutup untuk pembaca anonim
+  // (migrasi 00000000000010, kebocoran nomor WhatsApp), dan PostgREST tidak
+  // bisa meng-embed view lewat relasi FK seperti itu. Satu kueri tambahan,
+  // dan seluruh fungsi ini sudah di-cache, jadi biayanya tidak terasa.
+  const authorIds = Array.from(
+    new Set(data.map((row) => row.author_id).filter((id): id is string => Boolean(id)))
+  );
+  const { data: authors } = authorIds.length
+    ? await supabase.from('public_profiles').select('id, full_name, username, avatar_url').in('id', authorIds)
+    : { data: [] as { id: string; full_name: string | null; username: string | null; avatar_url: string | null }[] };
+
   return data.map((row) => {
-    const author = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    const author = authors?.find((a) => a.id === row.author_id);
     return {
       id: row.id,
       authorName: author?.full_name || author?.username || 'Gamer Anonim',
@@ -607,7 +623,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
       role: profile?.role === 'admin' ? 'admin' : 'user',
     };
   } catch (err) {
-    console.error('[getCurrentUser] failed:', err);
+    // Sama seperti getCurrentUserForDisplay di bawah: Cache Components memang
+    // sengaja membatalkan cookies() begitu kerangka statis sebuah rute selesai
+    // diprerender, dan itu ditandai dengan digest ini. Derau build yang wajar,
+    // bukan kegagalan — jadi hanya yang selain itu yang dicatat.
+    if ((err as { digest?: string })?.digest !== 'HANGING_PROMISE_REJECTION') {
+      console.error('[getCurrentUser] failed:', err);
+    }
     return null;
   }
 }

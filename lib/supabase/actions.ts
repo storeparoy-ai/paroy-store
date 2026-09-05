@@ -28,9 +28,15 @@ type ActionResult = { success: true; orderNumber: string } | { success: false; e
  * until migration `00000000000007_guest_order_rpc.sql` has been applied.
  */
 
+/**
+ * Note the absence of an `amount` parameter, here and in createRekberOrder:
+ * that is the point. The RPC looks the price up from `products` itself (see
+ * migration 00000000000010) — previously the browser sent the amount and
+ * Postgres stored it verbatim, so anyone could issue a real invoice for a
+ * Rp5.000.000 account reading Rp1.000, without even opening the site.
+ */
 export async function createBuyOrder(input: {
   productId: string;
-  amount: number;
   buyerName: string;
   buyerWhatsapp: string;
   paymentMethod: string;
@@ -40,6 +46,10 @@ export async function createBuyOrder(input: {
   /** Free-text detail with no dedicated column yet, e.g. rental duration
    * ("Sewa 3 jam") — shown to admin in the Pesanan list. */
   note?: string;
+  /** Rental only — the RPC multiplies the product's own stored rate by this,
+   * rather than trusting a total computed in the browser. */
+  rentalUnit?: 'hourly' | 'daily';
+  rentalQty?: number;
 }): Promise<ActionResult> {
   try {
     const supabase = await createClient();
@@ -47,10 +57,11 @@ export async function createBuyOrder(input: {
       p_buyer_name: input.buyerName,
       p_buyer_whatsapp: input.buyerWhatsapp,
       p_product_id: input.productId,
-      p_amount: input.amount,
       p_payment_method: input.paymentMethod,
       p_mode: input.mode ?? 'buy',
       p_note: input.note ?? null,
+      p_rental_unit: input.rentalUnit ?? null,
+      p_rental_qty: input.rentalQty ?? null,
     });
 
     if (error) throw error;
@@ -94,11 +105,12 @@ export async function lookupOrderStatusAction(orderNumber: string) {
   return getOrderStatus(orderNumber);
 }
 
+/** `productId` is required now (it used to be optional): the RPC derives both
+ * the amount and the rekber fee from it — the fee from the admin-managed tier
+ * table — so leaving it out was itself a way around the price check. */
 export async function createRekberOrder(input: {
-  productId?: string;
+  productId: string;
   itemDescription: string;
-  amount: number;
-  fee: number;
   buyerName: string;
   buyerWhatsapp: string;
 }): Promise<ActionResult> {
@@ -107,10 +119,8 @@ export async function createRekberOrder(input: {
     const { data, error } = await supabase.rpc('create_guest_rekber', {
       p_buyer_name: input.buyerName,
       p_buyer_whatsapp: input.buyerWhatsapp,
-      p_product_id: input.productId ?? null,
+      p_product_id: input.productId,
       p_item_description: input.itemDescription,
-      p_amount: input.amount,
-      p_fee: input.fee,
     });
 
     if (error) throw error;

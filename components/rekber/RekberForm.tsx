@@ -7,8 +7,9 @@ import { Card, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import StatusTimeline from '@/components/shared/StatusTimeline';
+import SubmitError from '@/components/shared/SubmitError';
 import { createRekberOrder } from '@/lib/supabase/actions';
-import { calculateRekberFeeFromTiers, formatCurrency, generateOrderNumber, type RekberFeeTier } from '@/lib/utils';
+import { calculateRekberFeeFromTiers, formatCurrency, type RekberFeeTier } from '@/lib/utils';
 import type { Product } from '@/types';
 
 const REKBER_STEPS = [
@@ -34,6 +35,7 @@ export default function RekberForm({
   const [agreed, setAgreed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isPending, startTransition] = useTransition();
 
   const product = products.find((p) => p.id === productId);
@@ -47,19 +49,23 @@ export default function RekberForm({
 
   function handleSubmit() {
     if (!canSubmit || !product) return;
+    setSubmitError('');
     startTransition(async () => {
+      // Nominal dan biaya jasa sekarang dihitung server dari tabel produk dan
+      // tabel tarif rekber (migrasi 00000000000010). Kalkulator di samping
+      // tetap ada sebagai perkiraan untuk pembeli, tapi angkanya bukan lagi
+      // yang menentukan isi invoice.
       const result = await createRekberOrder({
         productId: product.id,
         itemDescription: product.title,
-        amount: product.price,
-        fee,
         buyerName,
         buyerWhatsapp: whatsapp,
       });
-      // Falls back to a local invoice number if the insert fails (e.g. the
-      // guest-checkout migration hasn't been applied yet) so the demo flow
-      // still completes for the user.
-      setOrderNumber(result.success ? result.orderNumber : generateOrderNumber());
+      if (!result.success) {
+        setSubmitError(result.error);
+        return;
+      }
+      setOrderNumber(result.orderNumber);
       setSubmitted(true);
     });
   }
@@ -159,6 +165,7 @@ export default function RekberForm({
                 Lengkapi nama, WhatsApp, dan centang persetujuan dulu ya.
               </p>
             )}
+            <SubmitError message={submitError} />
           </CardContent>
         </Card>
 

@@ -16,9 +16,10 @@ import Container from '@/components/ui/Container';
 import { Card, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import SubmitError from '@/components/shared/SubmitError';
 import { TOPUP_ITEMS } from '@/lib/mock-data';
 import { createTopupOrder } from '@/lib/supabase/actions';
-import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 const PAYMENT_OPTIONS = [
   { id: 'qris', label: 'QRIS (Semua E-Wallet & Bank)', icon: QrCode, fee: 0.007 },
@@ -39,6 +40,7 @@ export default function TopUpPage() {
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('form');
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isPending, startTransition] = useTransition();
 
   const activeGameGroup = TOPUP_ITEMS[gameIndex];
@@ -58,6 +60,7 @@ export default function TopUpPage() {
 
   function handleSubmit() {
     if (!canSubmit || !selectedItem || !selectedPayment) return;
+    setSubmitError('');
     setStatus('processing');
     startTransition(async () => {
       const result = await createTopupOrder({
@@ -67,10 +70,14 @@ export default function TopUpPage() {
         amount: total,
         paymentMethod: selectedPayment.label,
       });
-      // Falls back to a local invoice number if the insert fails (e.g. the
-      // guest-checkout migration hasn't been applied yet) so the demo flow
-      // still completes for the user.
-      setInvoiceNumber(result.success ? result.orderNumber : generateOrderNumber());
+      // Gagal simpan harus kelihatan, bukan ditutupi nomor invoice karangan
+      // yang membuat pembeli mentransfer untuk pesanan yang tidak ada.
+      if (!result.success) {
+        setSubmitError(result.error);
+        setStatus('form');
+        return;
+      }
+      setInvoiceNumber(result.orderNumber);
       setStatus('success');
     });
   }
@@ -305,6 +312,7 @@ export default function TopUpPage() {
                   Lengkapi User ID, nominal, dan metode pembayaran dulu ya.
                 </p>
               )}
+              <SubmitError message={submitError} />
             </CardContent>
           </Card>
 

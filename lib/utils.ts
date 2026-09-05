@@ -95,11 +95,14 @@ export function formatRekberTierRange(tiers: RekberFeeTier[], index: number): st
   return `${formatCompactCurrency(min)} - ${formatCompactCurrency(tier.maxAmount)}`;
 }
 
-export function generateOrderNumber(): string {
-  const date = new Date();
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `PS-${y}${m}${d}-${rand}`;
-}
+/* generateOrderNumber() dihapus 2026-09-05.
+ *
+ * Fungsi ini membuat nomor invoice di sisi browser, dan dipakai keempat alur
+ * pemesanan sebagai jalan keluar saat penyimpanan ke database gagal. Akibatnya
+ * pembeli melihat halaman sukses lengkap dengan nomor invoice untuk pesanan
+ * yang tidak pernah ada di mana pun — lalu mentransfer uang. Nomor invoice
+ * yang sah sekarang hanya datang dari database (kolom order_number), dan
+ * kegagalan ditampilkan apa adanya lewat components/shared/SubmitError.tsx.
+ *
+ * Sengaja tidak disisakan sebagai fungsi menganggur supaya polanya tidak
+ * dipakai ulang tanpa sengaja di kemudian hari. */

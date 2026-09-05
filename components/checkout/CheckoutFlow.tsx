@@ -16,8 +16,9 @@ import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import SubmitError from '@/components/shared/SubmitError';
 import { createBuyOrder } from '@/lib/supabase/actions';
-import { cn, formatCurrency, generateOrderNumber } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import type { PaymentMethod } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
 
@@ -51,6 +52,7 @@ export default function CheckoutFlow({
   const [confirmed, setConfirmed] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [copied, setCopied] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [isPending, startTransition] = useTransition();
   const { label: countdownLabel, expired } = useCountdownSeconds(CHECKOUT_DURATION_SECONDS);
 
@@ -67,18 +69,25 @@ export default function CheckoutFlow({
 
   function handleConfirmPayment() {
     if (!canSubmit || !selectedPayment) return;
+    setSubmitError('');
     startTransition(async () => {
+      // No `amount` — the server reads the price from the products table
+      // itself (migration 00000000000010).
       const result = await createBuyOrder({
         productId: product.id,
-        amount: product.price,
         buyerName,
         buyerWhatsapp,
         paymentMethod: selectedPayment.label,
       });
-      // Falls back to a locally-generated invoice if the DB insert fails
-      // (e.g. guest-checkout migration not applied yet) so the flow never
-      // hard-breaks for the user — admin can reconcile manually in that case.
-      setInvoiceNumber(result.success ? result.orderNumber : generateOrderNumber());
+      // A failed write must never be dressed up as a success. This used to
+      // fall back to an invoice number invented in the browser, which sent
+      // the buyer off to transfer money against an order that did not exist
+      // anywhere — invisible to admin, untraceable in Cek Transaksi.
+      if (!result.success) {
+        setSubmitError(result.error);
+        return;
+      }
+      setInvoiceNumber(result.orderNumber);
       setConfirmed(true);
     });
   }
@@ -251,6 +260,7 @@ export default function CheckoutFlow({
                 Lengkapi nama dan nomor WhatsApp dulu ya.
               </p>
             )}
+            <SubmitError message={submitError} />
 
             <div className="flex items-start gap-2 text-[11px] text-text-muted leading-relaxed pt-1">
               <ShieldCheck className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />
