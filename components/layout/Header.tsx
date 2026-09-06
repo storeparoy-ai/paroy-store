@@ -141,7 +141,19 @@ export default function Header({ user }: { user: CurrentUser | null }) {
       <div
         className={cn(
           'lg:hidden overflow-hidden transition-all duration-300 border-t border-border-subtle bg-bg-deep',
-          mobileOpen ? 'max-h-104' : 'max-h-0 border-t-0'
+          // Dulu batasnya `max-h-104` (416px) sementara isinya 540px, jadi
+          // 124px terakhir terpotong diam-diam oleh overflow-hidden: tombol
+          // "Dashboard Admin" dan "Keluar" tidak pernah terlihat di ponsel,
+          // padahal keduanya ADA di HTML. Gejalanya persis "menu admin tidak
+          // muncul kecuali browser disetel tampilan desktop" — di lebar
+          // desktop laci ini memang tidak dipakai sama sekali.
+          //
+          // Angka mati diganti tinggi layar dikurangi header, dan isinya boleh
+          // digulir. Dengan begitu menambah satu tautan lagi nanti tidak akan
+          // diam-diam menghilangkan tautan terakhir.
+          mobileOpen
+            ? 'max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain'
+            : 'max-h-0 border-t-0'
         )}
       >
         <Container className="py-4 space-y-4">
