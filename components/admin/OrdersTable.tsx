@@ -46,7 +46,7 @@ const keyOf = (o: AdminOrder) => `${o.kind}-${o.id}`;
 /** Cocokkan satu pesanan dengan kata kunci pencarian.
  *
  * Nomor WhatsApp dibandingkan angkanya saja, supaya "0812 3456" tetap ketemu
- * saat yang tersimpan "081234567890" â€” pembeli menulis nomornya dengan spasi
+ * saat yang tersimpan "081234567890" — pembeli menulis nomornya dengan spasi
  * dan tanda hubung sesuka hati. Kata kunci tanpa angka sama sekali sengaja
  * tidak dicocokkan ke nomor, karena string kosong cocok dengan apa pun. */
 function cocokDenganPencarian(order: AdminOrder, q: string): boolean {
@@ -63,7 +63,7 @@ function cocokDenganPencarian(order: AdminOrder, q: string): boolean {
 }
 
 function ProofLink({ url }: { url: string | null }) {
-  // Tautan bertanda tangan yang kedaluwarsa dalam sejam â€” bukti transfer
+  // Tautan bertanda tangan yang kedaluwarsa dalam sejam — bukti transfer
   // memuat nama dan nomor rekening orang, jadi bucket-nya privat dan tautan
   // ini tidak untuk diteruskan ke siapa pun.
   if (!url) return <span className="text-[10px] text-text-dim">belum ada</span>;
@@ -152,8 +152,8 @@ function OrderRow({
         <p className="text-xs text-text-main line-clamp-2">{order.itemLabel}</p>
       </td>
       <td className="py-3 px-4">
-        <p className="text-xs text-text-main">{order.buyerName ?? 'â€”'}</p>
-        <p className="text-[10px] text-text-dim">{order.buyerWhatsapp ?? 'â€”'}</p>
+        <p className="text-xs text-text-main">{order.buyerName ?? '—'}</p>
+        <p className="text-[10px] text-text-dim">{order.buyerWhatsapp ?? '—'}</p>
       </td>
       <td className="py-3 px-4 font-mono text-xs text-text-main whitespace-nowrap">
         {formatCurrency(order.amount)}
@@ -172,7 +172,7 @@ function OrderRow({
 }
 
 /** Tampilan kartu untuk layar HP. Tabel delapan kolom di layar selebar 390px
- * berarti menggeser ke samping untuk membaca satu pesanan â€” dan admin akan
+ * berarti menggeser ke samping untuk membaca satu pesanan — dan admin akan
  * sering membuka halaman ini persis dari HP, lewat notifikasi Telegram. */
 function OrderCard({
   order,
@@ -210,8 +210,8 @@ function OrderCard({
 
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs text-text-main truncate">{order.buyerName ?? 'â€”'}</p>
-          <p className="text-[10px] text-text-dim truncate">{order.buyerWhatsapp ?? 'â€”'}</p>
+          <p className="text-xs text-text-main truncate">{order.buyerName ?? '—'}</p>
+          <p className="text-[10px] text-text-dim truncate">{order.buyerWhatsapp ?? '—'}</p>
         </div>
         <span className="font-mono text-sm font-bold text-text-main whitespace-nowrap">
           {formatCurrency(order.amount)}
@@ -261,7 +261,7 @@ export default function OrdersTable({ orders }: { orders: AdminOrder[] }) {
 
   // Status dipegang di sini, bukan di dalam baris. Kalau tiap baris menyimpan
   // statusnya sendiri, mengubah pesanan jadi "Dibayar" saat filter "Menunggu"
-  // aktif akan meninggalkan baris itu tetap terlihat â€” filternya menyaring
+  // aktif akan meninggalkan baris itu tetap terlihat — filternya menyaring
   // status lama yang sudah tidak berlaku.
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);

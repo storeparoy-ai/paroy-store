@@ -4,6 +4,7 @@ import { getGames } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
 import type { PriceRange } from '@/lib/utils';
 import { ADMIN_PERMISSIONS, type AdminPermission, type AdminRole } from '@/lib/admin-permissions';
+import { DEFAULT_TEMPLATES } from '@/lib/notify-template';
 
 export interface AdminOrder {
   id: string;
@@ -600,6 +601,11 @@ export interface AdminNotificationSettings {
   isEnabled: boolean;
   notifyNewOrder: boolean;
   notifyProofUpload: boolean;
+  /** Susunan pesan yang bisa disunting pemilik. Kolom kosong di database
+   * berarti "pakai bawaan", dan yang dikirim ke form adalah teks bawaannya —
+   * kotak kosong akan menyesatkan ("berarti tidak ada pesan?"). */
+  templateNewOrder: string;
+  templateProofUpload: string;
   /** Notifikasi otomatis dari pesanan tamu perlu SUPABASE_SERVICE_ROLE_KEY —
    * pembeli tamu adalah `anon`, dan `anon` tidak boleh membaca tabel ini.
    * Tombol "Kirim Tes" tetap jalan tanpa kunci itu karena admin membacanya
@@ -614,7 +620,7 @@ export async function getNotificationSettings(): Promise<AdminNotificationSettin
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('notification_settings')
-    .select('bot_token, chat_id, is_enabled, notify_new_order, notify_proof_upload')
+    .select('bot_token, chat_id, is_enabled, notify_new_order, notify_proof_upload, template_new_order, template_proof_upload')
     .eq('id', 1)
     .maybeSingle();
 
@@ -626,6 +632,8 @@ export async function getNotificationSettings(): Promise<AdminNotificationSettin
       isEnabled: true,
       notifyNewOrder: true,
       notifyProofUpload: true,
+      templateNewOrder: DEFAULT_TEMPLATES.newOrder,
+      templateProofUpload: DEFAULT_TEMPLATES.proofUpload,
       serviceKeyConfigured,
     };
   }
@@ -636,6 +644,8 @@ export async function getNotificationSettings(): Promise<AdminNotificationSettin
     isEnabled: data.is_enabled !== false,
     notifyNewOrder: data.notify_new_order !== false,
     notifyProofUpload: data.notify_proof_upload !== false,
+    templateNewOrder: data.template_new_order?.trim() || DEFAULT_TEMPLATES.newOrder,
+    templateProofUpload: data.template_proof_upload?.trim() || DEFAULT_TEMPLATES.proofUpload,
     serviceKeyConfigured,
   };
 }

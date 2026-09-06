@@ -9,6 +9,7 @@ import {
   updateNotificationSettingsAction,
   testNotificationAction,
 } from '@/lib/supabase/cms-actions';
+import MessageTemplateEditor from '@/components/admin/MessageTemplateEditor';
 import type { AdminNotificationSettings } from '@/lib/supabase/admin-queries';
 
 function Toggle({
@@ -43,6 +44,8 @@ export default function NotificationSettingsForm({
   const [isEnabled, setIsEnabled] = useState(settings.isEnabled);
   const [notifyNewOrder, setNotifyNewOrder] = useState(settings.notifyNewOrder);
   const [notifyProofUpload, setNotifyProofUpload] = useState(settings.notifyProofUpload);
+  const [templateNewOrder, setTemplateNewOrder] = useState(settings.templateNewOrder);
+  const [templateProofUpload, setTemplateProofUpload] = useState(settings.templateProofUpload);
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const [saveError, setSaveError] = useState('');
@@ -62,6 +65,8 @@ export default function NotificationSettingsForm({
         isEnabled,
         notifyNewOrder,
         notifyProofUpload,
+        templateNewOrder,
+        templateProofUpload,
       });
       if (result.success) {
         setSaveStatus('saved');
@@ -76,10 +81,16 @@ export default function NotificationSettingsForm({
   function handleTest() {
     setTestStatus('idle');
     startTesting(async () => {
-      const result = await testNotificationAction({ botToken: botToken.trim(), chatId: chatId.trim() });
+      // Template yang sedang di layar ikut dikirim, bukan yang tersimpan:
+      // gunanya tes ini justru untuk memeriksa susunan baru SEBELUM disimpan.
+      const result = await testNotificationAction({
+        botToken: botToken.trim(),
+        chatId: chatId.trim(),
+        template: templateNewOrder,
+      });
       if (result.success) {
         setTestStatus('ok');
-        setTestMessage('Pesan terkirim — cek Telegram-mu sekarang.');
+        setTestMessage('Pesan terkirim — cek Telegram-mu sekarang. Isinya persis susunan yang ada di kotak "Pesanan baru" di atas.');
       } else {
         setTestStatus('error');
         setTestMessage(result.error);
@@ -88,7 +99,7 @@ export default function NotificationSettingsForm({
   }
 
   return (
-    <div className="space-y-4 max-w-lg">
+    <div className="space-y-4 max-w-2xl">
       <div className="flex items-start gap-2.5 p-4 rounded-2xl bg-brand-cyan/5 border border-brand-cyan/20 text-xs text-text-muted leading-relaxed">
         <Bell className="w-4 h-4 text-brand-cyan shrink-0 mt-0.5" />
         <div className="space-y-2">
@@ -169,6 +180,40 @@ export default function NotificationSettingsForm({
                 checked={notifyProofUpload}
                 onChange={setNotifyProofUpload}
                 label="Beri tahu saat bukti transfer diunggah"
+              />
+            </div>
+
+            <div className="space-y-5 pt-3 border-t border-border-subtle">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim">
+                  Isi Pesan
+                </h3>
+                <p className="text-[11px] text-text-muted leading-relaxed mt-1">
+                  Susun sendiri bunyi notifikasinya. Baris yang penandanya kosong otomatis
+                  dibuang &mdash; jadi pesanan top up, yang memang tidak menyimpan nama pembeli,
+                  tidak akan mengirim baris &ldquo;Pembeli&rdquo; yang menggantung. Tag{' '}
+                  <code className="text-text-dim">&lt;b&gt;</code>,{' '}
+                  <code className="text-text-dim">&lt;i&gt;</code>, dan{' '}
+                  <code className="text-text-dim">&lt;code&gt;</code> boleh dipakai; pastikan
+                  setiap tag ditutup, karena satu tag menggantung membuat Telegram menolak
+                  seluruh pesan. Tekan &ldquo;Kirim Tes&rdquo; untuk memastikan.
+                </p>
+              </div>
+
+              <MessageTemplateEditor
+                templateKey="newOrder"
+                label="Pesanan baru masuk"
+                description="Dikirim begitu pembeli menekan tombol pesan."
+                value={templateNewOrder}
+                onChange={setTemplateNewOrder}
+              />
+
+              <MessageTemplateEditor
+                templateKey="proofUpload"
+                label="Bukti transfer diunggah"
+                description="Dikirim saat pembeli mengunggah foto struk — momen kamu benar-benar perlu bertindak."
+                value={templateProofUpload}
+                onChange={setTemplateProofUpload}
               />
             </div>
 

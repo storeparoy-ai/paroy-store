@@ -23,6 +23,14 @@
 
 import { createServiceRoleClient } from '@/utils/supabase/service';
 import { absoluteUrl } from '@/lib/site';
+import {
+  DEFAULT_TEMPLATES,
+  contohNilai,
+  escapeHtml as esc,
+  formatRupiah,
+  renderTemplate,
+  whatsappLink,
+} from '@/lib/notify-template';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 const SEND_TIMEOUT_MS = 6000;
@@ -42,6 +50,8 @@ type NotificationSettings = TelegramCredentials & {
   isEnabled: boolean;
   notifyNewOrder: boolean;
   notifyProofUpload: boolean;
+  templateNewOrder: string;
+  templateProofUpload: string;
 };
 
 export type OrderNotification = {
@@ -76,7 +86,7 @@ async function resolveSettings(): Promise<NotificationSettings | null> {
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
       .from('notification_settings')
-      .select('bot_token, chat_id, is_enabled, notify_new_order, notify_proof_upload')
+      .select('bot_token, chat_id, is_enabled, notify_new_order, notify_proof_upload, template_new_order, template_proof_upload')
       .eq('id', 1)
       .maybeSingle();
 
@@ -88,6 +98,11 @@ async function resolveSettings(): Promise<NotificationSettings | null> {
         isEnabled: data.is_enabled !== false,
         notifyNewOrder: data.notify_new_order !== false,
         notifyProofUpload: data.notify_proof_upload !== false,
+        // Kolom kosong berarti 'pakai bawaan'. Mengirim template kosong akan
+        // ditolak Telegram dan notifikasinya hilang tanpa jejak — justru saat
+        // pemilik paling tidak menyangka.
+        templateNewOrder: data.template_new_order?.trim() || DEFAULT_TEMPLATES.newOrder,
+        templateProofUpload: data.template_proof_upload?.trim() || DEFAULT_TEMPLATES.proofUpload,
       };
     }
   } catch (err) {
@@ -101,18 +116,15 @@ async function resolveSettings(): Promise<NotificationSettings | null> {
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!botToken || !chatId) return null;
 
-  return { botToken, chatId, isEnabled: true, notifyNewOrder: true, notifyProofUpload: true };
-}
-
-/** Telegram menolak SELURUH pesan kalau ada `<`, `>`, atau `&` yang tidak
- * di-escape saat parse_mode HTML. Nama pembeli itu input bebas — seorang
- * "Andi & Rekan" sudah cukup untuk membuat notifikasi hilang tanpa jejak. */
-function esc(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function formatRupiah(amount: number): string {
-  return `Rp${new Intl.NumberFormat('id-ID').format(Math.round(amount))}`;
+  return {
+    botToken,
+    chatId,
+    isEnabled: true,
+    notifyNewOrder: true,
+    notifyProofUpload: true,
+    templateNewOrder: DEFAULT_TEMPLATES.newOrder,
+    templateProofUpload: DEFAULT_TEMPLATES.proofUpload,
+  };
 }
 
 /**
@@ -158,64 +170,91 @@ export async function sendTelegramMessage(
   }
 }
 
+/** Jam Indonesia, untuk penanda {waktu}. Server Vercel berjalan di UTC, jadi
+ * tanpa timeZone eksplisit notifikasinya akan menyebut jam yang tidak cocok
+ * dengan jam di HP pemilik toko. */
+function jamWib(): string {
+  return (
+    new Intl.DateTimeFormat('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Jakarta',
+    }).format(new Date()) + ' WIB'
+  );
+}
+
 /** Bungkus pengiriman otomatis: cari kredensial, hormati sakelar on/off, dan
  * jangan pernah melempar apa pun ke pemanggil. */
-async function dispatch(text: string, channel: 'newOrder' | 'proofUpload'): Promise<void> {
+async function dispatch(
+  channel: 'newOrder' | 'proofUpload',
+  susun: (settings: NotificationSettings) => string
+): Promise<void> {
   const settings = await resolveSettings();
   if (!settings || !settings.isEnabled) return;
   if (channel === 'newOrder' && !settings.notifyNewOrder) return;
   if (channel === 'proofUpload' && !settings.notifyProofUpload) return;
 
+  const text = susun(settings);
+  if (!text.trim()) return;
+
   await sendTelegramMessage({ botToken: settings.botToken, chatId: settings.chatId }, text);
 }
 
-/** Pesanan baru masuk. Dipanggil dari dalam `after()` supaya pembeli tidak
- * menunggu jaringan Telegram sebelum melihat nomor invoice-nya. */
+/**
+ * Pesanan baru masuk. Dipanggil dari dalam `after()` supaya pembeli tidak
+ * menunggu jaringan Telegram sebelum melihat nomor invoice-nya.
+ *
+ * Susunan pesannya datang dari template yang bisa disunting pemilik di
+ * Admin -> Notifikasi. Yang TIDAK ikut disunting adalah nilai-nilainya: nama
+ * pembeli dan catatan itu input bebas dari pengunjung, jadi di-escape dulu
+ * sebelum masuk ke template ber-parse_mode HTML.
+ */
 export async function notifyNewOrder(order: OrderNotification): Promise<void> {
-  const lines = [
-    `<b>${KIND_LABEL[order.kind]}</b>`,
-    '',
-    `Invoice  : <code>${esc(order.orderNumber)}</code>`,
-    `Item     : ${esc(order.itemLabel)}`,
-    `Nominal  : <b>${formatRupiah(order.amount)}</b>`,
-  ];
-
-  if (order.buyerName) lines.push(`Pembeli  : ${esc(order.buyerName)}`);
-  if (order.buyerWhatsapp) {
-    const digits = order.buyerWhatsapp.replace(/\D/g, '').replace(/^0/, '62');
-    lines.push(`WhatsApp : <a href="https://wa.me/${digits}">${esc(order.buyerWhatsapp)}</a>`);
-  }
-  if (order.paymentMethod) lines.push(`Bayar    : ${esc(order.paymentMethod)}`);
-  if (order.note) lines.push(`Catatan  : ${esc(order.note)}`);
-
-  lines.push('', '⏳ Menunggu bukti transfer dari pembeli.');
-  lines.push(absoluteUrl('/admin/pesanan'));
-
-  await dispatch(lines.join('\n'), 'newOrder');
+  await dispatch('newOrder', (settings) =>
+    renderTemplate(settings.templateNewOrder, {
+      jenis: KIND_LABEL[order.kind],
+      invoice: esc(order.orderNumber),
+      item: esc(order.itemLabel),
+      nominal: formatRupiah(order.amount),
+      pembeli: order.buyerName ? esc(order.buyerName) : '',
+      whatsapp: order.buyerWhatsapp ? whatsappLink(order.buyerWhatsapp) : '',
+      metode: order.paymentMethod ? esc(order.paymentMethod) : '',
+      catatan: order.note ? esc(order.note) : '',
+      link: absoluteUrl('/admin/pesanan'),
+      waktu: jamWib(),
+    })
+  );
 }
 
 /** Bukti transfer diunggah — ini momen admin benar-benar perlu bertindak,
  * jadi ia dapat notifikasi sendiri, bukan cuma numpang di pesan pesanan. */
 export async function notifyProofUploaded(orderNumber: string): Promise<void> {
-  const lines = [
-    '<b>💸 Bukti transfer masuk</b>',
-    '',
-    `Invoice : <code>${esc(orderNumber)}</code>`,
-    '',
-    'Cek buktinya lalu ubah status pesanan.',
-  ];
-  lines.push(absoluteUrl('/admin/pesanan'));
-
-  await dispatch(lines.join('\n'), 'proofUpload');
+  await dispatch('proofUpload', (settings) =>
+    renderTemplate(settings.templateProofUpload, {
+      invoice: esc(orderNumber),
+      link: absoluteUrl('/admin/pesanan'),
+      waktu: jamWib(),
+    })
+  );
 }
 
-/** Pesan uji dari dashboard admin. Sengaja memakai kredensial yang dioper
- * pemanggil, bukan hasil resolveSettings(), supaya admin bisa menguji token
- * baru SEBELUM menyimpannya. */
-export function buildTestMessage(): string {
-  return [
-    '<b>✅ Notifikasi Paroy Store aktif</b>',
-    '',
-    'Kalau pesan ini sampai, notifikasi pesanan sudah terhubung ke chat yang benar.',
-  ].join('\n');
+/**
+ * Pesan uji dari dashboard.
+ *
+ * Merender TEMPLATE YANG SEDANG DISUNTING dengan data contoh, bukan kalimat
+ * generik. Itu bedanya antara tes yang berguna dan tes yang menipu: satu tag
+ * <b> yang tidak ditutup membuat Telegram menolak SELURUH pesan, dan tanpa
+ * tes yang memakai template sungguhan kesalahan itu baru ketahuan saat ada
+ * pesanan asli yang notifikasinya tidak pernah datang.
+ *
+ * Kredensialnya dioper pemanggil, bukan dari resolveSettings(), supaya token
+ * baru bisa diuji SEBELUM disimpan.
+ */
+export function buildTestMessage(template?: string): string {
+  const isi = renderTemplate(
+    template?.trim() || DEFAULT_TEMPLATES.newOrder,
+    contohNilai(absoluteUrl('/admin/pesanan'))
+  );
+
+  return ['<b>🧪 Pesan uji — bukan pesanan sungguhan</b>', '', isi].join('\n');
 }

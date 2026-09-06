@@ -499,6 +499,8 @@ export interface NotificationSettingsInput {
   isEnabled: boolean;
   notifyNewOrder: boolean;
   notifyProofUpload: boolean;
+  templateNewOrder: string;
+  templateProofUpload: string;
 }
 
 export async function updateNotificationSettingsAction(
@@ -512,6 +514,11 @@ export async function updateNotificationSettingsAction(
     is_enabled: input.isEnabled,
     notify_new_order: input.notifyNewOrder,
     notify_proof_upload: input.notifyProofUpload,
+    // Kotak yang dikosongkan pemilik disimpan sebagai NULL, artinya "kembali
+    // ke pesan bawaan" — bukan "kirim pesan kosong", yang akan ditolak
+    // Telegram dan hilang tanpa jejak.
+    template_new_order: input.templateNewOrder.trim() || null,
+    template_proof_upload: input.templateProofUpload.trim() || null,
     updated_at: new Date().toISOString(),
   };
   if (input.botToken) update.bot_token = input.botToken;
@@ -536,6 +543,9 @@ export async function updateNotificationSettingsAction(
 export async function testNotificationAction(input: {
   botToken: string;
   chatId: string;
+  /** Template yang sedang ada di layar — belum tentu yang tersimpan. Itu
+   * intinya: pemilik bisa menguji susunan barunya SEBELUM menyimpan. */
+  template?: string;
 }): Promise<ActionResult> {
   const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
@@ -555,7 +565,7 @@ export async function testNotificationAction(input: {
     return { success: false, error: 'Isi Bot Token dan Chat ID dulu.' };
   }
 
-  const result = await sendTelegramMessage({ botToken, chatId }, buildTestMessage());
+  const result = await sendTelegramMessage({ botToken, chatId }, buildTestMessage(input.template));
   if (!result.ok) return { success: false, error: result.error };
   return { success: true };
 }
