@@ -9,6 +9,7 @@ import HeaderSearch from '@/components/layout/HeaderSearch';
 import { signOutAction } from '@/lib/supabase/auth-actions';
 import { cn } from '@/lib/utils';
 import type { CurrentUser } from '@/lib/supabase/queries';
+import { firstAllowedAdminPath } from '@/lib/admin-permissions';
 
 /* Label sengaja dipendekkan ("Top Up Kilat" -> "Top Up", dst): Komunitas dulu
  * hanya bisa ditemukan lewat footer, dan menambahkannya di sini tanpa
@@ -50,6 +51,11 @@ function LinkPending() {
 }
 
 export default function Header({ user }: { user: CurrentUser | null }) {
+  // Tautan Admin hanya muncul kalau memang ada satu tab pun yang boleh ia
+  // buka, dan langsung mengarah ke tab itu — admin katalog mendarat di Item
+  // Top Up, pemilik di Dashboard. Menunjuk ke /admin saja berarti satu
+  // pantulan tambahan sebelum apa pun tampil.
+  const adminLanding = firstAllowedAdminPath(user);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -88,13 +94,13 @@ export default function Header({ user }: { user: CurrentUser | null }) {
           </div>
           {user ? (
             <div className="flex items-center gap-4 pl-4 border-l border-border-subtle">
-              {user.role === 'admin' && (
-                /* Langsung ke /admin/dashboard, bukan /admin: halaman /admin
-                   isinya cuma redirect ke sini, dan lewat navigasi sisi klien
-                   redirect itu berarti seluruh rantai pemeriksaan admin
+              {adminLanding && (
+                /* Langsung ke tab tujuan, bukan /admin: halaman indeks itu
+                   isinya cuma pengalihan, dan lewat navigasi sisi klien
+                   pengalihan itu berarti seluruh rantai pemeriksaan admin
                    (middleware + layout, masing-masing memanggil Supabase Auth)
                    dijalankan DUA KALI sebelum apa pun tampil. */
-                <Link href="/admin/dashboard" className="text-xs font-semibold text-trust-emerald hover:opacity-80 flex items-center gap-1.5 whitespace-nowrap">
+                <Link href={adminLanding} className="text-xs font-semibold text-trust-emerald hover:opacity-80 flex items-center gap-1.5 whitespace-nowrap">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Admin
                   <LinkPending />
@@ -161,8 +167,8 @@ export default function Header({ user }: { user: CurrentUser | null }) {
                   {user.fullName || 'Akun Saya'}
                 </Button>
               </Link>
-              {user.role === 'admin' && (
-                <Link href="/admin/dashboard" className="block" onClick={() => setMobileOpen(false)}>
+              {adminLanding && (
+                <Link href={adminLanding} className="block" onClick={() => setMobileOpen(false)}>
                   <Button variant="secondary" className="w-full">
                     <ShieldCheck className="w-4 h-4 text-trust-emerald" />
                     Dashboard Admin

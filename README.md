@@ -43,6 +43,30 @@ Simpan di `.env.local` (lokal) dan di Vercel → Settings → Environment Variab
 | `TELEGRAM_CHAT_ID` | opsional | Sama, cadangan untuk yang di atas. |
 | `NEXT_PUBLIC_SITE_URL` | opsional | Hanya kalau memakai domain sendiri; di Vercel alamatnya terdeteksi otomatis. Dipakai untuk tautan ke `/admin/pesanan` di dalam notifikasi. |
 
+## Siapa boleh apa
+
+Sejak migrasi 19 ada dua tingkat, dan keduanya dipagari RLS di database —
+bukan oleh menu yang disembunyikan.
+
+| | Pemilik | Admin |
+|---|---|---|
+| Pesanan, Produk, Katalog & Harga, Moderasi Komunitas | selalu | hanya yang dicentang pemilik di **Admin → Pengguna → Atur izin** |
+| Metode Pembayaran (nomor rekening), Gateway Pembayaran (kunci Tripay), Notifikasi (token bot), Pengaturan Situs, Pengguna | ya | tidak pernah, dan tidak bisa diberikan |
+
+**Pemilik tidak bisa diubah lewat situs** — tidak oleh admin lain, tidak oleh
+dirinya sendiri. Trigger `guard_profile_role_change` menolak setiap perubahan
+`role` dari atau ke `owner` selama `auth.uid()` terisi. Satu-satunya jalan
+memindahkannya adalah SQL Editor Supabase, yang butuh akses ke akun Supabase:
+
+```sql
+-- ganti pemilik (jalankan di SQL Editor, bukan dari aplikasi)
+update public.profiles set role = 'admin', permissions = '{}' where role = 'owner';
+update public.profiles set role = 'owner', permissions = '{}' where id = '<uuid akun baru>';
+```
+
+Admin yang baru diangkat mulai dengan NOL izin: ia bisa masuk dashboard tapi
+belum melihat satu menu pun sampai pemilik mencentangnya.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

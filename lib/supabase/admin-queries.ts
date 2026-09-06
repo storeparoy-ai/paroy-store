@@ -3,6 +3,7 @@ import { mapSupabaseProduct, buildGameLookup, type SupabaseProductRow } from '@/
 import { getGames } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
 import type { PriceRange } from '@/lib/utils';
+import { ADMIN_PERMISSIONS, type AdminPermission, type AdminRole } from '@/lib/admin-permissions';
 
 export interface AdminOrder {
   id: string;
@@ -157,15 +158,21 @@ export interface AdminUser {
   fullName: string | null;
   username: string | null;
   whatsapp: string | null;
-  role: 'user' | 'admin';
+  role: AdminRole;
+  /** Izin per-menu; hanya berarti untuk role 'admin'. */
+  permissions: AdminPermission[];
   createdAt: Date;
 }
 
+/** Sejak migrasi 19 tabel ini hanya bisa dibaca pemilik — untuk admin biasa
+ * RLS mengembalikan barisnya sendiri saja, bukan error. Halaman yang
+ * memanggilnya pun sudah dipagari proxy, jadi di sini tidak ada pemeriksaan
+ * tambahan; yang menolak adalah database. */
 export async function getAllUsersForAdmin(): Promise<AdminUser[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, username, whatsapp, role, created_at')
+    .select('id, full_name, username, whatsapp, role, permissions, created_at')
     .order('created_at', { ascending: false });
   if (error) {
     console.error('[getAllUsersForAdmin] failed:', error);
@@ -176,7 +183,10 @@ export async function getAllUsersForAdmin(): Promise<AdminUser[]> {
     fullName: row.full_name,
     username: row.username,
     whatsapp: row.whatsapp,
-    role: row.role === 'admin' ? 'admin' : 'user',
+    role: (row.role === 'owner' || row.role === 'admin' ? row.role : 'user') as AdminRole,
+    permissions: ((row.permissions ?? []) as string[]).filter((p): p is AdminPermission =>
+      (ADMIN_PERMISSIONS as readonly string[]).includes(p)
+    ),
     createdAt: new Date(row.created_at),
   }));
 }

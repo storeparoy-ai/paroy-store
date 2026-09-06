@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { canOpenAdminPath, firstAllowedAdminPath, type AdminRole } from '@/lib/admin-permissions'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -55,12 +56,46 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 3. Admin check — role is looked up from `profiles`, not just "is logged in".
+  // 3. Admin check — role DAN izin per-menu dibaca dari `profiles`, bukan
+  //    sekadar "sudah login".
+  //
+  //    Sejak migrasi 19 ada dua tingkat: pemilik (akses penuh, statusnya tidak
+  //    bisa diubah lewat situs) dan admin pembantu yang hanya memegang izin
+  //    yang diberikan pemilik satu per satu.
+  //
+  //    Ini BUKAN pengaman. Yang benar-benar menolak adalah RLS: seorang admin
+  //    katalog yang memanggil Supabase langsung tetap tidak akan mendapat satu
+  //    baris pesanan pun, bahkan kalau blok ini dilewati sepenuhnya. Gunanya
+  //    di sini supaya ia tidak mendarat di halaman kosong tanpa penjelasan.
   if (user && isAdminRoute) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
-    if (profile?.role !== 'admin') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, permissions')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const access = {
+      role: (profile?.role ?? 'user') as AdminRole,
+      permissions: profile?.permissions ?? [],
+    }
+
+    const landing = firstAllowedAdminPath(access)
+
+    // Halaman indeks: antar ke tab pertama yang memang boleh ia buka —
+    // pemilik ke Dashboard, admin pesanan ke Pesanan, admin katalog ke
+    // Item Top Up. Lihat catatan panjang di langkah 4 soal kenapa pengalihan
+    // ini harus di sini dan bukan redirect() di dalam page.tsx.
+    if (request.nextUrl.pathname === '/admin' && landing) {
       const url = request.nextUrl.clone()
-      url.pathname = '/'
+      url.pathname = landing
+      return NextResponse.redirect(url)
+    }
+
+    if (!canOpenAdminPath(access, request.nextUrl.pathname)) {
+      const url = request.nextUrl.clone()
+      // Admin yang izinnya dicabut di tengah jalan dipulangkan ke tab yang
+      // masih boleh ia buka, bukan ke beranda — kalau memang masih ada.
+      url.pathname = landing ?? '/'
       return NextResponse.redirect(url)
     }
   }
@@ -78,8 +113,9 @@ export async function updateSession(request: NextRequest) {
   //
   // Dokumentasi redirect() menyebut jalan keluarnya secara eksplisit: kalau
   // ingin mengalihkan SEBELUM proses render, lakukan di Proxy.
+  // (/admin ikut aturan ini juga, tapi ditangani di langkah 3 karena tujuannya
+  // tergantung izin siapa yang membuka.)
   const INDEX_REDIRECTS: Record<string, string> = {
-    '/admin': '/admin/dashboard',
     '/profile': '/profile/riwayat',
   }
   const indexTarget = INDEX_REDIRECTS[request.nextUrl.pathname]

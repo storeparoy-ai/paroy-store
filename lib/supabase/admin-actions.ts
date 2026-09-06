@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
+import { ADMIN_PERMISSIONS } from '@/lib/admin-permissions';
+import { requireOwner, requirePermission } from '@/lib/supabase/admin-guard';
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -12,22 +14,6 @@ const ORDER_TABLE: Record<'buy' | 'rental' | 'topup' | 'rekber', string> = {
   rekber: 'rekber_orders',
 };
 
-/** Defense-in-depth: RLS is the real backstop (every mutating policy below
- * requires `profiles.role = 'admin'`), but checking here too means a
- * non-admin gets a clean error message instead of a raw Postgres RLS
- * rejection. */
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { supabase, ok: false as const, error: 'Kamu harus masuk sebagai admin.' };
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
-  if (profile?.role !== 'admin') return { supabase, ok: false as const, error: 'Akses ditolak — bukan admin.' };
-
-  return { supabase, ok: true as const };
-}
 
 /** Status yang boleh dipakai. Sebelumnya kolom ini menerima teks apa pun,
  * sehingga satu salah ketik cukup untuk membuat sebuah pesanan menghilang
@@ -42,7 +28,7 @@ export async function updateOrderStatusAction(
   id: string,
   status: string
 ): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('pesanan');
   if (!guard.ok) return { success: false, error: guard.error };
 
   if (!ALLOWED_STATUSES.includes(status as OrderStatus)) {
@@ -149,7 +135,7 @@ function toRow(input: ProductInput) {
 }
 
 export async function createProductAction(input: ProductInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('produk');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('products').insert(toRow(input));
@@ -162,7 +148,7 @@ export async function createProductAction(input: ProductInput): Promise<ActionRe
 }
 
 export async function updateProductAction(id: string, input: ProductInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('produk');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('products').update(toRow(input)).eq('id', id);
@@ -189,7 +175,7 @@ export async function updateProductAction(id: string, input: ProductInput): Prom
 export async function deleteProductAction(
   id: string
 ): Promise<{ success: true; deactivated?: boolean } | { success: false; error: string }> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('produk');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('products').delete().eq('id', id);
@@ -217,11 +203,70 @@ export async function deleteProductAction(
   return { success: true };
 }
 
+/**
+ * Angkat seseorang jadi admin, atau cabut kembali.
+ *
+ * Perhatikan `permissions` ikut ditulis di kedua arah, dan itu disengaja:
+ *
+ *   - Saat diangkat, izinnya dimulai dari NOL. Admin baru belum bisa membuka
+ *     apa-apa sampai pemilik mencentang izinnya satu per satu. Kalau nilai
+ *     bawaannya "semua", satu klik ceroboh sudah cukup untuk menyerahkan
+ *     seluruh dashboard — persis keadaan yang migrasi 19 ingin akhiri.
+ *   - Saat dicabut, izinnya dikosongkan. Tanpa ini, izin lama menempel diam
+ *     di baris itu dan hidup lagi begitu orangnya diangkat kembali, tanpa
+ *     pemilik pernah mencentang apa pun.
+ *
+ * Role 'owner' sengaja tidak bisa dipilih dari sini — database menolaknya
+ * lewat trigger, apa pun yang dikirim aplikasi.
+ */
 export async function updateUserRoleAction(userId: string, role: 'user' | 'admin'): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
-  const { error } = await guard.supabase.from('profiles').update({ role }).eq('id', userId);
+  const { error } = await guard.supabase
+    .from('profiles')
+    .update({ role, permissions: [] })
+    .eq('id', userId);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/admin/pengguna');
+  return { success: true };
+}
+
+/**
+ * Atur izin seorang admin.
+ *
+ * Nilai yang masuk disaring terhadap daftar yang dikenal sebelum dikirim.
+ * Ini Server Action — argumennya datang dari browser dan bisa dipalsukan,
+ * jadi memperlakukannya sebagai daftar yang sudah benar berarti mempercayai
+ * kiriman klien. Database juga menolaknya lewat CHECK constraint, tapi
+ * penolakan di sana muncul sebagai pesan Postgres yang tidak bisa dibaca
+ * pemilik toko.
+ */
+export async function updateUserPermissionsAction(
+  userId: string,
+  permissions: string[]
+): Promise<ActionResult> {
+  const guard = await requireOwner();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const clean = ADMIN_PERMISSIONS.filter((p) => permissions.includes(p));
+
+  const { data: target, error: readError } = await guard.supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle();
+  if (readError) return { success: false, error: readError.message };
+  if (!target) return { success: false, error: 'Pengguna tidak ditemukan.' };
+  if (target.role !== 'admin') {
+    return { success: false, error: 'Izin hanya berlaku untuk akun admin. Jadikan admin dulu.' };
+  }
+
+  const { error } = await guard.supabase
+    .from('profiles')
+    .update({ permissions: clean })
+    .eq('id', userId);
   if (error) return { success: false, error: error.message };
 
   revalidatePath('/admin/pengguna');
@@ -240,7 +285,7 @@ export async function updateUserRoleAction(userId: string, role: 'user' | 'admin
  * yang enak dibaca.
  */
 export async function deleteUserAction(userId: string): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.rpc('admin_delete_user', { p_user_id: userId });

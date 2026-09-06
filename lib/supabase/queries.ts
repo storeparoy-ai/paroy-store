@@ -11,6 +11,7 @@ import {
 import { GAMES as MOCK_GAMES } from '@/lib/mock-data';
 import type { RekberFeeTier, PriceRange } from '@/lib/utils';
 import type { FlashSale, Game, Product } from '@/types';
+import type { AdminRole } from '@/lib/admin-permissions';
 
 export interface ProductFilters {
   game?: string;
@@ -812,7 +813,18 @@ export interface CurrentUser {
   email: string | null;
   fullName: string | null;
   whatsapp: string | null;
-  role: 'user' | 'admin';
+  role: AdminRole;
+  /** Izin per-menu untuk role 'admin'. Kosong untuk 'owner' (yang selalu
+   * boleh semuanya) dan untuk 'user'. Lihat lib/admin-permissions.ts. */
+  permissions: string[];
+}
+
+/** Apa pun yang tidak dikenali dianggap pengguna biasa. Kolom `role` di
+ * database punya CHECK constraint sejak migrasi 19, tapi baris yang dibaca
+ * lewat REST tetap `any` di sisi TypeScript — jadi penyempitannya dilakukan
+ * di sini, sekali, bukan diandalkan pada bentuk datanya. */
+function normalizeRole(role: unknown): AdminRole {
+  return role === 'owner' || role === 'admin' ? role : 'user';
 }
 
 /** Current auth session + profile — the SECURE variant: `auth.getUser()`
@@ -836,7 +848,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, whatsapp, role')
+      .select('full_name, whatsapp, role, permissions')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -845,7 +857,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
       email: user.email ?? null,
       fullName: profile?.full_name ?? null,
       whatsapp: profile?.whatsapp ?? null,
-      role: profile?.role === 'admin' ? 'admin' : 'user',
+      role: normalizeRole(profile?.role),
+      permissions: profile?.permissions ?? [],
     };
   } catch (err) {
     // Sama seperti getCurrentUserForDisplay di bawah: Cache Components memang
@@ -881,7 +894,7 @@ export async function getCurrentUserForDisplay(): Promise<CurrentUser | null> {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, whatsapp, role')
+      .select('full_name, whatsapp, role, permissions')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -890,7 +903,8 @@ export async function getCurrentUserForDisplay(): Promise<CurrentUser | null> {
       email: user.email ?? null,
       fullName: profile?.full_name ?? null,
       whatsapp: profile?.whatsapp ?? null,
-      role: profile?.role === 'admin' ? 'admin' : 'user',
+      role: normalizeRole(profile?.role),
+      permissions: profile?.permissions ?? [],
     };
   } catch (err) {
     // Cache Components intentionally aborts cookies() with this digest once

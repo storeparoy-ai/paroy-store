@@ -2,26 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
+import { requireOwner, requirePermission } from '@/lib/supabase/admin-guard';
 import { getTripayPaymentChannels } from '@/lib/tripay/client';
 import { sendTelegramMessage, buildTestMessage } from '@/lib/notify';
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-/** Same defense-in-depth pattern as lib/supabase/admin-actions.ts —
- * RLS (profiles.role = 'admin') is the real backstop for every table
- * touched below (see migration 00000000000005). */
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { supabase, ok: false as const, error: 'Kamu harus masuk sebagai admin.' };
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
-  if (profile?.role !== 'admin') return { supabase, ok: false as const, error: 'Akses ditolak — bukan admin.' };
-
-  return { supabase, ok: true as const };
-}
 
 // ---------------------------------------------------------------------------
 // Games (Kategori Game)
@@ -59,7 +45,7 @@ function revalidateGameDependents() {
 }
 
 export async function createGameAction(input: GameInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('games').insert(gameToRow(input));
@@ -70,7 +56,7 @@ export async function createGameAction(input: GameInput): Promise<ActionResult> 
 }
 
 export async function updateGameAction(id: string, input: GameInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('games').update(gameToRow(input)).eq('id', id);
@@ -81,7 +67,7 @@ export async function updateGameAction(id: string, input: GameInput): Promise<Ac
 }
 
 export async function deleteGameAction(id: string): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('games').delete().eq('id', id);
@@ -121,7 +107,7 @@ function revalidateFlashSaleDependents() {
 }
 
 export async function createFlashSaleAction(input: FlashSaleInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('flash_sales').insert(flashSaleToRow(input));
@@ -132,7 +118,7 @@ export async function createFlashSaleAction(input: FlashSaleInput): Promise<Acti
 }
 
 export async function updateFlashSaleAction(id: string, input: FlashSaleInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('flash_sales').update(flashSaleToRow(input)).eq('id', id);
@@ -143,7 +129,7 @@ export async function updateFlashSaleAction(id: string, input: FlashSaleInput): 
 }
 
 export async function deleteFlashSaleAction(id: string): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('flash_sales').delete().eq('id', id);
@@ -166,7 +152,7 @@ export interface SiteSettingsInput {
 }
 
 export async function updateSiteSettingsAction(input: SiteSettingsInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase
@@ -226,7 +212,7 @@ function revalidatePaymentDependents() {
 }
 
 export async function createPaymentMethodAction(input: PaymentMethodInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('payment_methods').insert(paymentMethodToRow(input));
@@ -237,7 +223,7 @@ export async function createPaymentMethodAction(input: PaymentMethodInput): Prom
 }
 
 export async function updatePaymentMethodAction(id: string, input: PaymentMethodInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('payment_methods').update(paymentMethodToRow(input)).eq('id', id);
@@ -248,7 +234,7 @@ export async function updatePaymentMethodAction(id: string, input: PaymentMethod
 }
 
 export async function deletePaymentMethodAction(id: string): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('payment_methods').delete().eq('id', id);
@@ -274,7 +260,7 @@ function revalidateRekberDependents() {
 }
 
 export async function createRekberFeeTierAction(input: RekberFeeTierInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('rekber_fee_tiers').insert({
@@ -289,7 +275,7 @@ export async function createRekberFeeTierAction(input: RekberFeeTierInput): Prom
 }
 
 export async function updateRekberFeeTierAction(id: string, input: RekberFeeTierInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase
@@ -303,7 +289,7 @@ export async function updateRekberFeeTierAction(id: string, input: RekberFeeTier
 }
 
 export async function deleteRekberFeeTierAction(id: string): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('rekber_fee_tiers').delete().eq('id', id);
@@ -329,7 +315,7 @@ function revalidatePriceRangeDependents() {
 }
 
 export async function createPriceRangeAction(input: PriceRangeInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('product_price_ranges').insert({
@@ -344,7 +330,7 @@ export async function createPriceRangeAction(input: PriceRangeInput): Promise<Ac
 }
 
 export async function updatePriceRangeAction(id: string, input: PriceRangeInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase
@@ -358,7 +344,7 @@ export async function updatePriceRangeAction(id: string, input: PriceRangeInput)
 }
 
 export async function deletePriceRangeAction(id: string): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('product_price_ranges').delete().eq('id', id);
@@ -402,7 +388,7 @@ function revalidateTopupDependents() {
 }
 
 export async function createTopupItemAction(input: TopupItemInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('topup_items').insert(toTopupRow(input));
@@ -413,7 +399,7 @@ export async function createTopupItemAction(input: TopupItemInput): Promise<Acti
 }
 
 export async function updateTopupItemAction(id: string, input: TopupItemInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('topup_items').update(toTopupRow(input)).eq('id', id);
@@ -424,7 +410,7 @@ export async function updateTopupItemAction(id: string, input: TopupItemInput): 
 }
 
 export async function deleteTopupItemAction(id: string): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requirePermission('katalog');
   if (!guard.ok) return { success: false, error: guard.error };
 
   const { error } = await guard.supabase.from('topup_items').delete().eq('id', id);
@@ -452,7 +438,7 @@ export interface PaymentGatewaySettingsInput {
 }
 
 export async function updatePaymentGatewaySettingsAction(input: PaymentGatewaySettingsInput): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   const update: Record<string, unknown> = {
@@ -482,7 +468,7 @@ export async function testTripayConnectionAction(input: {
   privateKey: string;
   mode: 'sandbox' | 'production';
 }): Promise<{ success: true; channelCount: number } | { success: false; error: string }> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   if (!input.apiKey || !input.privateKey || !input.merchantCode) {
@@ -518,7 +504,7 @@ export interface NotificationSettingsInput {
 export async function updateNotificationSettingsAction(
   input: NotificationSettingsInput
 ): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   const update: Record<string, unknown> = {
@@ -551,7 +537,7 @@ export async function testNotificationAction(input: {
   botToken: string;
   chatId: string;
 }): Promise<ActionResult> {
-  const guard = await requireAdmin();
+  const guard = await requireOwner();
   if (!guard.ok) return { success: false, error: guard.error };
 
   let botToken = input.botToken.trim();

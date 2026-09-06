@@ -323,3 +323,65 @@ describe('Penghapusan akun (Admin -> Pengguna)', { skip }, () => {
     );
   });
 });
+
+describe('Pemilik & izin admin (migrasi 19)', { skip }, () => {
+  // Sama seperti tes penghapusan akun di atas: fungsi yang belum ada membuat
+  // PostgREST membalas 404, dan setiap tes "ditolak" akan lulus dengan
+  // sendirinya. Jadi keberadaannya diperiksa lebih dulu, terpisah.
+  test('helper is_owner & admin_can sudah terpasang', async () => {
+    for (const fn of ['is_owner', 'admin_can']) {
+      const { body } = await rpc(fn, fn === 'admin_can' ? { p_perm: 'pesanan' } : {});
+      assert.notEqual(
+        body?.code,
+        'PGRST202',
+        `Fungsi ${fn} belum ada — jalankan migrasi 19 di SQL Editor dulu.`
+      );
+    }
+  });
+
+  test('pengunjung anonim bukan pemilik dan tidak punya izin apa pun', async () => {
+    assert.equal((await rpc('is_owner', {})).body, false, 'anon dianggap PEMILIK');
+    for (const perm of ['pesanan', 'produk', 'katalog', 'komunitas']) {
+      assert.equal(
+        (await rpc('admin_can', { p_perm: perm })).body,
+        false,
+        `anon dianggap punya izin "${perm}"`
+      );
+    }
+  });
+
+  test('kolom permissions tidak bisa dipanen lewat profiles', async () => {
+    // profiles hanya bisa dibaca pemiliknya sendiri dan owner. Kalau kolom ini
+    // ikut terbuka, siapa pun bisa memetakan admin mana yang memegang apa —
+    // daftar belanja untuk memilih sasaran.
+    const { body } = await selectAs('profiles', 'select=id,role,permissions');
+    assert.notEqual(
+      body?.code,
+      '42703',
+      'Kolom profiles.permissions belum ada — jalankan migrasi 19 di SQL Editor dulu.'
+    );
+    assert.deepEqual(body, [], `Kolom permissions terbaca anon: ${JSON.stringify(body).slice(0, 200)}`);
+  });
+
+  test('view publik tetap tidak memuat role maupun permissions', async () => {
+    for (const kolom of ['role', 'permissions']) {
+      const { body } = await selectAs('public_profiles', `select=${kolom}`);
+      assert.equal(
+        body?.code,
+        '42703',
+        `public_profiles membocorkan kolom ${kolom}: ${JSON.stringify(body).slice(0, 200)}`
+      );
+    }
+  });
+
+  test('pengaturan yang hanya untuk pemilik tetap tertutup rapat', async () => {
+    for (const tabel of ['payment_gateway_settings', 'notification_settings']) {
+      const { status, body } = await selectAs(tabel, 'select=*');
+      const kosong = Array.isArray(body) && body.length === 0;
+      assert.ok(
+        status >= 400 || kosong,
+        `${tabel} terbaca anon (status ${status}): ${JSON.stringify(body).slice(0, 200)}`
+      );
+    }
+  });
+});

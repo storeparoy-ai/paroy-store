@@ -12,8 +12,13 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="space-y-1">
         <h2 className="font-heading font-bold text-lg text-text-main">Pengguna ({users.length})</h2>
+        <p className="text-xs text-text-muted max-w-2xl leading-relaxed">
+          Halaman ini hanya bisa dibuka pemilik toko. Admin yang kamu angkat tidak memegang apa pun
+          sampai izinnya dicentang lewat &quot;Atur izin&quot; — dan nomor rekening tujuan, kunci
+          Tripay, token bot, serta pengaturan situs tidak pernah bisa diberikan ke siapa pun.
+        </p>
       </div>
       <UsersTable users={users} currentUserId={currentUser?.id ?? ''} />
     </div>
