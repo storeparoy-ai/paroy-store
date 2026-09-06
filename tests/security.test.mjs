@@ -385,3 +385,37 @@ describe('Pemilik & izin admin (migrasi 19)', { skip }, () => {
     }
   });
 });
+
+describe('Kebijakan tabel rahasia tidak boleh longgar (migrasi 21)', { skip }, () => {
+  // Migrasi 19 memindahkan dua tabel ini jadi milik pemilik saja, tapi nama
+  // kebijakan yang di-DROP salah ketik — dan `drop policy if exists` dengan
+  // nama yang tidak ada TIDAK mengeluarkan error. Kebijakan lama berbasis
+  // is_admin() tetap hidup berdampingan dengan yang baru, Postgres meng-OR-kan
+  // keduanya, dan setiap admin terbatas tetap bisa membaca token bot serta
+  // membelokkan chat tujuan notifikasi ke miliknya sendiri.
+  //
+  // Anon memang selalu ditolak, jadi tes ini SENDIRI tidak akan menangkap
+  // kasus itu. Yang ditangkapnya adalah kemunduran yang lebih parah — kalau
+  // suatu saat tabelnya terbuka sampai ke pengunjung biasa. Batas admin
+  // terbatas diuji terpisah dengan sesi login sungguhan; lihat catatan di
+  // memori proyek.
+  test('anon tidak bisa membaca token bot maupun kunci Tripay', async () => {
+    for (const [tabel, kolom] of [
+      ['notification_settings', 'bot_token,chat_id'],
+      ['payment_gateway_settings', 'api_key,private_key'],
+    ]) {
+      const { status, body } = await selectAs(tabel, `select=${kolom}`);
+      const kosong = Array.isArray(body) && body.length === 0;
+      assert.ok(
+        status >= 400 || kosong,
+        `${tabel} terbaca anon (status ${status}): ${JSON.stringify(body).slice(0, 200)}`
+      );
+    }
+  });
+
+  test('anon tidak bisa menyentuh baris pengaturan notifikasi sama sekali', async () => {
+    const { status, body } = await selectAs('notification_settings', 'select=id');
+    const kosong = Array.isArray(body) && body.length === 0;
+    assert.ok(status >= 400 || kosong, `notification_settings terbuka untuk anon (status ${status})`);
+  });
+});
