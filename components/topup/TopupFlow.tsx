@@ -35,6 +35,7 @@ export default function TopupFlow({
   const [gameIndex, setGameIndex] = useState(0);
   const [userId, setUserId] = useState('');
   const [zoneId, setZoneId] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [itemId, setItemId] = useState<string | null>(null);
   const [paymentCode, setPaymentCode] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('form');
@@ -52,7 +53,17 @@ export default function TopupFlow({
       : 0;
   const total = (selectedItem?.price ?? 0) + adminFee;
 
-  const canSubmit = userId.trim().length >= 4 && !!selectedItem && !!selectedPayment;
+  // Nomor WhatsApp diwajibkan sama seperti Beli dan Rekber. Sebelumnya Top Up
+  // satu-satunya jalur yang tidak pernah menanyakannya, sehingga setiap pesanan
+  // top up tersimpan tanpa satu pun cara menghubungi pemesannya: kalau nominal
+  // transfernya tidak cocok atau ID game-nya salah ketik, uangnya sudah masuk
+  // tapi tidak ada yang bisa dihubungi — dan di halaman Pesanan barisnya memang
+  // tampil tanpa nama sama sekali.
+  const canSubmit =
+    userId.trim().length >= 4 &&
+    whatsapp.trim().length >= 9 &&
+    !!selectedItem &&
+    !!selectedPayment;
 
   function handleSubmit() {
     if (!canSubmit || !selectedItem || !selectedPayment) return;
@@ -63,6 +74,7 @@ export default function TopupFlow({
         topupItemId: selectedItem.id,
         gameUserId: zoneId ? `${userId} (${zoneId})` : userId,
         paymentCode: selectedPayment.code,
+        buyerWhatsapp: whatsapp.trim(),
       });
       if (!result.success) {
         setSubmitError(result.error);
@@ -78,6 +90,7 @@ export default function TopupFlow({
     setStatus('form');
     setUserId('');
     setZoneId('');
+    setWhatsapp('');
     setItemId(null);
     setPaymentCode(null);
   }
@@ -222,7 +235,17 @@ export default function TopupFlow({
                 value={zoneId}
                 onChange={(e) => setZoneId(e.target.value)}
               />
+              <Input
+                label="Nomor WhatsApp"
+                placeholder="Contoh: 081234567890"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+              />
             </div>
+            <p className="text-[11px] text-text-dim">
+              Dipakai admin untuk menghubungimu kalau ada yang perlu dipastikan soal
+              pesanan ini. Tidak ditampilkan ke pengunjung lain.
+            </p>
           </section>
 
           {/* Step 3: Nominal */}
@@ -333,7 +356,7 @@ export default function TopupFlow({
 
               {!canSubmit && (
                 <p className="text-[11px] text-text-dim text-center">
-                  Lengkapi User ID, nominal, dan metode pembayaran dulu ya.
+                  Lengkapi User ID, nomor WhatsApp, nominal, dan metode pembayaran dulu ya.
                 </p>
               )}
               <SubmitError message={submitError} />
