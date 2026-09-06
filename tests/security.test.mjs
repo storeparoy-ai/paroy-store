@@ -298,3 +298,28 @@ describe('Pelacakan pesanan publik', { skip }, () => {
     assert.deepEqual(body, [], 'invoice karangan harusnya tidak menghasilkan apa-apa');
   });
 });
+
+describe('Penghapusan akun (Admin -> Pengguna)', { skip }, () => {
+  // admin_delete_user berjalan SECURITY DEFINER dan menyentuh auth.users —
+  // fungsi paling berbahaya di seluruh basis data ini. Dua pagarnya diuji dari
+  // luar: anon tidak boleh punya izin EXECUTE sama sekali, dan meskipun
+  // izinnya lolos, baris pertama fungsinya menuntut pemanggilnya admin.
+  test('anon tidak bisa memanggil admin_delete_user', async () => {
+    const { status, body } = await rpc('admin_delete_user', {
+      p_user_id: '00000000-0000-0000-0000-000000000000',
+    });
+    // Pemeriksaan pertama ini bukan basa-basi: tanpa fungsinya, PostgREST
+    // membalas 404 dan tes "ditolak" akan lulus dengan sendirinya tanpa
+    // membuktikan apa pun — persis jebakan yang sudah pernah kena di berkas
+    // ini. Jadi ketiadaan fungsinya dilaporkan sebagai kegagalan tersendiri.
+    assert.notEqual(
+      body?.code,
+      'PGRST202',
+      'Fungsi admin_delete_user belum ada — jalankan migrasi 18 di SQL Editor dulu.'
+    );
+    assert.ok(
+      status >= 400,
+      `anon BERHASIL memanggil admin_delete_user (status ${status}): ${JSON.stringify(body).slice(0, 200)}`
+    );
+  });
+});

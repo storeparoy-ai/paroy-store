@@ -227,3 +227,31 @@ export async function updateUserRoleAction(userId: string, role: 'user' | 'admin
   revalidatePath('/admin/pengguna');
   return { success: true };
 }
+
+/**
+ * Hapus akun pengguna sepenuhnya.
+ *
+ * Seluruh logikanya ada di RPC `admin_delete_user` (migrasi 18), bukan di
+ * sini, karena satu-satunya hal yang bisa menghapus baris `auth.users` tanpa
+ * service role key adalah fungsi SECURITY DEFINER di dalam database. RPC itu
+ * juga yang memutus tautan pesanan dan menolak permintaan yang berbahaya
+ * (menghapus diri sendiri, atau menghapus admin lain sebelum status adminnya
+ * dicabut) — pemeriksaan di bawah ini hanya lapis pertama demi pesan error
+ * yang enak dibaca.
+ */
+export async function deleteUserAction(userId: string): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { success: false, error: guard.error };
+
+  const { error } = await guard.supabase.rpc('admin_delete_user', { p_user_id: userId });
+  if (error) {
+    // Pesan dari RAISE EXCEPTION di dalam fungsi sudah berbahasa Indonesia dan
+    // ditujukan untuk admin, jadi diteruskan apa adanya.
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/pengguna');
+  revalidatePath('/admin/pesanan');
+  revalidatePath('/community');
+  return { success: true };
+}
