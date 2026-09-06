@@ -936,6 +936,10 @@ export async function getOrderStatus(orderNumber: string): Promise<{
    * pembeli tahu buktinya sudah masuk dan berhenti mengunggah ulang.
    * Ditambahkan di migrasi 14 — bernilai `false` pada database lama. */
   hasProof: boolean;
+  /** Kode metode pembayaran yang dipilih pembeli, atau null untuk rekber
+   * (alur itu tidak meminta metode). Dipakai Cek Transaksi untuk menunjukkan
+   * rekening yang persis dipilih. Ditambahkan di migrasi 22. */
+  paymentMethod: string | null;
   createdAt: Date;
 } | null> {
   try {
@@ -951,6 +955,7 @@ export async function getOrderStatus(orderNumber: string): Promise<{
       amount: Number(row.amount),
       itemLabel: row.item_label,
       hasProof: row.has_proof === true,
+      paymentMethod: row.payment_method ?? null,
       createdAt: new Date(row.created_at),
     };
   } catch (err) {
