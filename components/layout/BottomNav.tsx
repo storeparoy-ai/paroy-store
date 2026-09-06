@@ -11,7 +11,7 @@ const ITEMS = [
   { href: '/topup', label: 'Top Up', icon: Zap },
   { href: '/products', label: 'Katalog', icon: ShoppingBag },
   { href: '/rekber', label: 'Rekber', icon: Shield },
-  { href: '/profile', label: 'Akun', icon: User },
+  { href: '/profile/riwayat', label: 'Akun', icon: User },
 ];
 
 /** Markup shared by the real nav and its prerender fallback — kept in one

@@ -65,5 +65,29 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // 4. Halaman indeks yang isinya cuma meneruskan ke tab pertama.
+  //
+  // HARUS di sini, bukan dengan redirect() di dalam page.tsx. Dengan Cache
+  // Components, redirect() dari sebuah halaman berjalan dalam konteks
+  // streaming: alih-alih membalas 307, Next menyisipkan meta tag agar browser
+  // yang menindaklanjutinya. Meta tag itu DIABAIKAN saat navigasi sisi klien —
+  // router menerima muatan RSC berstatus 200 lalu tidak melakukan apa-apa, dan
+  // pengunjung menatap spinner yang tidak pernah selesai. Itu persis keluhan
+  // "menu profil tidak terbuka kecuali dibuka di tab baru", dan sebelumnya
+  // keluhan yang sama untuk menu admin.
+  //
+  // Dokumentasi redirect() menyebut jalan keluarnya secara eksplisit: kalau
+  // ingin mengalihkan SEBELUM proses render, lakukan di Proxy.
+  const INDEX_REDIRECTS: Record<string, string> = {
+    '/admin': '/admin/dashboard',
+    '/profile': '/profile/riwayat',
+  }
+  const indexTarget = INDEX_REDIRECTS[request.nextUrl.pathname]
+  if (indexTarget) {
+    const url = request.nextUrl.clone()
+    url.pathname = indexTarget
+    return NextResponse.redirect(url)
+  }
+
   return supabaseResponse
 }

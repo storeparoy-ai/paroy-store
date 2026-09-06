@@ -100,7 +100,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
                   <LinkPending />
                 </Link>
               )}
-              <Link href="/profile" className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors whitespace-nowrap">
+              <Link href="/profile/riwayat" className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors whitespace-nowrap">
                 <UserCircle2 className="w-4 h-4" />
                 {user.fullName || 'Akun Saya'}
                 <LinkPending />
@@ -155,7 +155,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
           </nav>
           {user ? (
             <div className="space-y-2">
-              <Link href="/profile" className="block" onClick={() => setMobileOpen(false)}>
+              <Link href="/profile/riwayat" className="block" onClick={() => setMobileOpen(false)}>
                 <Button variant="secondary" className="w-full">
                   <UserCircle2 className="w-4 h-4" />
                   {user.fullName || 'Akun Saya'}
