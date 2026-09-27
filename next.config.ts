@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   // the database from scratch" reported 2026-08-29.
   cacheComponents: true,
   images: {
+    // Next 16 only allows quality 75 unless listed here. 85 is used for
+    // product photos (ProductGallery): screenshots full of small in-game text
+    // soften visibly at 75.
+    qualities: [75, 85],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     remotePatterns: [
