@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef, useState, useTransition } from 'react';
-import { AlertCircle, Upload, Loader2 } from 'lucide-react';
+import React, { useState, useTransition } from 'react';
+import { AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import CurrencyInput from '@/components/ui/CurrencyInput';
 import { createProductAction, updateProductAction, type ProductInput } from '@/lib/supabase/admin-actions';
-import { uploadPublicImage } from '@/lib/supabase/storage';
+import ProductImagesField from '@/components/admin/ProductImagesField';
 import type { Game, Product } from '@/types';
 
 const STATUS_OPTIONS = ['active', 'inactive', 'pending', 'reserved', 'sold'];
@@ -31,7 +31,6 @@ function toFormState(product?: Product, games?: Game[]) {
     status: product?.status ?? 'active',
     region: product?.region ?? 'Indonesia',
     platform: product?.platform ?? ['Android', 'iOS'],
-    images: product?.images.join('\n') ?? '',
     specs: product ? Object.entries(product.specs).map(([k, v]) => `${k}: ${v}`).join('\n') : '',
     isFeatured: product?.isFeatured ?? false,
   };
@@ -56,8 +55,13 @@ function ProductFormFields({
   const [form, setForm] = useState(() => toFormState(product, games));
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  // Produk tanpa gambar diberi placeholder placehold.co saat dimuat
+  // (mapSupabaseProduct). Jangan sampai placeholder itu ikut tersimpan
+  // sebagai gambar sungguhan ketika produknya diedit.
+  const [images, setImages] = useState<string[]>(
+    () => product?.images.filter((url) => !url.startsWith('https://placehold.co/')) ?? []
+  );
+  const [imagesBusy, setImagesBusy] = useState(false);
 
   function togglePlatform(p: string) {
     setForm((f) => ({
@@ -99,7 +103,7 @@ function ProductFormFields({
       status: form.status,
       region: form.region.trim() || 'Indonesia',
       platform: form.platform.length > 0 ? form.platform : ['Android', 'iOS'],
-      images: form.images.split('\n').map((s) => s.trim()).filter(Boolean),
+      images,
       specs,
       isFeatured: form.isFeatured,
     };
@@ -138,7 +142,7 @@ function ProductFormFields({
           >
             {games.length === 0 && <option value="">Belum ada kategori game</option>}
             {games.map((g) => (
-              <option key={g.id} value={g.id}>{g.icon} {g.name}</option>
+              <option key={g.id} value={g.id}>{g.name}</option>
             ))}
           </select>
         </div>
@@ -222,48 +226,7 @@ function ProductFormFields({
         onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
       />
 
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-text-muted">
-            Gambar Produk (satu link per baris)
-          </label>
-          <button
-            type="button"
-            disabled={isUploadingImage}
-            onClick={() => imageInputRef.current?.click()}
-            className="flex items-center gap-1.5 text-[11px] font-semibold text-brand-cyan hover:text-cyan-300 transition-colors disabled:opacity-50"
-          >
-            {isUploadingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-            Upload Gambar
-          </button>
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              e.target.value = '';
-              if (!file) return;
-              setIsUploadingImage(true);
-              const result = await uploadPublicImage(file, 'products');
-              setIsUploadingImage(false);
-              if ('error' in result) {
-                setError(result.error);
-                return;
-              }
-              setForm((f) => ({ ...f, images: f.images ? `${f.images}\n${result.url}` : result.url }));
-            }}
-          />
-        </div>
-        <textarea
-          value={form.images}
-          onChange={(e) => setForm((f) => ({ ...f, images: e.target.value }))}
-          rows={3}
-          placeholder={'https://.../gambar1.jpg\nhttps://.../gambar2.jpg'}
-          className="w-full bg-bg-card border border-border-subtle rounded-xl text-xs text-text-main p-3 focus:outline-none focus:border-brand-cyan/50 font-mono"
-        />
-      </div>
+      <ProductImagesField images={images} setImages={setImages} onBusyChange={setImagesBusy} />
 
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-text-muted">
@@ -299,8 +262,8 @@ function ProductFormFields({
         <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
           Batal
         </Button>
-        <Button type="submit" variant="primary" isLoading={isPending}>
-          {product ? 'Simpan Perubahan' : 'Tambah Produk'}
+        <Button type="submit" variant="primary" isLoading={isPending} disabled={imagesBusy}>
+          {imagesBusy ? 'Menunggu unggahan…' : product ? 'Simpan Perubahan' : 'Tambah Produk'}
         </Button>
       </div>
     </form>

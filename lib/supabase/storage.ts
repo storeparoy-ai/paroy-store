@@ -1,7 +1,11 @@
 import { createClient } from '@/utils/supabase/client';
 
 const BUCKET = 'public-assets';
-const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
+/** Dulu 4MB — screenshot PNG dari HP sering lebih besar, lalu admin
+ * terpaksa mengompresnya dulu (dan gambarnya jadi pecah). Berkas asli
+ * disimpan apa adanya; next/image yang mengecilkannya saat ditampilkan. */
+export const PUBLIC_IMAGE_MAX_MB = 10;
+const MAX_SIZE_BYTES = PUBLIC_IMAGE_MAX_MB * 1024 * 1024;
 
 /**
  * Uploads an image straight from the admin's browser to Supabase Storage
@@ -18,7 +22,7 @@ export async function uploadPublicImage(
     return { error: 'File harus berupa gambar.' };
   }
   if (file.size > MAX_SIZE_BYTES) {
-    return { error: 'Ukuran gambar maksimal 4MB.' };
+    return { error: `Ukuran gambar maksimal ${PUBLIC_IMAGE_MAX_MB}MB.` };
   }
 
   try {
