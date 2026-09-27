@@ -462,7 +462,11 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[] | null> 
         .from('products')
         .select('*')
         .eq('status', 'active')
-        .eq('is_featured', true)
+        // Unggulan dulu, lalu sisanya diisi akun terbaru. Dulu hanya
+        // `is_featured = true`: selama admin belum mencentang "unggulan" di
+        // produk mana pun, beranda menulis "Belum Ada Produk" dan hero desktop
+        // kosong — padahal katalog punya akun aktif.
+        .order('is_featured', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .limit(limit),
       getGameLookup(),

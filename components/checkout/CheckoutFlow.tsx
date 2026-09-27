@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -10,7 +10,6 @@ import {
   Wallet,
   ShieldCheck,
   PartyPopper,
-  Timer,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -23,22 +22,11 @@ import { cn, formatCurrency } from '@/lib/utils';
 import type { PaymentMethod } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
 
-const CHECKOUT_DURATION_SECONDS = 15 * 60;
-
-function useCountdownSeconds(totalSeconds: number) {
-  const [remaining, setRemaining] = useState(totalSeconds);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRemaining((r) => Math.max(0, r - 1));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const m = String(Math.floor(remaining / 60)).padStart(2, '0');
-  const s = String(remaining % 60).padStart(2, '0');
-  return { label: `${m}:${s}`, expired: remaining <= 0 };
-}
+// Dulu ada hitung mundur "Bayar dalam 15:00" di sini. Tidak ada apa pun di
+// server yang kedaluwarsa — pesanan baru dibuat saat tombol "Saya Sudah
+// Transfer" ditekan, dan memuat ulang halaman mengembalikannya ke 15:00.
+// Satu-satunya efek nyatanya: pembeli yang butuh lebih dari 15 menit di
+// aplikasi bank mendapati tombol itu terkunci SETELAH uangnya terkirim.
 
 export default function CheckoutFlow({
   product,
@@ -55,11 +43,9 @@ export default function CheckoutFlow({
   const [copied, setCopied] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [isPending, startTransition] = useTransition();
-  const { label: countdownLabel, expired } = useCountdownSeconds(CHECKOUT_DURATION_SECONDS);
 
   const selectedPayment = paymentMethods.find((p) => p.id === paymentId) ?? paymentMethods[0];
-  const canSubmit =
-    buyerName.trim().length >= 3 && buyerWhatsapp.trim().length >= 9 && !expired && !!selectedPayment;
+  const canSubmit = buyerName.trim().length >= 3 && buyerWhatsapp.trim().length >= 9 && !!selectedPayment;
 
   function handleCopy() {
     if (!selectedPayment) return;
@@ -150,12 +136,15 @@ export default function CheckoutFlow({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Nama Lengkap"
+              autoComplete="name"
               placeholder="Nama sesuai identitas"
               value={buyerName}
               onChange={(e) => setBuyerName(e.target.value)}
             />
             <Input
               label="Nomor WhatsApp"
+              type="tel"
+              autoComplete="tel"
               placeholder="Contoh: 081234567890"
               value={buyerWhatsapp}
               onChange={(e) => setBuyerWhatsapp(e.target.value)}
@@ -174,7 +163,9 @@ export default function CheckoutFlow({
               return (
                 <button
                   key={method.id}
+                  type="button"
                   onClick={() => setPaymentId(method.id)}
+                  aria-pressed={paymentId === method.id}
                   className={cn(
                     'flex items-center gap-3 p-3.5 rounded-xl border transition-colors',
                     paymentId === method.id
@@ -184,6 +175,7 @@ export default function CheckoutFlow({
                 >
                   <Icon className="w-4 h-4 text-text-muted shrink-0" />
                   <span className="text-xs font-semibold text-text-main text-left">{method.label}</span>
+                  {paymentId === method.id && <Check className="w-4 h-4 text-brand-cyan ml-auto shrink-0" />}
                 </button>
               );
             })}
@@ -203,11 +195,12 @@ export default function CheckoutFlow({
                 <div className="flex items-center justify-between">
                   <span className="font-mono font-bold text-lg text-text-main">{selectedPayment.accountNumber}</span>
                   <button
+                    type="button"
                     onClick={handleCopy}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-brand-cyan hover:text-cyan-300 transition-colors"
+                    className="flex items-center gap-1.5 min-h-11 px-3 -mr-3 rounded-lg text-xs font-semibold text-brand-cyan hover:bg-brand-cyan/10 transition-colors"
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? 'Tersalin' : 'Salin'}
+                    <span aria-live="polite">{copied ? 'Tersalin' : 'Salin'}</span>
                   </button>
                 </div>
               </div>
@@ -225,18 +218,6 @@ export default function CheckoutFlow({
       <div className="lg:sticky lg:top-24 space-y-4">
         <Card variant="raised" className="rounded-[22px]">
           <CardContent className="p-6 space-y-5">
-            <div
-              className={cn(
-                'flex items-center justify-center gap-2 h-12 rounded-[14px] text-sm font-bold font-mono border',
-                expired
-                  ? 'bg-urgency-red/10 text-urgency-red border-urgency-red/30'
-                  : 'bg-urgency-orange/10 text-urgency-orange border-urgency-orange/30'
-              )}
-            >
-              <Timer className="w-4 h-4" />
-              {expired ? 'Waktu pembayaran habis' : `Bayar dalam ${countdownLabel}`}
-            </div>
-
             <div className="space-y-2 text-xs">
               <div className="flex justify-between text-text-muted">
                 <span>Harga Akun</span>
@@ -258,7 +239,7 @@ export default function CheckoutFlow({
             >
               Saya Sudah Transfer
             </Button>
-            {!canSubmit && !expired && (
+            {!canSubmit && (
               <p className="text-[11px] text-text-dim text-center">
                 Lengkapi nama dan nomor WhatsApp dulu ya.
               </p>

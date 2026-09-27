@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 import {
   ShieldCheck,
   Clock,
-  Eye,
   Smartphone,
   Globe2,
   CheckCircle2,
@@ -20,7 +19,7 @@ import ProductGallery from '@/components/products/ProductGallery';
 import WishlistButton from '@/components/products/WishlistButton';
 import { getProductById, getCurrentUserForDisplay, isProductWishlisted } from '@/lib/supabase/queries';
 import { absoluteUrl } from '@/lib/site';
-import { cn, formatCurrency, formatNumber } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 // Kept dynamic on purpose: the product `id` param is needed before *any*
 // content can be produced (there's no bounded list of ids to prerender
@@ -141,9 +140,9 @@ export default async function ProductDetailPage({
 
   return (
     <Container className="py-8 sm:py-10">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-10 items-start">
-        {/* Left: gallery + specs */}
-        <div className="space-y-6 min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 lg:gap-x-10 items-start">
+        {/* Galeri + judul */}
+        <div className="space-y-6 min-w-0 lg:col-start-1 lg:row-start-1">
           <ProductGallery images={product.images} title={product.title} />
 
           <div className="flex flex-wrap items-center gap-2">
@@ -154,72 +153,18 @@ export default async function ProductDetailPage({
                 Bisa Disewa
               </Badge>
             )}
-            <span className="flex items-center gap-1 text-xs text-text-muted ml-auto">
-              <Eye className="w-3.5 h-3.5" />
-              {formatNumber(product.viewCount)} dilihat
-            </span>
           </div>
 
           <h1 className="font-heading font-extrabold text-2xl sm:text-[34px] text-text-main tracking-[-0.02em] leading-[1.18]">
             {product.title}
           </h1>
 
-          {/* Specs */}
-          <Card variant="alt" className="rounded-[20px]">
-            <CardContent className="p-6 space-y-5">
-              <h2 className="font-heading font-bold text-[15px] text-text-main tracking-[-0.01em]">
-                Spesifikasi Akun
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {specEntries.map(([key, value]) => (
-                  <div key={key} className="space-y-0.5">
-                    <span className="text-[10px] uppercase tracking-wider text-text-dim">
-                      {key}
-                    </span>
-                    <p className="text-sm font-bold text-text-main">{value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-4 pt-3 border-t border-border-subtle text-xs text-text-muted">
-                <span className="flex items-center gap-1.5">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  {product.platform.join(' / ')}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Globe2 className="w-3.5 h-3.5" />
-                  Region {product.region}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Anti-hackback SOP */}
-          <Card variant="alt" className="rounded-[20px] border-trust-emerald/25">
-            <CardContent className="p-6 space-y-3.5">
-              <h2 className="font-heading font-bold text-[15px] text-text-main tracking-[-0.01em] flex items-center gap-2">
-                <ShieldCheck className="w-4.25 h-4.25 text-trust-emerald" />
-                Proteksi Anti Hackback
-              </h2>
-              <ul className="space-y-2 text-xs text-text-muted leading-relaxed">
-                <li className="flex gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />
-                  Admin Paroy Store mendampingi langsung saat serah terima akun.
-                </li>
-                <li className="flex gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />
-                  Email &amp; password akun wajib diganti di depan admin sebelum transaksi selesai.
-                </li>
-                <li className="flex gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />
-                  Dana pembeli ditahan aman lewat Rekber hingga akun terbukti aman 100%.
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Right: sticky purchase box */}
-        <div className="lg:sticky lg:top-24 space-y-4">
+        {/* Kotak beli: di DOM langsung setelah judul supaya di ponsel harga &
+            tombol Beli tidak terkubur di bawah spesifikasi (dulu ~1,5 layar ke
+            bawah). Di lg ia pindah ke kolom kanan dan menempel seperti sebelumnya. */}
+        <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24 space-y-4">
           <Card variant="raised" className="rounded-[22px]">
             <CardContent className="p-6 sm:p-7 space-y-5">
               {/* Dulu lima bintang penuh dan "4.9" di setiap akun — nilai yang
@@ -298,6 +243,69 @@ export default async function ProductDetailPage({
               laporkan penjual di luar platform ke admin.
             </span>
           </div>
+        </div>
+
+        {/* Spesifikasi + SOP */}
+        <div className="space-y-6 min-w-0 lg:col-start-1 lg:row-start-2">
+          {/* Specs */}
+          <Card variant="alt" className="rounded-[20px]">
+            <CardContent className="p-6 space-y-5">
+              <h2 className="font-heading font-bold text-[15px] text-text-main tracking-[-0.01em]">
+                Spesifikasi Akun
+              </h2>
+              {specEntries.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {specEntries.map(([key, value]) => (
+                    <div key={key} className="space-y-0.5">
+                      <span className="text-[11px] uppercase tracking-wider text-text-dim">
+                        {key}
+                      </span>
+                      <p className="text-sm font-bold text-text-main">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div
+                className={cn(
+                  'flex flex-wrap gap-4 text-xs text-text-muted',
+                  specEntries.length > 0 && 'pt-3 border-t border-border-subtle'
+                )}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  {product.platform.join(' / ')}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Globe2 className="w-3.5 h-3.5" />
+                  Region {product.region}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Anti-hackback SOP */}
+          <Card variant="alt" className="rounded-[20px] border-trust-emerald/25">
+            <CardContent className="p-6 space-y-3.5">
+              <h2 className="font-heading font-bold text-[15px] text-text-main tracking-[-0.01em] flex items-center gap-2">
+                <ShieldCheck className="w-4.25 h-4.25 text-trust-emerald" />
+                Proteksi Anti Hackback
+              </h2>
+              <ul className="space-y-2 text-xs text-text-muted leading-relaxed">
+                <li className="flex gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />
+                  Admin Paroy Store mendampingi langsung saat serah terima akun.
+                </li>
+                <li className="flex gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />
+                  Email &amp; password akun wajib diganti di depan admin sebelum transaksi selesai.
+                </li>
+                <li className="flex gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-trust-emerald shrink-0 mt-0.5" />
+                  Dana pembeli ditahan aman lewat Rekber hingga akun terbukti aman 100%.
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </Container>
