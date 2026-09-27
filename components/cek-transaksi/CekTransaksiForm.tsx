@@ -21,11 +21,18 @@ const ORDER_STEPS = [
 ];
 
 /** Persempit ke satu metode kalau pesanannya memang mencatat metode yang
- * dikenal. Pencocokan longgar karena kolomnya menyimpan kode apa adanya
- * ('bri', 'transfer_bri') sementara daftar metode memakai `code`. */
-function cocokkanMetode(methods: PaymentMethod[], kode: string | null): PaymentMethod[] {
-  if (!kode) return methods;
-  const cocok = methods.find((m) => m.code === kode);
+ * dikenal.
+ *
+ * Kolom `payment_method` menyimpan LABEL metode ("Transfer BRI") — itu yang
+ * dikirim checkout dan yang ditulis create_guest_topup (migrasi 13). Dulu di
+ * sini hanya dicocokkan dengan `code` ('bri'), jadi tidak pernah cocok dan
+ * pembeli selalu disodori keempat rekening, padahal ia sudah memilih satu.
+ * Kode tetap diterima untuk berjaga-jaga; sewa mencatat teks umum
+ * ("Transfer (dikonfirmasi admin)") dan memang tetap menampilkan semua. */
+function cocokkanMetode(methods: PaymentMethod[], tercatat: string | null): PaymentMethod[] {
+  if (!tercatat) return methods;
+  const t = tercatat.trim().toLowerCase();
+  const cocok = methods.find((m) => m.label.trim().toLowerCase() === t || m.code.toLowerCase() === t);
   return cocok ? [cocok] : methods;
 }
 

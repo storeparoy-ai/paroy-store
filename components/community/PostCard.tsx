@@ -10,7 +10,8 @@ import {
   addCommunityCommentAction,
   deleteCommunityCommentAction,
 } from '@/lib/supabase/profile-actions';
-import { cn, timeAgo } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import TimeAgo from '@/components/ui/TimeAgo';
 import type { CommunityPost, CommunityComment } from '@/lib/supabase/queries';
 
 /* Warna avatar dipilih dari nama, bukan acak, supaya orang yang sama selalu
@@ -68,7 +69,7 @@ function CommentRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="text-[11px] font-bold text-text-main truncate">{comment.authorName}</span>
-          <span className="text-[11px] text-text-dim shrink-0">{timeAgo(comment.createdAt)}</span>
+          <TimeAgo date={comment.createdAt} className="text-[11px] text-text-dim shrink-0" />
           {canDelete && (
             <button
               onClick={() =>
@@ -176,7 +177,9 @@ export default function PostCard({
           <Avatar name={post.authorName} />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-text-main truncate">{post.authorName}</p>
-            <p className="text-[11px] text-text-dim">{timeAgo(post.createdAt)}</p>
+            <p className="text-[11px] text-text-dim">
+              <TimeAgo date={post.createdAt} />
+            </p>
           </div>
           {post.game && <Badge variant="cyan" size="sm">{post.game}</Badge>}
         </div>

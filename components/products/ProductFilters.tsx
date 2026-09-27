@@ -11,7 +11,8 @@ const SORT_OPTIONS = [
   { value: 'terbaru', label: 'Terbaru' },
   { value: 'termurah', label: 'Harga Termurah' },
   { value: 'termahal', label: 'Harga Termahal' },
-  { value: 'populer', label: 'Paling Populer' },
+  // "Paling Populer" dihapus: ia mengurutkan menurut view_count yang tidak
+  // pernah dihitung (selalu 0), jadi urutannya asal saja.
 ];
 
 export default function ProductFilters({ games, priceRanges }: { games: Game[]; priceRanges: PriceRange[] }) {

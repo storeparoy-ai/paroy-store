@@ -282,9 +282,8 @@ export async function getActiveProducts(filters: ProductFilters = {}): Promise<P
       case 'termahal':
         query = query.order('price', { ascending: false });
         break;
-      case 'populer':
-        query = query.order('view_count', { ascending: false });
-        break;
+      // 'populer' dulu mengurutkan menurut view_count, yang tidak pernah
+      // dihitung — tautan lama ?sort=populer kini jatuh ke urutan terbaru.
       default:
         query = query.order('created_at', { ascending: false });
     }
@@ -408,7 +407,7 @@ export async function searchProductSuggestions(q: string): Promise<ProductSugges
       .select('id, title, price, game, images')
       .eq('status', 'active')
       .or(`title.ilike.%${term}%,game.ilike.%${term}%`)
-      .order('view_count', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(6);
 
     if (error) throw error;

@@ -12,7 +12,7 @@ import {
   updateUserRoleAction,
 } from '@/lib/supabase/admin-actions';
 import { PERMISSION_LABELS, type AdminPermission } from '@/lib/admin-permissions';
-import { timeAgo } from '@/lib/utils';
+import TimeAgo from '@/components/ui/TimeAgo';
 import type { AdminUser } from '@/lib/supabase/admin-queries';
 
 function displayName(user: AdminUser) {
@@ -98,7 +98,7 @@ function UserRow({
             </div>
           )}
         </td>
-        <td className="py-3 px-4 text-[10px] text-text-dim whitespace-nowrap">{timeAgo(user.createdAt)}</td>
+        <td className="py-3 px-4 text-[10px] text-text-dim whitespace-nowrap"><TimeAgo date={user.createdAt} /></td>
         <td className="py-3 px-4">
           <div className="flex flex-wrap items-center gap-1">
             {isPending ? (

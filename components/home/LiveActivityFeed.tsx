@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, ShoppingBag, Zap, Clock3, ShieldCheck } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { timeAgo } from '@/lib/utils';
+import TimeAgo from '@/components/ui/TimeAgo';
 import type { RecentActivity } from '@/lib/supabase/queries';
 
 const ICON_MAP: Record<string, typeof ShoppingBag> = {
@@ -69,7 +69,7 @@ export default function LiveActivityFeed({ activities }: { activities: RecentAct
                 {activity.action} <span className="text-text-main">{activity.itemLabel}</span>
               </span>
               <span className="text-text-dim shrink-0 hidden sm:inline">
-                &middot; {timeAgo(activity.createdAt)}
+                &middot; <TimeAgo date={activity.createdAt} />
               </span>
             </motion.div>
           </AnimatePresence>

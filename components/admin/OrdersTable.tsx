@@ -6,7 +6,8 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { updateOrderStatusAction } from '@/lib/supabase/admin-actions';
-import { cn, formatCurrency, timeAgo } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
+import TimeAgo from '@/components/ui/TimeAgo';
 import type { AdminOrder } from '@/lib/supabase/admin-queries';
 
 const KIND_LABEL: Record<AdminOrder['kind'], string> = {
@@ -143,7 +144,7 @@ function OrderRow({
     >
       <td className={cn('py-3 px-4', urgen && 'border-l-2 border-l-urgency-orange')}>
         <span className="font-mono text-xs text-brand-cyan">{order.orderNumber}</span>
-        <div className="text-[10px] text-text-dim">{timeAgo(order.createdAt)}</div>
+        <div className="text-[10px] text-text-dim"><TimeAgo date={order.createdAt} /></div>
       </td>
       <td className="py-3 px-4">
         <Badge variant="neutral" size="sm">{KIND_LABEL[order.kind]}</Badge>
@@ -198,7 +199,7 @@ function OrderCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className="font-mono text-xs text-brand-cyan">{order.orderNumber}</span>
-          <div className="text-[10px] text-text-dim">{timeAgo(order.createdAt)}</div>
+          <div className="text-[10px] text-text-dim"><TimeAgo date={order.createdAt} /></div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <Badge variant="neutral" size="sm">{KIND_LABEL[order.kind]}</Badge>
