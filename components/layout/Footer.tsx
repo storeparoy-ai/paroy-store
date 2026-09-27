@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { cacheLife } from 'next/cache';
 import { Gamepad2, ShieldCheck, MessageCircle, Globe } from 'lucide-react';
 import Container from '@/components/ui/Container';
-import { getSiteSettings } from '@/lib/supabase/queries';
+import { getActivePaymentMethods, getSiteSettings } from '@/lib/supabase/queries';
 
 /** `new Date()` during prerendering is a Cache Components build error (an
  * uncached value that can change between renders) — cache it instead of
@@ -36,7 +36,13 @@ const FOOTER_LINKS = [
 ];
 
 export default async function Footer() {
-  const [year, settings] = await Promise.all([getCurrentYear(), getSiteSettings()]);
+  const [year, settings, paymentMethods] = await Promise.all([
+    getCurrentYear(),
+    getSiteSettings(),
+    // Footer ada di setiap halaman: kalau bacaan ini gagal, cukup barisnya
+    // yang hilang — jangan sampai seluruh situs ikut jatuh.
+    getActivePaymentMethods().catch(() => []),
+  ]);
 
   return (
     <footer className="bg-bg-deep border-t border-border-subtle pb-20 lg:pb-0">
@@ -65,16 +71,18 @@ export default async function Footer() {
                 disembunyikan saja: tombol mati lebih buruk daripada tidak ada
                 tombol, karena ia terlihat seperti bantuan yang tersedia. */}
             {(settings.whatsappUrl || settings.discordUrl) && (
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                {/* Berlabel, bukan ikon gelembung tanpa teks — pembeli yang
+                    butuh bantuan harus langsung tahu tombol ini untuk apa. */}
                 {settings.whatsappUrl && (
                   <a
                     href={settings.whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-lg bg-bg-card border border-border-subtle flex items-center justify-center text-text-muted hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
-                    aria-label="Hubungi admin lewat WhatsApp"
+                    className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-bg-card border border-border-subtle text-xs font-semibold text-text-main hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
                   >
                     <MessageCircle className="w-4 h-4" />
+                    Hubungi Admin
                   </a>
                 )}
                 {settings.discordUrl && (
@@ -82,10 +90,10 @@ export default async function Footer() {
                     href={settings.discordUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-lg bg-bg-card border border-border-subtle flex items-center justify-center text-text-muted hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
-                    aria-label="Gabung Discord Paroy Store"
+                    className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-bg-card border border-border-subtle text-xs font-semibold text-text-main hover:text-brand-cyan hover:border-brand-cyan/40 transition-colors"
                   >
                     <Globe className="w-4 h-4" />
+                    Discord
                   </a>
                 )}
               </div>
@@ -111,13 +119,37 @@ export default async function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 pt-6 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-[11px] text-text-dim">
-            &copy; {year} Paroy Store. Seluruh hak cipta dilindungi.
-          </p>
-          <p className="text-[11px] text-text-dim">
-            Dibuat dengan Paroy Nexus &middot; Next.js
-          </p>
+        {/* Dulu di sini tertulis "Dibuat dengan Paroy Nexus · Next.js" — nama
+            sistem desain internal dan framework, tidak berarti apa-apa bagi
+            pembeli. Diganti dua hal yang memang berguna: cara bayar yang
+            diterima (dari tabel payment_methods, jadi ikut berubah bersama
+            admin), dan pernyataan merek dagang — situs ini memajang logo
+            resmi game milik penerbit lain. */}
+        <div className="mt-12 pt-6 border-t border-border-subtle space-y-4">
+          {paymentMethods.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-text-dim mr-1">
+                Pembayaran
+              </span>
+              {paymentMethods.map((m) => (
+                <span
+                  key={m.id}
+                  className="px-2.5 py-1 rounded-md bg-bg-card border border-border-subtle text-[11px] font-semibold text-text-muted"
+                >
+                  {m.label.replace(/^transfer\s+/i, '')}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-8">
+            <p className="text-[11px] text-text-dim shrink-0">
+              &copy; {year} Paroy Store. Seluruh hak cipta dilindungi.
+            </p>
+            <p className="text-[11px] text-text-dim leading-relaxed sm:text-right max-w-xl">
+              Nama dan logo game adalah merek dagang milik penerbitnya masing-masing. Paroy Store
+              adalah toko independen dan tidak berafiliasi dengan penerbit game mana pun.
+            </p>
+          </div>
         </div>
       </Container>
     </footer>

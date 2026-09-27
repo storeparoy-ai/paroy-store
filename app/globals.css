@@ -92,6 +92,20 @@ body {
   }
 }
 
+/* Soft fade on all four edges of an admin-uploaded image (the hero mascot),
+   so a picture with a solid background dissolves into the hero instead of
+   reading as a pasted-on rectangle. Two linear masks, intersected. */
+.edge-fade {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 20%, #000 80%, transparent),
+    linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 20%, #000 80%, transparent),
+    linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+  mask-composite: intersect;
+}
+
 /* ========================
    SCROLLBAR
 ======================= */

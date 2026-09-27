@@ -82,9 +82,20 @@ export default function HeroBanner({
 
         {/* Fanned showcase cards */}
         <div className="relative hidden lg:block h-[380px]">
+          {/* Ukuran elemen gambar mengikuti rasio aslinya (w/h auto dalam batas
+              220×320), bukan `fill` — supaya masker .edge-fade memudarkan tepi
+              GAMBARNYA, bukan tepi kotak kosong di sekitarnya. Maskot sekarang
+              berupa JPG berlatar putih; tanpa pudar ia tampak seperti foto
+              yang ditempel di atas hero. */}
           {mascotImageUrl && (
-            <div className="absolute -left-6 -bottom-10 z-0 w-[220px] h-[320px] pointer-events-none drop-shadow-2xl">
-              <Image src={mascotImageUrl} alt="Maskot Paroy Store" fill sizes="220px" className="object-contain object-bottom" />
+            <div className="absolute -left-6 -bottom-10 z-0 w-55 h-80 flex items-end pointer-events-none">
+              <Image
+                src={mascotImageUrl}
+                alt="Maskot Paroy Store"
+                width={220}
+                height={320}
+                className="edge-fade w-auto h-auto max-w-full max-h-full"
+              />
             </div>
           )}
           {showcase.map((product, idx) => (
