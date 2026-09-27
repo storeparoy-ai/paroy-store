@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link, { useLinkStatus } from 'next/link';
-import { Zap, LogIn, LogOut, Menu, X, Gamepad2, UserCircle2, ShieldCheck, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { Zap, LogIn, LogOut, Menu, X, UserCircle2, ShieldCheck, Loader2 } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import Button from '@/components/ui/Button';
 import HeaderSearch from '@/components/layout/HeaderSearch';
@@ -65,8 +66,9 @@ export default function Header({ user }: { user: CurrentUser | null }) {
         {/* aria-label: below sm the wordmark is hidden and the link held
             nothing but an icon, so screen readers announced a nameless link. */}
         <Link href="/" aria-label="Paroy Store — Beranda" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="w-10 h-10 rounded-[13px] bg-linear-to-br from-brand-magenta/15 to-brand-cyan/10 border border-brand-magenta/30 flex items-center justify-center text-brand-cyan shadow-[0_0_24px_-6px_rgba(255,46,154,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(255,46,154,0.6)] transition-shadow">
-            <Gamepad2 className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-[13px] bg-linear-to-br from-brand-magenta/15 to-brand-cyan/10 border border-brand-magenta/30 flex items-center justify-center overflow-hidden shadow-[0_0_24px_-6px_rgba(255,46,154,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(255,46,154,0.6)] transition-shadow">
+            {/* Kepala maskot Paroy Hoodie — lambang yang sama dengan favicon. */}
+            <Image src="/mascot/paroy-hoodie-head.svg" alt="" width={40} height={40} unoptimized className="w-full h-full" />
           </div>
           <span className="font-heading font-extrabold text-xl tracking-tight text-text-main hidden sm:inline">
             PAROY

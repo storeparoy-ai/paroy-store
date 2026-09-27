@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { cacheLife } from 'next/cache';
-import { Gamepad2, ShieldCheck, MessageCircle, Globe } from 'lucide-react';
+import Image from 'next/image';
+import { ShieldCheck, MessageCircle, Globe } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import { getActivePaymentMethods, getSiteSettings } from '@/lib/supabase/queries';
 
@@ -50,8 +51,8 @@ export default async function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-2 w-fit">
-              <div className="w-9 h-9 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
-                <Gamepad2 className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center overflow-hidden">
+                <Image src="/mascot/paroy-hoodie-head.svg" alt="" width={36} height={36} unoptimized className="w-full h-full" />
               </div>
               <span className="font-heading font-extrabold text-lg tracking-tight text-text-main">
                 PAROY<span className="text-brand-cyan">STORE</span>

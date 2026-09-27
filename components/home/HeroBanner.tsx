@@ -24,6 +24,11 @@ export default function HeroBanner({
   mascotImageUrl?: string | null;
 }) {
   const showcase = products.slice(0, 3);
+  // JPG tidak punya transparansi — hanya foto seperti itu yang perlu dipudarkan.
+  const isPhoto = !!mascotImageUrl && /\.jpe?g(\?|$)/i.test(mascotImageUrl);
+  // SVG disajikan apa adanya: pengoptimal tidak bisa memperbaiki vektor, dan
+  // setiap sumber yang ia sentuh dihitung ke kuota optimasi gambar Vercel.
+  const isVector = !!mascotImageUrl && /\.svg(\?|$)/i.test(mascotImageUrl);
 
   return (
     <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border-subtle bg-bg-card bg-grain">
@@ -82,42 +87,58 @@ export default function HeroBanner({
 
         {/* Fanned showcase cards */}
         <div className="relative hidden lg:block h-[380px]">
-          {/* Ukuran elemen gambar mengikuti rasio aslinya (w/h auto dalam batas
-              220×320), bukan `fill` — supaya masker .edge-fade memudarkan tepi
-              GAMBARNYA, bukan tepi kotak kosong di sekitarnya. Maskot sekarang
-              berupa JPG berlatar putih; tanpa pudar ia tampak seperti foto
-              yang ditempel di atas hero. */}
+          {/* Ukuran elemen gambar mengikuti rasio aslinya (w/h auto dalam
+              batas kotaknya), bukan `fill`, supaya efek apa pun mengenai tepi
+              GAMBARNYA, bukan kotak kosong di sekitarnya.
+              - Foto JPG (tanpa transparansi, mis. maskot lama berlatar putih):
+                tepinya dipudarkan agar tidak tampak seperti foto tempelan.
+              - Karakter berlatar transparan (Paroy Hoodie, SVG/PNG): TIDAK
+                dipudarkan — pudar akan memotong kepala dan badannya — tapi
+                diberi pendar di belakang dan melayang pelan.
+              Maskot berdiri di depan kartu (z-35): dengan 2–3 produk kartu
+              tengah memang tertutup sebagian, dan lapisan depan-belakang itu
+              yang memberi kedalaman. */}
           {mascotImageUrl && (
-            <div className="absolute -left-6 -bottom-10 z-0 w-55 h-80 flex items-end pointer-events-none">
+            <div className="absolute -left-2 -bottom-12 z-35 w-75 h-80 flex items-end justify-center pointer-events-none">
+              {!isPhoto && <div className="absolute inset-x-10 top-20 bottom-12 rounded-full bg-brand-violet/30 blur-3xl" />}
               <Image
                 src={mascotImageUrl}
                 alt="Maskot Paroy Store"
-                width={220}
+                width={300}
                 height={320}
-                className="edge-fade w-auto h-auto max-w-full max-h-full"
+                unoptimized={isVector}
+                className={cn('relative w-auto h-auto max-w-full max-h-full', isPhoto ? 'edge-fade' : 'mascot-float')}
               />
             </div>
           )}
-          {showcase.map((product, idx) => (
-            <div
-              key={product.id}
-              className={cn(
-                'absolute w-[248px] rounded-[20px] bg-bg-card-alt border border-border-subtle shadow-raised p-4 transition-transform',
-                CARD_POS[idx],
-                CARD_ROTATE[idx]
-              )}
-            >
-              <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-3">
-                <Image src={product.images[0]} alt={product.title} fill sizes="248px" className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-white/10" />
+          {showcase.map((product, idx) => {
+            // Kipas ini dirancang untuk tiga kartu dengan kartu belakang
+            // dipudarkan. Produk pertama (unggulan) selalu di posisi DEPAN;
+            // dulu dengan satu produk ia jatuh ke slot belakang yang pudar
+            // dan miring, jadi satu-satunya akun di hero tampak redup.
+            const slot = CARD_POS.length - 1 - idx;
+            return (
+              <div
+                key={product.id}
+                className={cn(
+                  'absolute w-62 rounded-[20px] bg-bg-card-alt border border-border-subtle shadow-raised p-4 transition-transform',
+                  CARD_POS[slot],
+                  CARD_ROTATE[slot]
+                )}
+              >
+                <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-3">
+                  <Image src={product.images[0]} alt={product.title} fill sizes="248px" className="object-cover" />
+                  <div className="absolute inset-0 bg-linear-to-tr from-transparent via-transparent to-white/10" />
+                </div>
+                <h4 className="font-heading font-bold text-[13px] text-text-main truncate mb-1">{product.title}</h4>
+                <span className="font-mono font-bold text-base text-brand-cyan">{formatCurrency(product.price)}</span>
               </div>
-              <h4 className="font-heading font-bold text-[13px] text-text-main truncate mb-1">{product.title}</h4>
-              <span className="font-mono font-bold text-base text-brand-cyan">{formatCurrency(product.price)}</span>
-            </div>
-          ))}
+            );
+          })}
 
+          {/* Kanan-bawah, bukan kiri-bawah: kiri-bawah kini tempat maskot. */}
           {showcase.length > 0 && (
-            <div className="absolute left-0 bottom-6 z-40 flex items-center gap-2.5 bg-bg-card-alt border border-trust-emerald/30 rounded-2xl px-4 py-3 shadow-elevated">
+            <div className="absolute right-0 bottom-4 z-40 flex items-center gap-2.5 bg-bg-card-alt border border-trust-emerald/30 rounded-2xl px-4 py-3 shadow-elevated">
               <div className="w-8 h-8 rounded-[10px] bg-trust-emerald/15 text-trust-emerald flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
