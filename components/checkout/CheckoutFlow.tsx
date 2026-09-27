@@ -14,7 +14,7 @@ import {
 import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import GameIcon from '@/components/ui/GameIcon';
-import Button from '@/components/ui/Button';
+import Button, { buttonVariants } from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import SubmitError from '@/components/shared/SubmitError';
 import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
@@ -101,10 +101,8 @@ export default function CheckoutFlow({
         </Card>
         <PaymentProofUpload orderNumber={invoiceNumber} />
 
-        <Link href="/cek-transaksi">
-          <Button variant="primary" className="w-full">
-            Lacak Status Transaksi
-          </Button>
+        <Link href="/cek-transaksi" className={cn(buttonVariants({ variant: 'primary' }), 'w-full')}>
+          Lacak Status Transaksi
         </Link>
       </div>
     );

@@ -6,7 +6,7 @@ import { Zap, CheckCircle2, Wallet, PartyPopper, Copy, ArrowLeft } from 'lucide-
 import Container from '@/components/ui/Container';
 import { Card, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import Button, { buttonVariants } from '@/components/ui/Button';
 import SubmitError from '@/components/shared/SubmitError';
 import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
 import PaymentDestination from '@/components/shared/PaymentDestination';
@@ -171,10 +171,8 @@ export default function TopupFlow({
           <PaymentProofUpload orderNumber={invoiceNumber} />
 
           <div className="flex flex-col gap-2.5 pt-2">
-            <Link href="/cek-transaksi" className={cn('inline-flex')}>
-              <Button variant="primary" className="w-full">
-                Lacak Status Transaksi
-              </Button>
+            <Link href="/cek-transaksi" className={cn(buttonVariants({ variant: 'primary' }), 'w-full')}>
+              Lacak Status Transaksi
             </Link>
             <Button variant="ghost" onClick={resetForm}>
               Top Up Lagi

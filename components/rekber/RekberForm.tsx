@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { ShieldCheck, Calculator, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import Button, { buttonVariants } from '@/components/ui/Button';
 import StatusTimeline from '@/components/shared/StatusTimeline';
 import SubmitError from '@/components/shared/SubmitError';
 import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
 import PaymentDestination from '@/components/shared/PaymentDestination';
 import { createRekberOrder } from '@/lib/supabase/actions';
-import { calculateRekberFeeFromTiers, formatCurrency, type RekberFeeTier } from '@/lib/utils';
+import { calculateRekberFeeFromTiers, formatCurrency, type RekberFeeTier, cn } from '@/lib/utils';
 import type { PaymentMethod } from '@/lib/supabase/queries';
 import type { Product } from '@/types';
 
@@ -100,10 +100,8 @@ export default function RekberForm({
 
         <PaymentProofUpload orderNumber={orderNumber} />
 
-        <Link href="/cek-transaksi">
-          <Button variant="primary" className="w-full">
-            Lacak Status Transaksi
-          </Button>
+        <Link href="/cek-transaksi" className={cn(buttonVariants({ variant: 'primary' }), 'w-full')}>
+          Lacak Status Transaksi
         </Link>
       </div>
     );

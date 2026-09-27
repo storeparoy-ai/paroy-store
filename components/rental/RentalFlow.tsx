@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import GameIcon from '@/components/ui/GameIcon';
 import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import Button, { buttonVariants } from '@/components/ui/Button';
 import SubmitError from '@/components/shared/SubmitError';
 import { createBuyOrder } from '@/lib/supabase/actions';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -94,10 +94,8 @@ export default function RentalFlow({ product }: { product: Product }) {
             <span className="font-mono font-bold text-brand-cyan">{invoiceNumber}</span>
           </CardContent>
         </Card>
-        <Link href="/cek-transaksi">
-          <Button variant="primary" className="w-full">
-            Lacak Status Transaksi
-          </Button>
+        <Link href="/cek-transaksi" className={cn(buttonVariants({ variant: 'primary' }), 'w-full')}>
+          Lacak Status Transaksi
         </Link>
       </div>
     );

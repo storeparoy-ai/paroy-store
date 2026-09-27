@@ -5,7 +5,7 @@ import Link, { useLinkStatus } from 'next/link';
 import Image from 'next/image';
 import { Zap, LogIn, LogOut, Menu, X, UserCircle2, ShieldCheck, Loader2 } from 'lucide-react';
 import Container from '@/components/ui/Container';
-import Button from '@/components/ui/Button';
+import Button, { buttonVariants } from '@/components/ui/Button';
 import HeaderSearch from '@/components/layout/HeaderSearch';
 import { signOutAction } from '@/lib/supabase/auth-actions';
 import { cn } from '@/lib/utils';
@@ -78,13 +78,16 @@ export default function Header({ user }: { user: CurrentUser | null }) {
           </span>
         </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+        {/* Desktop Nav — mulai xl (1280px). Di 1024px logo + 7 tautan + pencarian +
+            tombol butuh ±1180px: tombol Masuk/akun terdorong keluar layar dan
+            terpotong diam-diam (overflow-x: hidden). Di bawah xl pakai menu
+            hamburger. Ketemu lewat audit tampilan otomatis. */}
+        <nav className="hidden xl:flex items-center gap-1 flex-1 justify-center">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="px-3.5 py-2 rounded-lg text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors whitespace-nowrap"
+              className="px-3 2xl:px-3.5 py-2 rounded-lg text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors whitespace-nowrap"
             >
               {link.label}
             </Link>
@@ -93,7 +96,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
 
         {/* Desktop Search + Actions */}
         <div className="hidden md:flex items-center gap-5 shrink-0">
-          <div className="w-44 lg:w-52 xl:w-64">
+          <div className="w-44 lg:w-52 xl:w-48 2xl:w-64">
             <HeaderSearch />
           </div>
           {user ? (
@@ -110,9 +113,15 @@ export default function Header({ user }: { user: CurrentUser | null }) {
                   <LinkPending />
                 </Link>
               )}
-              <Link href="/profile/riwayat" className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors whitespace-nowrap">
+              <Link
+                href="/profile/riwayat"
+                aria-label={user.fullName ? `Akun saya (${user.fullName})` : 'Akun saya'}
+                className="flex items-center gap-1.5 text-xs font-semibold text-text-main hover:text-brand-cyan transition-colors whitespace-nowrap"
+              >
                 <UserCircle2 className="w-4 h-4" />
-                {user.fullName || 'Akun Saya'}
+                {/* Disembunyikan hanya di 1280–1399px: di sana, bersama menu
+                    lengkap, nama inilah yang membuat header melebihi layar. */}
+                <span className="xl:hidden min-[1400px]:inline">{user.fullName || 'Akun Saya'}</span>
                 <LinkPending />
               </Link>
               <form action={signOutAction}>
@@ -122,11 +131,9 @@ export default function Header({ user }: { user: CurrentUser | null }) {
               </form>
             </div>
           ) : (
-            <Link href="/login">
-              <Button variant="outline" size="sm">
-                <LogIn className="w-3.5 h-3.5" />
-                Masuk
-              </Button>
+            <Link href="/login" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+              <LogIn className="w-3.5 h-3.5" />
+              Masuk
             </Link>
           )}
         </div>
@@ -134,7 +141,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
         {/* Mobile Toggle */}
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="lg:hidden w-11 h-11 -mr-1.5 flex items-center justify-center rounded-lg text-text-main hover:bg-white/5 transition-colors"
+          className="xl:hidden w-11 h-11 -mr-1.5 flex items-center justify-center rounded-lg text-text-main hover:bg-white/5 transition-colors"
           aria-label={mobileOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
           aria-expanded={mobileOpen}
         >
@@ -145,7 +152,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
       {/* Mobile Menu */}
       <div
         className={cn(
-          'lg:hidden overflow-hidden transition-all duration-300 border-t border-border-subtle bg-bg-deep',
+          'xl:hidden overflow-hidden transition-all duration-300 border-t border-border-subtle bg-bg-deep',
           // Dulu batasnya `max-h-104` (416px) sementara isinya 540px, jadi
           // 124px terakhir terpotong diam-diam oleh overflow-hidden: tombol
           // "Dashboard Admin" dan "Keluar" tidak pernah terlihat di ponsel,
@@ -178,19 +185,23 @@ export default function Header({ user }: { user: CurrentUser | null }) {
           </nav>
           {user ? (
             <div className="space-y-2">
-              <Link href="/profile/riwayat" className="block" onClick={() => setMobileOpen(false)}>
-                <Button variant="secondary" className="w-full">
-                  <UserCircle2 className="w-4 h-4" />
-                  {user.fullName || 'Akun Saya'}
-                </Button>
+              <Link
+                href="/profile/riwayat"
+                onClick={() => setMobileOpen(false)}
+                className={cn(buttonVariants({ variant: 'secondary' }), 'w-full')}
+              >
+                <UserCircle2 className="w-4 h-4" />
+                {user.fullName || 'Akun Saya'}
               </Link>
               {adminLanding && (
-                <Link href={adminLanding} className="block" onClick={() => setMobileOpen(false)}>
-                  <Button variant="secondary" className="w-full">
-                    <ShieldCheck className="w-4 h-4 text-trust-emerald" />
-                    Dashboard Admin
-                    <LinkPending />
-                  </Button>
+                <Link
+                  href={adminLanding}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(buttonVariants({ variant: 'secondary' }), 'w-full')}
+                >
+                  <ShieldCheck className="w-4 h-4 text-trust-emerald" />
+                  Dashboard Admin
+                  <LinkPending />
                 </Link>
               )}
               <form action={signOutAction}>
@@ -201,11 +212,13 @@ export default function Header({ user }: { user: CurrentUser | null }) {
               </form>
             </div>
           ) : (
-            <Link href="/login" className="block" onClick={() => setMobileOpen(false)}>
-              <Button variant="primary" className="w-full">
-                <LogIn className="w-4 h-4" />
-                Masuk / Daftar
-              </Button>
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className={cn(buttonVariants({ variant: 'primary' }), 'w-full')}
+            >
+              <LogIn className="w-4 h-4" />
+              Masuk / Daftar
             </Link>
           )}
         </Container>
