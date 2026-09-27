@@ -123,10 +123,18 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${rajdhani.variable} ${orbitron.variable} ${jetbrains.variable}`}>
       <body className="font-sans antialiased min-h-screen bg-bg-base text-text-main flex flex-col">
+        {/* Invisible until focused: the first Tab press offers a jump past
+            the header's nine-plus links straight to the page content. */}
+        <a
+          href="#konten"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-100 focus:px-4 focus:py-2.5 focus:rounded-lg focus:bg-bg-card-alt focus:text-brand-cyan focus:text-sm focus:font-bold"
+        >
+          Langsung ke konten
+        </a>
         <Suspense fallback={<Header user={null} />}>
           <HeaderWithSession />
         </Suspense>
-        <main className="flex-1">{children}</main>
+        <main id="konten" tabIndex={-1} className="flex-1 focus:outline-none">{children}</main>
         <Footer />
         <Suspense fallback={<BottomNavFallback />}>
           <BottomNav />

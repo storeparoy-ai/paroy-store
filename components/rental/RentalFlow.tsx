@@ -125,6 +125,8 @@ export default function RentalFlow({ product }: { product: Product }) {
             {availableUnits.map((u) => (
               <button
                 key={u.value}
+                type="button"
+                aria-pressed={unit === u.value}
                 onClick={() => {
                   setUnit(u.value);
                   setQty(1);
@@ -146,16 +148,18 @@ export default function RentalFlow({ product }: { product: Product }) {
             <span className="text-xs font-semibold text-text-main">Jumlah {unit === 'hourly' ? 'Jam' : 'Hari'}</span>
             <div className="flex items-center gap-3">
               <button
+                type="button"
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-text-main hover:bg-white/10 transition-colors"
+                className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-text-main hover:bg-white/10 transition-colors"
                 aria-label="Kurangi"
               >
                 <Minus className="w-3.5 h-3.5" />
               </button>
               <span className="font-mono font-bold text-text-main w-6 text-center">{qty}</span>
               <button
+                type="button"
                 onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
-                className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-text-main hover:bg-white/10 transition-colors"
+                className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-text-main hover:bg-white/10 transition-colors"
                 aria-label="Tambah"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -169,12 +173,15 @@ export default function RentalFlow({ product }: { product: Product }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Nama Lengkap"
+              autoComplete="name"
               value={buyerName}
               onChange={(e) => setBuyerName(e.target.value)}
               placeholder="Nama sesuai identitas"
             />
             <Input
               label="Nomor WhatsApp"
+              type="tel"
+              autoComplete="tel"
               value={buyerWhatsapp}
               onChange={(e) => setBuyerWhatsapp(e.target.value)}
               placeholder="Contoh: 081234567890"

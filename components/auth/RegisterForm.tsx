@@ -60,6 +60,7 @@ export default function RegisterForm({ redirectHint }: { redirectHint?: string }
           <Input
             label="Nama Lengkap"
             required
+            autoComplete="name"
             leftIcon={<User className="w-4 h-4" />}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
@@ -67,7 +68,9 @@ export default function RegisterForm({ redirectHint }: { redirectHint?: string }
           />
           <Input
             label="Nomor WhatsApp"
+            type="tel"
             required
+            autoComplete="tel"
             leftIcon={<Phone className="w-4 h-4" />}
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
@@ -77,6 +80,7 @@ export default function RegisterForm({ redirectHint }: { redirectHint?: string }
             label="Email"
             type="email"
             required
+            autoComplete="email"
             leftIcon={<Mail className="w-4 h-4" />}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -86,6 +90,7 @@ export default function RegisterForm({ redirectHint }: { redirectHint?: string }
             label="Password"
             type="password"
             required
+            autoComplete="new-password"
             leftIcon={<Lock className="w-4 h-4" />}
             value={password}
             onChange={(e) => setPassword(e.target.value)}

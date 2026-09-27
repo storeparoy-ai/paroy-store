@@ -62,7 +62,9 @@ export default function Header({ user }: { user: CurrentUser | null }) {
     <header className="sticky top-0 z-50 w-full bg-bg-deep border-b border-border-subtle">
       <Container className="flex items-center justify-between gap-4 h-20 lg:h-23">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+        {/* aria-label: below sm the wordmark is hidden and the link held
+            nothing but an icon, so screen readers announced a nameless link. */}
+        <Link href="/" aria-label="Paroy Store — Beranda" className="flex items-center gap-2.5 shrink-0 group">
           <div className="w-10 h-10 rounded-[13px] bg-linear-to-br from-brand-magenta/15 to-brand-cyan/10 border border-brand-magenta/30 flex items-center justify-center text-brand-cyan shadow-[0_0_24px_-6px_rgba(255,46,154,0.45)] group-hover:shadow-[0_0_28px_-4px_rgba(255,46,154,0.6)] transition-shadow">
             <Gamepad2 className="w-5 h-5" />
           </div>
@@ -130,8 +132,9 @@ export default function Header({ user }: { user: CurrentUser | null }) {
         {/* Mobile Toggle */}
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-text-main hover:bg-white/5 transition-colors"
-          aria-label="Buka menu navigasi"
+          className="lg:hidden w-11 h-11 -mr-1.5 flex items-center justify-center rounded-lg text-text-main hover:bg-white/5 transition-colors"
+          aria-label={mobileOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
+          aria-expanded={mobileOpen}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>

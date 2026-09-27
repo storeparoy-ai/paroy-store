@@ -31,7 +31,12 @@
 
   --color-text-main: #f1edff;
   --color-text-muted: #9089b8;
-  --color-text-dim: #6b6293;
+  /* Was #6b6293 — 3.15:1 on bg-card-alt, below the 4.5:1 WCAG AA minimum,
+     and this token carries real content (footer links, form section
+     headings, crossed-out prices, helper text). #857dae clears 4.5:1 on
+     every surface (lowest: 4.60 on bg-card-alt) while staying a step
+     dimmer than text-muted. */
+  --color-text-dim: #857dae;
 
   /* Nexus panels read as tighter/more technical than the old soft-rounded
      cards — shrinking the shared radius scale (rather than editing every
@@ -74,6 +79,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Keyboard focus ring for every element that doesn't style its own.
+   Chrome's default ring is near-black (#101010) — close to invisible on
+   this dark theme. In @layer base on purpose: any component's own
+   focus-visible:ring-* / focus:border-* utility still wins. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand-cyan);
+    outline-offset: 2px;
+  }
 }
 
 /* ========================

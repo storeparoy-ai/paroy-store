@@ -42,6 +42,8 @@ export default function SettingsForm({ user }: { user: CurrentUser }) {
           />
           <Input
             label="Nomor WhatsApp"
+            type="tel"
+            autoComplete="tel"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
             placeholder="Contoh: 081234567890"

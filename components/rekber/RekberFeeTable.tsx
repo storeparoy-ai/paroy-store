@@ -21,7 +21,7 @@ export default function RekberFeeTable({ tiers }: { tiers: RekberFeeTier[] }) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-text-dim uppercase tracking-wider text-[10px] border-b border-border-subtle">
+              <tr className="text-text-dim uppercase tracking-wider text-[11px] border-b border-border-subtle">
                 <th className="text-left py-2 font-semibold">Nominal Transaksi</th>
                 <th className="text-right py-2 font-semibold">Biaya Jasa</th>
               </tr>

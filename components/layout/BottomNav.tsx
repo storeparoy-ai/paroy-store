@@ -27,8 +27,9 @@ function NavItems({ isActive }: { isActive: (href: string) => boolean }) {
           <Link
             key={item.href}
             href={item.href}
+            aria-current={active ? 'page' : undefined}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors',
+              'flex flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors',
               active ? 'text-brand-cyan' : 'text-text-dim hover:text-text-muted'
             )}
           >

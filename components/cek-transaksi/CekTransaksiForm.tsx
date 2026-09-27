@@ -122,6 +122,10 @@ export default function CekTransaksiForm({ paymentMethods }: { paymentMethods: P
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <Input
+              aria-label="Nomor invoice"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder="Contoh: PS-20260905-A3F91C"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

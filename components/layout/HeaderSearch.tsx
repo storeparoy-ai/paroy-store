@@ -97,7 +97,7 @@ export default function HeaderSearch({ onNavigate }: { onNavigate?: () => void }
           onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
           leftIcon={<Search className="w-4 h-4" />}
           rightElement={loading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-text-dim" /> : undefined}
-          className="h-9 bg-bg-card-alt"
+          className="h-11 lg:h-9 bg-bg-card-alt"
         />
       </form>
 

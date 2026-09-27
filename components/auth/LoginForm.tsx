@@ -32,6 +32,7 @@ export default function LoginForm({ redirectHint }: { redirectHint?: string }) {
               label="Email"
               type="email"
               required
+              autoComplete="email"
               leftIcon={<Mail className="w-4 h-4" />}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -41,6 +42,7 @@ export default function LoginForm({ redirectHint }: { redirectHint?: string }) {
               label="Password"
               type="password"
               required
+              autoComplete="current-password"
               leftIcon={<Lock className="w-4 h-4" />}
               value={password}
               onChange={(e) => setPassword(e.target.value)}

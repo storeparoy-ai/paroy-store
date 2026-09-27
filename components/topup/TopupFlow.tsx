@@ -197,6 +197,8 @@ export default function TopupFlow({
               {catalog.map((group, idx) => (
                 <button
                   key={group.gameId}
+                  type="button"
+                  aria-pressed={idx === gameIndex}
                   onClick={() => {
                     setGameIndex(idx);
                     setItemId(null);
@@ -237,6 +239,8 @@ export default function TopupFlow({
               />
               <Input
                 label="Nomor WhatsApp"
+                type="tel"
+                autoComplete="tel"
                 placeholder="Contoh: 081234567890"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
@@ -257,6 +261,8 @@ export default function TopupFlow({
               {activeGameGroup.items.map((item) => (
                 <button
                   key={item.id}
+                  type="button"
+                  aria-pressed={itemId === item.id}
                   onClick={() => setItemId(item.id)}
                   className={cn(
                     'flex flex-col items-start gap-1 p-3.5 rounded-xl border text-left transition-colors',
@@ -281,6 +287,8 @@ export default function TopupFlow({
               {paymentMethods.map((method) => (
                 <button
                   key={method.code}
+                  type="button"
+                  aria-pressed={paymentCode === method.code}
                   onClick={() => setPaymentCode(method.code)}
                   className={cn(
                     'flex items-center gap-3 p-3.5 rounded-xl border transition-colors',
@@ -365,7 +373,7 @@ export default function TopupFlow({
 
           <Link
             href="/"
-            className="mt-3 flex items-center justify-center gap-1.5 text-xs text-text-muted hover:text-text-main transition-colors"
+            className="mt-1 flex items-center justify-center gap-1.5 min-h-11 text-xs text-text-muted hover:text-text-main transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Kembali ke Beranda

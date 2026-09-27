@@ -125,9 +125,10 @@ export default function ProductFilters({ games, priceRanges }: { games: Game[]; 
         <div className="flex items-center gap-2">
           <ArrowUpDown className="w-3.5 h-3.5 text-text-dim" />
           <select
+            aria-label="Urutkan"
             value={activeSort}
             onChange={(e) => updateParams({ sort: e.target.value === 'terbaru' ? undefined : e.target.value })}
-            className="bg-bg-card border border-border-subtle rounded-lg text-xs font-semibold text-text-main px-3 py-1.5 focus:outline-none focus:border-brand-cyan/50 cursor-pointer"
+            className="bg-bg-card border border-border-subtle rounded-lg text-base sm:text-xs font-semibold text-text-main px-3 py-1.5 focus:outline-none focus:border-brand-cyan/50 cursor-pointer"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>

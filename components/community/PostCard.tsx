@@ -68,7 +68,7 @@ function CommentRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="text-[11px] font-bold text-text-main truncate">{comment.authorName}</span>
-          <span className="text-[10px] text-text-dim shrink-0">{timeAgo(comment.createdAt)}</span>
+          <span className="text-[11px] text-text-dim shrink-0">{timeAgo(comment.createdAt)}</span>
           {canDelete && (
             <button
               onClick={() =>
@@ -176,7 +176,7 @@ export default function PostCard({
           <Avatar name={post.authorName} />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-text-main truncate">{post.authorName}</p>
-            <p className="text-[10px] text-text-dim">{timeAgo(post.createdAt)}</p>
+            <p className="text-[11px] text-text-dim">{timeAgo(post.createdAt)}</p>
           </div>
           {post.game && <Badge variant="cyan" size="sm">{post.game}</Badge>}
         </div>
@@ -187,8 +187,9 @@ export default function PostCard({
           <button
             onClick={handleLike}
             disabled={!canLike || liked || isPending}
+            aria-label={`Suka (${likes})`}
             className={cn(
-              'flex items-center gap-1.5 text-xs font-semibold transition-colors',
+              'flex items-center gap-1.5 py-3 -my-3 text-xs font-semibold transition-colors',
               liked ? 'text-urgency-red' : 'text-text-muted hover:text-urgency-red',
               !canLike && 'cursor-not-allowed opacity-60'
             )}
@@ -205,7 +206,7 @@ export default function PostCard({
             <button
               onClick={handleDeletePost}
               disabled={isPending}
-              className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-text-dim hover:text-urgency-red transition-colors disabled:opacity-50"
+              className="ml-auto flex items-center gap-1.5 py-3 -my-3 text-xs font-semibold text-text-dim hover:text-urgency-red transition-colors disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Hapus

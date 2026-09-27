@@ -1,4 +1,4 @@
-import React, { forwardRef, InputHTMLAttributes, ReactNode } from 'react';
+import React, { forwardRef, useId, InputHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -10,10 +10,17 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, leftIcon, rightElement, error, label, id, ...props }, ref) => {
+    // Callers almost never pass an id, and without one the <label>'s htmlFor
+    // pointed at nothing — screen readers announced every field as unnamed
+    // and tapping the label didn't focus the input.
+    const autoId = useId();
+    const inputId = id ?? autoId;
+    const errorId = `${inputId}-error`;
+
     return (
       <div className="w-full flex flex-col gap-1.5 text-left">
         {label && (
-          <label htmlFor={id} className="text-xs font-semibold text-text-muted">
+          <label htmlFor={inputId} className="text-xs font-semibold text-text-muted">
             {label}
           </label>
         )}
@@ -23,11 +30,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               {leftIcon}
             </div>
           )}
+          {/* text-base below sm: iOS Safari zooms the whole page in when a
+              focused input's font is under 16px. */}
           <input
-            id={id}
+            id={inputId}
             ref={ref}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
             className={cn(
-              'w-full h-11 bg-bg-card text-text-main placeholder:text-text-dim text-xs sm:text-sm rounded-xl border border-border-subtle transition-all duration-200 focus:outline-none focus:border-brand-cyan/60 focus:ring-1 focus:ring-brand-cyan/30 disabled:opacity-50 disabled:cursor-not-allowed',
+              'w-full h-11 bg-bg-card text-text-main placeholder:text-text-dim text-base sm:text-sm rounded-xl border border-border-subtle transition-all duration-200 focus:outline-none focus:border-brand-cyan/60 focus:ring-1 focus:ring-brand-cyan/30 disabled:opacity-50 disabled:cursor-not-allowed',
               leftIcon ? 'pl-10' : 'pl-4',
               rightElement ? 'pr-10' : 'pr-4',
               error && 'border-urgency-red/50 focus:border-urgency-red focus:ring-urgency-red/30',
@@ -41,7 +52,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && <span className="text-[11px] text-urgency-red font-medium">{error}</span>}
+        {error && (
+          <span id={errorId} className="text-[11px] text-urgency-red font-medium">
+            {error}
+          </span>
+        )}
       </div>
     );
   }

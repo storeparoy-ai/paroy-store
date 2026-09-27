@@ -72,7 +72,7 @@ export default function HeroBanner({
               <ShieldCheck className="w-4 h-4 text-trust-emerald" />
               Serah terima didampingi admin
             </span>
-            <span className="text-border-subtle">&middot;</span>
+            <span aria-hidden="true" className="text-border-subtle">&middot;</span>
             <span className="flex items-center gap-1.5">
               <Lock className="w-4 h-4 text-trust-emerald" />
               Dana aman lewat Rekber

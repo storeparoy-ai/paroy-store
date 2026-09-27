@@ -56,6 +56,8 @@ export default function PaymentDestination({
               return (
                 <button
                   key={m.code}
+                  type="button"
+                  aria-pressed={m.code === method.code}
                   onClick={() => setActiveCode(m.code)}
                   className={cn(
                     'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors',
@@ -76,6 +78,8 @@ export default function PaymentDestination({
           <div>
             <span className="text-[10px] uppercase tracking-wider text-text-dim">{method.label}</span>
             <button
+              type="button"
+              aria-label={`Salin nomor rekening ${method.accountNumber}`}
               onClick={() => copy(method.accountNumber.replace(/[-\s]/g, ''), 'number')}
               className="flex items-center gap-2 w-full text-left group"
             >
@@ -94,6 +98,8 @@ export default function PaymentDestination({
           <div className="pt-3 border-t border-border-subtle">
             <span className="text-[10px] uppercase tracking-wider text-text-dim">Nominal Transfer</span>
             <button
+              type="button"
+              aria-label={`Salin nominal ${formatCurrency(total)}`}
               onClick={() => copy(String(Math.round(total)), 'total')}
               className="flex items-center gap-2 w-full text-left group"
             >

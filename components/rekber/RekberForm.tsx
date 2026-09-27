@@ -113,11 +113,12 @@ export default function RekberForm({
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-10 items-start">
       <div className="space-y-6 min-w-0">
         <section className="space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-text-dim">Akun yang Direkber</h2>
+          <label htmlFor="rekber-product" className="block text-xs font-bold uppercase tracking-wider text-text-dim">Akun yang Direkber</label>
           <select
+            id="rekber-product"
             value={productId}
             onChange={(e) => setProductId(e.target.value)}
-            className="w-full bg-bg-card border border-border-subtle rounded-xl text-sm text-text-main px-4 py-3 focus:outline-none focus:border-brand-cyan/50 cursor-pointer"
+            className="w-full bg-bg-card border border-border-subtle rounded-xl text-base sm:text-sm text-text-main px-4 py-3 focus:outline-none focus:border-brand-cyan/50 cursor-pointer"
           >
             {products.map((p) => (
               <option key={p.id} value={p.id}>
@@ -129,8 +130,8 @@ export default function RekberForm({
 
         <section className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-wider text-text-dim">Data Pembeli</h2>
-          <Input label="Nama Lengkap" placeholder="Nama sesuai identitas" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} />
-          <Input label="Nomor WhatsApp" placeholder="Contoh: 081234567890" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+          <Input label="Nama Lengkap" autoComplete="name" placeholder="Nama sesuai identitas" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} />
+          <Input label="Nomor WhatsApp" type="tel" autoComplete="tel" placeholder="Contoh: 081234567890" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
         </section>
 
         <label className="flex items-start gap-2.5 text-xs text-text-muted cursor-pointer">
@@ -182,7 +183,7 @@ export default function RekberForm({
 
         <Link
           href="/products"
-          className="mt-3 flex items-center justify-center gap-1.5 text-xs text-text-muted hover:text-text-main transition-colors"
+          className="mt-1 flex items-center justify-center gap-1.5 min-h-11 text-xs text-text-muted hover:text-text-main transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Kembali ke Katalog
