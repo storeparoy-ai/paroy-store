@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { ShieldCheck, Clock } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/Card';
 import { buttonVariants } from '@/components/ui/Button';
+import GameIcon from '@/components/ui/GameIcon';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { Product } from '@/types';
 
@@ -37,7 +38,8 @@ export default function ProductCard({
               phone grid a card is ~165px wide, and side by side the two
               badges each wrapped onto two lines and overlapped. */}
           <span className="absolute top-3 left-3 max-w-[calc(100%-1.5rem)] px-2.5 py-1 rounded-full bg-bg-deep/70 text-[11px] font-extrabold text-text-main flex items-center gap-1 whitespace-nowrap">
-            {product.game.icon} <span className="truncate">{product.game.name}</span>
+            <GameIcon game={product.game} size={14} />
+            <span className="truncate">{product.game.name}</span>
           </span>
           {product.canRental && (
             <span className="absolute bottom-3 left-3 hex-clip px-3.5 py-1 bg-linear-to-r from-trust-emerald to-brand-cyan text-[11px] font-extrabold text-bg-deep flex items-center gap-1 whitespace-nowrap">

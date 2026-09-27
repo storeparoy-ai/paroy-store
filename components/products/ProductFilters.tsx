@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Clock, ArrowUpDown } from 'lucide-react';
+import GameIcon from '@/components/ui/GameIcon';
 import { cn, formatPriceRangeLabel, type PriceRange } from '@/lib/utils';
 import type { Game } from '@/types';
 
@@ -58,13 +59,14 @@ export default function ProductFilters({ games, priceRanges }: { games: Game[]; 
               key={game.id}
               onClick={() => updateParams({ game: activeGame === game.slug ? undefined : game.slug })}
               className={cn(
-                'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
                 activeGame === game.slug
                   ? 'bg-brand-cyan/15 text-brand-cyan border-brand-cyan/30'
                   : 'bg-white/5 text-text-muted border-border-subtle hover:border-white/20'
               )}
             >
-              {game.icon} {game.name}
+              <GameIcon game={game} size={16} />
+              {game.name}
             </button>
           ))}
         </div>

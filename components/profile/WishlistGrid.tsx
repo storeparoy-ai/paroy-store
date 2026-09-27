@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import GameIcon from '@/components/ui/GameIcon';
 import { toggleWishlistAction } from '@/lib/supabase/profile-actions';
 import { formatCurrency } from '@/lib/utils';
 import type { Product } from '@/types';
@@ -37,7 +38,10 @@ export default function WishlistGrid({ products }: { products: Product[] }) {
             <div className="relative aspect-video w-full bg-bg-card-alt overflow-hidden border-b border-border-subtle">
               <Image src={product.images[0]} alt={product.title} fill sizes="240px" className="object-cover" />
               <div className="absolute top-3 left-3">
-                <Badge variant="cyan" size="sm">{product.game.icon} {product.game.name}</Badge>
+                <Badge variant="cyan" size="sm">
+                  <GameIcon game={product.game} size={14} />
+                  {product.game.name}
+                </Badge>
               </div>
             </div>
           </Link>

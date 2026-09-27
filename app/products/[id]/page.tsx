@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import Badge from '@/components/ui/Badge';
+import GameIcon from '@/components/ui/GameIcon';
 import { Card, CardContent } from '@/components/ui/Card';
 import { buttonVariants } from '@/components/ui/Button';
 import ProductGallery from '@/components/products/ProductGallery';
@@ -146,7 +147,10 @@ export default async function ProductDetailPage({
           <ProductGallery images={product.images} title={product.title} />
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="cyan" size="md">{product.game.icon} {product.game.name}</Badge>
+            <Badge variant="cyan" size="md">
+              <GameIcon game={product.game} size={16} />
+              {product.game.name}
+            </Badge>
             {product.canRental && (
               <Badge variant="trust" size="md">
                 <Clock className="w-3.5 h-3.5" />

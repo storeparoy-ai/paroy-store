@@ -314,6 +314,7 @@ export interface TopupGameGroup {
   gameName: string;
   gameSlug: string;
   gameIcon: string | null;
+  gameIconUrl: string | null;
   items: TopupItem[];
 }
 
@@ -332,7 +333,7 @@ export async function getTopupCatalog(): Promise<TopupGameGroup[]> {
     const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('topup_items')
-      .select('id, label, amount, price, sort_order, games(id, name, slug, icon, sort_order)')
+      .select('id, label, amount, price, sort_order, games(id, name, slug, icon, icon_url, sort_order)')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
     if (error) throw error;
@@ -344,7 +345,7 @@ export async function getTopupCatalog(): Promise<TopupGameGroup[]> {
 
     for (const row of (data ?? []) as Array<Record<string, unknown>>) {
       const game = (Array.isArray(row.games) ? row.games[0] : row.games) as
-        | { id: string; name: string; slug: string; icon: string | null; sort_order: number }
+        | { id: string; name: string; slug: string; icon: string | null; icon_url: string | null; sort_order: number }
         | null;
       if (!game) continue;
 
@@ -365,6 +366,7 @@ export async function getTopupCatalog(): Promise<TopupGameGroup[]> {
           gameName: game.name,
           gameSlug: game.slug,
           gameIcon: game.icon,
+          gameIconUrl: game.icon_url,
           items: [item],
         });
       }

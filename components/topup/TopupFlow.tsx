@@ -11,6 +11,7 @@ import SubmitError from '@/components/shared/SubmitError';
 import PaymentProofUpload from '@/components/shared/PaymentProofUpload';
 import PaymentDestination from '@/components/shared/PaymentDestination';
 import { createTopupOrder } from '@/lib/supabase/actions';
+import GameIcon from '@/components/ui/GameIcon';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { PaymentMethod, TopupGameGroup } from '@/lib/supabase/queries';
 
@@ -210,7 +211,7 @@ export default function TopupFlow({
                       : 'bg-bg-card border-border-subtle text-text-muted hover:border-white/20'
                   )}
                 >
-                  <span className="text-2xl">{group.gameIcon ?? '🎮'}</span>
+                  <GameIcon game={{ icon: group.gameIcon ?? '🎮', iconUrl: group.gameIconUrl }} size={40} />
                   <span className="text-[11px] font-semibold text-center leading-tight">
                     {group.gameName}
                   </span>

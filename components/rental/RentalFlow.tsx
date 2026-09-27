@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Clock, ShieldAlert, PartyPopper, Minus, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import GameIcon from '@/components/ui/GameIcon';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import SubmitError from '@/components/shared/SubmitError';
@@ -111,7 +112,10 @@ export default function RentalFlow({ product }: { product: Product }) {
               <Image src={product.images[0]} alt={product.title} fill sizes="96px" className="object-cover" />
             </div>
             <div className="min-w-0 flex-1 space-y-1">
-              <Badge variant="cyan" size="sm">{product.game.icon} {product.game.name}</Badge>
+              <Badge variant="cyan" size="sm">
+                <GameIcon game={product.game} size={14} />
+                {product.game.name}
+              </Badge>
               <h2 className="font-heading font-bold text-sm sm:text-base text-text-main line-clamp-2">
                 {product.title}
               </h2>
