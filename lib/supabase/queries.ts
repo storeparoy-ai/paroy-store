@@ -142,41 +142,37 @@ export interface PaymentMethod {
   feeFlat: number;
 }
 
-const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'bca', code: 'bca', label: 'Transfer BCA', accountNumber: '1234567890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
-  { id: 'mandiri', code: 'mandiri', label: 'Transfer Mandiri', accountNumber: '0987654321', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
-  { id: 'gopay', code: 'gopay', label: 'GoPay', accountNumber: '0812-3456-7890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
-  { id: 'dana', code: 'dana', label: 'DANA', accountNumber: '0812-3456-7890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
-  { id: 'ovo', code: 'ovo', label: 'OVO', accountNumber: '0812-3456-7890', accountName: 'Paroy Store', feePercent: 0, feeFlat: 0 },
-];
-
-/** Admin-editable payment methods (see migration 00000000000005). Falls
- * back to the previously-hardcoded list if the table is empty/unreachable. */
+/** Admin-editable payment methods (see migration 00000000000005).
+ *
+ * Deliberately NO fallback data. This used to return a demo list on any
+ * error — "Transfer BCA 1234567890", "Mandiri 0987654321", real-looking
+ * account numbers belonging to strangers — and `'use cache'` then kept that
+ * result for up to an hour, so one failed read (e.g. Supabase pausing an
+ * idle project) would show buyers somebody else's bank account at checkout.
+ *
+ * Throwing is the safe failure: a thrown cache fill is not stored, the page
+ * shows error.tsx with "coba lagi", and the next request retries for real. An
+ * empty table returns [] — checkout/top up then cannot be submitted, which is
+ * right when there is nowhere to pay. */
 export async function getActivePaymentMethods(): Promise<PaymentMethod[]> {
   'use cache';
   cacheLife('hours');
-  try {
-    const supabase = createPublicClient();
-    const { data, error } = await supabase
-      .from('payment_methods')
-      .select('id, code, label, account_number, account_name, fee_percent, fee_flat')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
-    if (error) throw error;
-    if (!data || data.length === 0) return MOCK_PAYMENT_METHODS;
-    return data.map((row) => ({
-      id: row.id,
-      code: row.code,
-      label: row.label,
-      accountNumber: row.account_number,
-      accountName: row.account_name,
-      feePercent: Number(row.fee_percent ?? 0),
-      feeFlat: Number(row.fee_flat ?? 0),
-    }));
-  } catch (err) {
-    console.error('[getActivePaymentMethods] falling back to mock data:', err);
-    return MOCK_PAYMENT_METHODS;
-  }
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from('payment_methods')
+    .select('id, code, label, account_number, account_name, fee_percent, fee_flat')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true });
+  if (error) throw new Error(`[getActivePaymentMethods] ${error.message}`);
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    code: row.code,
+    label: row.label,
+    accountNumber: row.account_number,
+    accountName: row.account_name,
+    feePercent: Number(row.fee_percent ?? 0),
+    feeFlat: Number(row.fee_flat ?? 0),
+  }));
 }
 
 const MOCK_REKBER_FEE_TIERS: RekberFeeTier[] = [
